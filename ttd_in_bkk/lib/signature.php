@@ -39,34 +39,82 @@ function store_signature_image(string $dataUrl, string $idPeg): string {
     $dir = dirname(__DIR__) . '/storage/signatures';
     if (!is_dir($dir)) mkdir($dir, 0750, true);
 
-    $name = hash('sha256', $idPeg . '|ttd') . '.png';
+    // Keep old signature files available so a signed document can retain its TTD snapshot.
+    $name = hash('sha256', $idPeg . '|' . hash('sha256', $raw)) . '.png';
     $path = $dir . '/' . $name;
 
-    if (function_exists('imagecreatefromstring')) {
-        $src = imagecreatefromstring($raw);
-        $w = imagesx($src); $h = imagesy($src);
-        $dst = imagecreatetruecolor($w, $h);
-        imagealphablending($dst, false);
-        imagesavealpha($dst, true);
-        $transparent = imagecolorallocatealpha($dst, 255,255,255,127);
-        imagefill($dst,0,0,$transparent);
-        for ($y=0;$y<$h;$y++) {
-            for ($x=0;$x<$w;$x++) {
-                $rgb = imagecolorat($src,$x,$y);
-                $r=($rgb>>16)&255; $g=($rgb>>8)&255; $b=$rgb&255;
-                if ($r>242 && $g>242 && $b>242) {
-                    imagesetpixel($dst,$x,$y,$transparent);
-                } else {
-                    $c = imagecolorallocatealpha($dst,$r,$g,$b,0);
-                    imagesetpixel($dst,$x,$y,$c);
-                }
-            }
-        }
-        imagepng($dst,$path,6);
-        imagedestroy($src); imagedestroy($dst);
-    } else {
+    if (!render_signature_png($raw, $path)) {
         file_put_contents($path, $raw);
+    } else {
+        // render_signature_png already saved the normalized PNG.
     }
 
     return 'storage/signatures/' . $name;
+}
+
+function render_signature_png(string $raw, string $path): bool {
+    if (!function_exists('imagecreatefromstring')) {
+        return false;
+    }
+
+    $src = @imagecreatefromstring($raw);
+    if (!$src) {
+        return false;
+    }
+
+    $width = imagesx($src);
+    $height = imagesy($src);
+    $dst = imagecreatetruecolor($width, $height);
+    imagealphablending($dst, true);
+    $white = imagecolorallocate($dst, 255, 255, 255);
+    imagefill($dst, 0, 0, $white);
+
+    $cornerPixels = [
+        imagecolorsforindex($src, imagecolorat($src, 0, 0)),
+        imagecolorsforindex($src, imagecolorat($src, $width - 1, 0)),
+        imagecolorsforindex($src, imagecolorat($src, 0, $height - 1)),
+        imagecolorsforindex($src, imagecolorat($src, $width - 1, $height - 1)),
+    ];
+    $blackCornerCount = 0;
+    foreach ($cornerPixels as $corner) {
+        if ($corner['alpha'] < 10 && $corner['red'] < 20 && $corner['green'] < 20 && $corner['blue'] < 20) {
+            $blackCornerCount++;
+        }
+    }
+    $legacyBlackBackground = $blackCornerCount >= 3;
+
+    for ($y = 0; $y < $height; $y++) {
+        for ($x = 0; $x < $width; $x++) {
+            $pixel = imagecolorsforindex($src, imagecolorat($src, $x, $y));
+            if ($legacyBlackBackground && $pixel['alpha'] < 10 && $pixel['red'] < 20 && $pixel['green'] < 20 && $pixel['blue'] < 20) {
+                continue;
+            }
+            $sourceOpacity = 1 - ($pixel['alpha'] / 127);
+            $brightness = ($pixel['red'] + $pixel['green'] + $pixel['blue']) / 3;
+            $inkStrength = ((255 - $brightness) / 255) * $sourceOpacity;
+
+            if ($inkStrength < .06) {
+                continue;
+            }
+
+            $alpha = (int)round(127 * (1 - min(1, $inkStrength)));
+            $ink = imagecolorallocatealpha($dst, 0, 0, 0, $alpha);
+            imagesetpixel($dst, $x, $y, $ink);
+        }
+    }
+
+    imagesavealpha($dst, false);
+    $saved = imagepng($dst, $path, 6);
+    imagedestroy($src);
+    imagedestroy($dst);
+    return $saved;
+}
+
+function normalize_signature_file(string $path): bool {
+    if (!is_file($path)) {
+        return false;
+    }
+
+    $raw = file_get_contents($path);
+    return $raw !== false && render_signature_png($raw, $path);
 }

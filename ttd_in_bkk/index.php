@@ -17,26 +17,29 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
             try {
                 $login=sso_login($idPeg,$password);
                 $body=$login['body'];
-                $token=$body['data']['token']??$body['token']??null;
-                if ($login['status']!==200||!$token) {
+                $token=sso_extract_token($body);
+                if (!$login['ok']||!$token) {
                     $error=$body['message']??'Login SSO gagal.';
                 } else {
                     $who=sso_whoami($token);
-                    $profile=$who['body']['data']??null;
-                    if ($who['status']!==200||!is_array($profile)) {
+                    $profile=sso_extract_profile($who['body']);
+                    if (!$who['ok']||$profile===null) {
                         $error=$who['body']['message']??'Profil SSO tidak dapat diambil.';
                     } else {
                         session_regenerate_id(true);
+                        csrf_regenerate();
                         $_SESSION['sso_token']=$token;
                         $_SESSION['user']=$profile;
-                        log_signature($pdo,(string)$profile['employee_id'],'LOGIN','SUCCESS',null,'TTD IN BKK');
-                        $sig=get_signature_profile($pdo,(string)$profile['employee_id']);
-                        $sec=get_signature_security($pdo,(string)$profile['employee_id']);
+                        $employeeId=(string)$profile['employee_id'];
+                        log_signature($pdo,$employeeId,'LOGIN','SUCCESS',null,'TTD IN BKK');
+                        $sig=get_signature_profile($pdo,$employeeId);
+                        $sec=get_signature_security($pdo,$employeeId);
                         redirect_to(($sig&&$sec&&$sig['status']==='ACTIVE')?'dashboard.php':'register-signature.php');
                     }
                 }
             } catch(Throwable $e) {
-                $error=$e->getMessage();
+                error_log('[TTD IN BKK] Login error: ' . $e->getMessage());
+                $error='Login belum dapat diproses. Periksa koneksi SSO dan database.';
             }
         }
     }
@@ -45,23 +48,36 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
 <!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TTD IN BKK</title><link rel="stylesheet" href="<?=e(base_url('assets/app.css'))?>"></head><body>
 <div class="login">
   <section class="login-left">
-    <div class="brand" style="color:#fff"><span class="brandmark" style="background:#fff;color:#093a67">BKK</span>PT BPR BKK JATENG</div>
-    <div style="max-width:640px;margin-top:70px">
-      <span class="badge" style="background:#ffffff22;color:#fff">TTD DIGITAL TERPUSAT</span>
-      <h1 style="font-size:clamp(42px,5vw,72px);line-height:1;margin:20px 0">TTD IN BKK</h1>
-      <p style="font-size:18px;opacity:.9">Satu identitas SSO, satu profil tanda tangan, dan satu PIN untuk penggunaan TTD lintas aplikasi internal.</p>
+    <div class="brand login-brand">
+      <span class="brandmark"><img src="<?=e(base_url('img/logo.png'))?>" alt="Logo BKK"></span>
+      <span>PT BPR BKK JATENG</span>
+    </div>
+    <div class="login-copy">
+      <span class="badge" style="background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.25)">TTD DIGITAL TERPUSAT</span>
+      <h1>TTD IN BKK</h1>
+      <p>Satu identitas SSO, satu profil tanda tangan, dan satu PIN untuk penggunaan TTD lintas aplikasi internal.</p>
+      <ul class="login-features">
+        <li>Registrasi TTD dengan gambar atau upload file</li>
+        <li>PIN pribadi untuk setiap proses signing</li>
+        <li>QR verifikasi dan audit trail otomatis</li>
+      </ul>
     </div>
   </section>
   <section class="login-right">
-    <form class="card" method="post">
-      <div class="brand"><span class="brandmark">BKK</span><div>TTD IN BKK<br><small class="muted">Login menggunakan BKK SSO 2026</small></div></div>
-      <h2 style="margin-top:30px">Login Pegawai</h2>
+    <form class="card login-form-card" method="post">
+      <div class="brand">
+        <span class="brandmark"><img src="<?=e(base_url('img/logo.png'))?>" alt="Logo BKK"></span>
+        <span class="brand-name">TTD IN BKK<small>Login menggunakan BKK SSO 2026</small></span>
+      </div>
+      <span class="eyebrow">Akses pegawai</span>
+      <h2>Login Pegawai</h2>
+      <p class="muted">Masuk menggunakan akun BKK SSO Anda untuk mengelola tanda tangan digital.</p>
       <?php if($error):?><div class="alert alert-error"><?=e($error)?></div><?php endif;?>
       <?=csrf_input()?>
-      <label>ID Pegawai</label><input class="input" name="id_peg" required autofocus>
-      <label>Password</label><input class="input" type="password" name="password" required>
-      <button class="btn btn-primary w100" style="margin-top:20px">Masuk melalui SSO</button>
-      <p class="muted" style="font-size:12px;margin-top:16px">Password hanya diteruskan ke BKK SSO dan tidak disimpan di database TTD IN BKK.</p>
+      <label for="id_peg">ID Pegawai</label><input class="input" id="id_peg" name="id_peg" autocomplete="username" required autofocus placeholder="Masukkan ID pegawai">
+      <label for="password">Password</label><input class="input" id="password" type="password" name="password" autocomplete="current-password" required placeholder="Masukkan password">
+      <button class="btn btn-primary w100" style="margin-top:22px">Masuk melalui SSO</button>
+      <p class="field-help">Password hanya diteruskan ke BKK SSO dan tidak disimpan di database TTD IN BKK.</p>
     </form>
   </section>
 </div></body></html>

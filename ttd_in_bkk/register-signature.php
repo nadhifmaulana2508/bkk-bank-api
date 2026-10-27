@@ -33,30 +33,112 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
                 redirect_to('dashboard.php');
             } catch(Throwable $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
-                $error=$e->getMessage();
+                error_log('[TTD IN BKK] Signature registration error: ' . $e->getMessage());
+                $error='TTD belum dapat disimpan. Silakan coba lagi.';
             }
         }
     }
 }
 ?>
 <!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Registrasi TTD</title><link rel="stylesheet" href="<?=e(base_url('assets/app.css'))?>"></head><body><div class="app"><?php require __DIR__.'/partials/header.php';?>
-<main class="page"><div class="grid">
-<section class="card hero"><span class="badge">REGISTRASI WAJIB</span><h1 style="margin-top:14px">Buat TTD Digital Anda</h1><p class="muted">Gambar langsung atau upload TTD, lalu buat PIN 6 digit. Setelah aktif, PIN akan diminta setiap kali melakukan tanda tangan.</p>
+<main class="page"><div class="page-intro"><div><span class="eyebrow">Pengaturan keamanan</span><h1>Registrasi TTD</h1><p class="muted lead">Buat profil tanda tangan dan PIN pribadi sebelum menggunakan fitur signing.</p></div><span class="badge">LANGKAH 1 DARI 1</span></div><div class="grid">
+<section class="card hero"><div class="card-header"><div><span class="badge">TTD DIGITAL</span><h2>Buat TTD Digital Anda</h2></div></div><p class="muted">Gambar langsung atau upload TTD, lalu buat PIN 6 digit. Setelah aktif, menu <b>Coba TTD Surat</b> tersedia di dashboard.</p>
 <?php if($error):?><div class="alert alert-error"><?=e($error)?></div><?php endif;?>
 <form method="post" id="form"><?=csrf_input()?>
-<label>Gambar / Upload TTD</label><div class="signature-stage"><canvas id="pad" width="1000" height="400"></canvas></div>
-<div class="actions" style="margin-top:12px"><button type="button" class="btn btn-soft" id="clear">Hapus</button><label class="btn btn-soft" style="margin:0;cursor:pointer">Upload PNG/JPG<input id="upload" type="file" accept="image/png,image/jpeg" hidden></label></div>
+<label for="pad">Gambar tanda tangan</label><div class="signature-stage"><canvas id="pad" width="1000" height="400" aria-label="Area gambar tanda tangan"></canvas></div>
+<p class="field-help">Gunakan mouse, jari, atau stylus. Tinta akan disimpan sebagai gambar dengan latar putih dan pena hitam.</p>
+<div class="actions" style="margin-top:12px"><button type="button" class="btn btn-soft" id="clear">Hapus gambar</button><label class="btn btn-soft" style="margin:0;cursor:pointer">Upload PNG/JPG<input id="upload" type="file" accept="image/png,image/jpeg" hidden></label></div>
 <input type="hidden" name="signature_data" id="signatureData">
-<div class="two" style="margin-top:18px"><div><label>PIN TTD 6 digit</label><input class="input pin" type="password" inputmode="numeric" maxlength="6" name="pin" required></div><div><label>Konfirmasi PIN</label><input class="input pin" type="password" inputmode="numeric" maxlength="6" name="pin_confirmation" required></div></div>
-<button class="btn btn-primary" style="margin-top:18px">Simpan & Aktifkan TTD</button></form></section>
-<aside class="card side"><h3>Identitas dari SSO</h3><p><b><?=e($user['full_name']??'-')?></b><br><span class="muted"><?=e($user['employee_id']??'-')?></span></p><p><b>Jabatan</b><br><span class="muted"><?=e($user['job_position']??'-')?></span></p><p><b>Unit Kerja</b><br><span class="muted"><?=e($user['unit_kerja']??'-')?></span></p><div class="alert alert-warning">PIN tidak pernah disimpan sebagai angka asli. Sistem hanya menyimpan hash PIN.</div></aside>
+<div class="two" style="margin-top:18px"><div><label for="pin">PIN TTD 6 digit</label><input class="input pin" id="pin" type="password" inputmode="numeric" maxlength="6" name="pin" autocomplete="new-password" required placeholder="••••••"><p class="field-help">PIN ini wajib dimasukkan setiap kali menandatangani surat.</p></div><div><label for="pin_confirmation">Konfirmasi PIN</label><input class="input pin" id="pin_confirmation" type="password" inputmode="numeric" maxlength="6" name="pin_confirmation" autocomplete="new-password" required placeholder="••••••"></div></div>
+<button class="btn btn-primary" style="margin-top:18px" id="saveButton">Simpan & Aktifkan TTD</button></form></section>
+<aside class="card side"><div class="card-header"><div><span class="eyebrow">Data terverifikasi</span><h3>Identitas dari SSO</h3></div><span class="badge">SSO</span></div><dl class="profile-list"><div><dt>Nama lengkap</dt><dd><?=e($user['full_name']??'-')?></dd></div><div><dt>ID Pegawai</dt><dd><?=e($user['employee_id']??'-')?></dd></div><div><dt>Jabatan</dt><dd><?=e($user['job_position']??'-')?></dd></div><div><dt>Unit kerja</dt><dd><?=e($user['unit_kerja']??'-')?></dd></div></dl><div class="alert alert-warning">PIN tidak pernah disimpan sebagai angka asli. Sistem hanya menyimpan hash PIN.</div></aside>
 </div></main></div>
 <script>
-const c=document.getElementById('pad'),ctx=c.getContext('2d');ctx.lineWidth=5;ctx.lineCap='round';ctx.strokeStyle='#0b315d';let drawing=false,last=null;
-function pt(e){const r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*c.width/r.width,y:(p.clientY-r.top)*c.height/r.height}}
-function st(e){drawing=true;last=pt(e);e.preventDefault()}function mv(e){if(!drawing)return;const p=pt(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;e.preventDefault()}function en(){drawing=false}
-['mousedown','touchstart'].forEach(x=>c.addEventListener(x,st,{passive:false}));['mousemove','touchmove'].forEach(x=>c.addEventListener(x,mv,{passive:false}));['mouseup','mouseleave','touchend'].forEach(x=>c.addEventListener(x,en));
-clear.onclick=()=>ctx.clearRect(0,0,c.width,c.height);
-upload.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{ctx.clearRect(0,0,c.width,c.height);const s=Math.min(c.width/im.width,c.height/im.height),w=im.width*s,h=im.height*s;ctx.drawImage(im,(c.width-w)/2,(c.height-h)/2,w,h)};im.src=r.result};r.readAsDataURL(f)};
-form.onsubmit=()=>signatureData.value=c.toDataURL('image/png');
+const canvas = document.getElementById('pad');
+const ctx = canvas.getContext('2d', { alpha: true });
+const form = document.getElementById('form');
+const clearButton = document.getElementById('clear');
+const upload = document.getElementById('upload');
+const signatureData = document.getElementById('signatureData');
+const saveButton = document.getElementById('saveButton');
+const lineColor = '#111111';
+let drawing = false;
+let hasInk = false;
+let last = null;
+
+ctx.lineWidth = 8;
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+ctx.strokeStyle = lineColor;
+
+function point(event) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (event.clientX - rect.left) * canvas.width / rect.width,
+    y: (event.clientY - rect.top) * canvas.height / rect.height
+  };
+}
+
+canvas.addEventListener('pointerdown', (event) => {
+  drawing = true;
+  hasInk = true;
+  last = point(event);
+  canvas.setPointerCapture?.(event.pointerId);
+  event.preventDefault();
+});
+canvas.addEventListener('pointermove', (event) => {
+  if (!drawing) return;
+  const next = point(event);
+  ctx.beginPath();
+  ctx.moveTo(last.x, last.y);
+  ctx.lineTo(next.x, next.y);
+  ctx.stroke();
+  last = next;
+  event.preventDefault();
+});
+['pointerup', 'pointercancel', 'pointerleave'].forEach((name) => {
+  canvas.addEventListener(name, () => { drawing = false; last = null; });
+});
+
+clearButton.addEventListener('click', () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  hasInk = false;
+  signatureData.value = '';
+  upload.value = '';
+});
+
+upload.addEventListener('change', (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!['image/png', 'image/jpeg'].includes(file.type) || file.size > 3 * 1024 * 1024) {
+    alert('File harus PNG/JPG dan maksimal 3 MB.');
+    upload.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const image = new Image();
+    image.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const scale = Math.min(canvas.width / image.width, canvas.height / image.height) * .86;
+      const width = image.width * scale;
+      const height = image.height * scale;
+      ctx.drawImage(image, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+      hasInk = true;
+    };
+    image.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+form.addEventListener('submit', (event) => {
+  if (!hasInk) {
+    event.preventDefault();
+    alert('Silakan gambar atau upload tanda tangan terlebih dahulu.');
+    return;
+  }
+  signatureData.value = canvas.toDataURL('image/png');
+  saveButton.disabled = true;
+  saveButton.textContent = 'Menyimpan TTD...';
+});
 </script></body></html>

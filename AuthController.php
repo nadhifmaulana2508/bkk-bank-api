@@ -40,7 +40,7 @@ class AuthController {
             sendResponse(401, "Password salah"); return;
         }
 
-        $allowedApps = ['monbis', 'ims', 'simontok', 'simstock', 'simpeg', 'vitised_ao', 'portal_bkk', 'sipatuh'];
+        $allowedApps = ['monbis', 'ims', 'rekrutmen' ,'simontok', 'simstock', 'simpeg', 'vitised_ao', 'portal_bkk', 'sipatuh'];
         if (!in_array($app, $allowedApps)) {
             sendResponse(400, "App tidak valid"); return;
         }

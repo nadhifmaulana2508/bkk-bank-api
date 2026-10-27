@@ -41,9 +41,9 @@ try {
     ];
     $hash=hash('sha256',json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
     $token=bin2hex(random_bytes(32));
-    $pdo->prepare("INSERT INTO signature_documents(document_id,id_peg,application,document_name,document_hash,verification_token)
-                   VALUES(:doc,:id,:app,:name,:hash,:token)")
-        ->execute(['doc'=>$docId,'id'=>$idPeg,'app'=>$app,'name'=>$docName,'hash'=>$hash,'token'=>$token]);
+    $pdo->prepare("INSERT INTO signature_documents(document_id,id_peg,signature_path,application,document_name,document_hash,verification_token)
+                   VALUES(:doc,:id,:signature_path,:app,:name,:hash,:token)")
+        ->execute(['doc'=>$docId,'id'=>$idPeg,'signature_path'=>$profile['signature_path'],'app'=>$app,'name'=>$docName,'hash'=>$hash,'token'=>$token]);
     log_signature($pdo,$idPeg,'SIGN','SUCCESS',$docId,$app);
     $pdo->commit();
 

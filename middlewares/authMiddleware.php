@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/../helpers/jwt.php';
 
 $SECRET_KEY = "SSO_BKK_SECRET_2026";
@@ -18,13 +19,13 @@ function auth() {
 
     $token = getBearerToken();
     if (!$token) {
-        response(401, "Unauthorized");
+        sendResponse(401, "Unauthorized");
         exit;
     }
 
     $decoded = jwt_decode($token, $SECRET_KEY);
     if (!$decoded) {
-        response(401, "Invalid token");
+        sendResponse(401, "Invalid token");
         exit;
     }
 

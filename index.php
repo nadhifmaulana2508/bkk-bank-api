@@ -58,6 +58,16 @@ elseif ($uri === '/api/auth/reset-password' && $method === 'POST') {
 elseif ($uri === '/api/ao/list' && $method === 'GET') {
     AoController::getAoByCabang();
 }
+// REST API TTD IN BKK tanpa Bearer token.
+// Endpoint tetap memerlukan pass_endpoint pada JSON body.
+elseif ($uri === '/api/ttd/status' && $method === 'POST') {
+    require_once __DIR__ . '/TtdApiController.php';
+    TtdApiController::status();
+}
+elseif ($uri === '/api/ttd/sign' && $method === 'POST') {
+    require_once __DIR__ . '/TtdApiController.php';
+    TtdApiController::sign();
+}
 else {
     sendResponse(404, "Route tidak ditemukan", ["uri" => $uri, "method" => $method]);
 }

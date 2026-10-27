@@ -392,6 +392,122 @@
           }
         }
       }
+    },
+    "/api/ttd/status": {
+      "post": {
+        "summary": "Cek status TTD pegawai tanpa Bearer token",
+        "description": "Endpoint integrasi aplikasi lain. Kirim pass_endpoint pada JSON body.",
+        "tags": ["TTD IN BKK"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id_peg", "nama_aplikasi", "pass_endpoint"],
+                "properties": {
+                  "id_peg": {"type": "string", "example": "102-119"},
+                  "nama_aplikasi": {"type": "string", "example": "simpeg"},
+                  "pass_endpoint": {"type": "string", "format": "password", "example": "bkkjateng123"}
+                }
+              },
+              "example": {
+                "id_peg": "102-119",
+                "nama_aplikasi": "simpeg",
+                "pass_endpoint": "bkkjateng123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status TTD berhasil dibaca",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "TTD aktif.",
+                  "data": {
+                    "code": "SIGNATURE_ACTIVE",
+                    "id_peg": "102-119",
+                    "nama_aplikasi": "simpeg",
+                    "registered": true,
+                    "active": true,
+                    "can_sign": true,
+                    "signature_url": "http://localhost/rest_api_sso/ttd_in_bkk/storage/signatures/example.png"
+                  }
+                }
+              }
+            }
+          },
+          "401": {"description": "pass_endpoint tidak valid"},
+          "422": {"description": "Field wajib belum diisi"}
+        }
+      }
+    },
+    "/api/ttd/sign": {
+      "post": {
+        "summary": "Tanda tangani dokumen menggunakan TTD IN BKK",
+        "description": "Tidak menggunakan Bearer token. PIN TTD divalidasi server-side dan setiap percobaan dicatat pada audit trail. document_id, document_name, dan document_hash bersifat opsional.",
+        "tags": ["TTD IN BKK"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id_peg", "input_pin", "nama_aplikasi", "pass_endpoint"],
+                "properties": {
+                  "id_peg": {"type": "string", "example": "102-119"},
+                  "input_pin": {"type": "string", "example": "123456", "minLength": 6, "maxLength": 6},
+                  "nama_aplikasi": {"type": "string", "example": "simpeg"},
+                  "pass_endpoint": {"type": "string", "format": "password", "example": "bkkjateng123"},
+                  "document_id": {"type": "string", "example": "SURAT-2026-0001"},
+                  "document_name": {"type": "string", "example": "Nota Persetujuan Internal"},
+                  "document_hash": {"type": "string", "description": "SHA-256 dokumen jika aplikasi pemanggil sudah memilikinya", "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+                }
+              },
+              "example": {
+                "id_peg": "102-119",
+                "input_pin": "123456",
+                "nama_aplikasi": "simpeg",
+                "pass_endpoint": "bkkjateng123",
+                "document_id": "SURAT-2026-0001",
+                "document_name": "Nota Persetujuan Internal"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dokumen berhasil ditandatangani",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "Dokumen berhasil ditandatangani.",
+                  "data": {
+                    "code": "SIGNATURE_SUCCESS",
+                    "id_peg": "102-119",
+                    "nama_aplikasi": "simpeg",
+                    "document_id": "SURAT-2026-0001",
+                    "signature_url": "http://localhost/rest_api_sso/ttd_in_bkk/storage/signatures/example.png",
+                    "verification_url": "http://localhost/rest_api_sso/ttd_in_bkk/verify.php?token=...",
+                    "qr_content": "http://localhost/rest_api_sso/ttd_in_bkk/verify.php?token=...",
+                    "document_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "signed_at": "2026-09-18 10:00:00"
+                  }
+                }
+              }
+            }
+          },
+          "401": {"description": "pass_endpoint atau input_pin tidak valid"},
+          "409": {"description": "Pegawai belum memiliki TTD aktif"},
+          "422": {"description": "Format input tidak valid"},
+          "423": {"description": "PIN TTD terkunci sementara"},
+          "503": {"description": "Database TTD tidak tersedia"}
+        }
+      }
     }
   },
   "components": {

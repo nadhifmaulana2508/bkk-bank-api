@@ -7,9 +7,9 @@ class AoController {
     public static function getAoByCabang() {
         global $pdo;
 
-        // Wajib pakai token JWT biar aman
-        require_once __DIR__ . '/middlewares/authMiddleware.php';
-        $user = auth(); 
+        // // Wajib pakai token JWT biar aman
+        // require_once __DIR__ . '/middlewares/authMiddleware.php';
+        // $user = auth(); 
 
         // Tangkap parameter dari URL (?tipe=...&kode_cabang=...)
         $tipe = $_GET['tipe'] ?? ''; 

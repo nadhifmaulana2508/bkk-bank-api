@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS signature_documents (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     document_id VARCHAR(100) NOT NULL,
     id_peg VARCHAR(50) NOT NULL,
+    signature_path VARCHAR(255) NULL,
     application VARCHAR(100) NOT NULL,
     document_name VARCHAR(255) NOT NULL,
     document_hash CHAR(64) NOT NULL,

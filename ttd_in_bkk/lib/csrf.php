@@ -15,3 +15,8 @@ function csrf_input(): string {
 function csrf_validate(?string $token): bool {
     return is_string($token) && hash_equals(csrf_token(), $token);
 }
+
+function csrf_regenerate(): string {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    return $_SESSION['csrf_token'];
+}
