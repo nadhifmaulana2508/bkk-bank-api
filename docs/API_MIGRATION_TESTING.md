@@ -19,7 +19,7 @@ Client
 Contoh SSO:
 
 ~~~text
-/api/v1/auth/login
+/api/auth/login
   -> api/legacy/AuthController.php
   -> api/global/auth/SsoService.php
 ~~~
@@ -27,7 +27,7 @@ Contoh SSO:
 Contoh TTD:
 
 ~~~text
-/api/v1/ttd/sign
+/api/ttd/sign
   -> api/global/ttd/TtdApiController.php
 ~~~
 
@@ -53,15 +53,15 @@ Swagger:
 http://localhost/rest_api_sso/docs/
 ~~~
 
-Endpoint canonical hasil migrasi menggunakan prefix `/api/v1/...`. Endpoint
-legacy `/api/...` tetap tersedia untuk client lama.
+Endpoint `/api/v1/...` masih berupa rancangan. Untuk testing branch ini,
+gunakan endpoint legacy `/api/...`.
 
 ## 3. Test login SSO
 
 ### Request
 
 ~~~http
-POST /api/v1/auth/login
+POST /api/auth/login
 Content-Type: application/json
 ~~~
 
@@ -77,7 +77,7 @@ PowerShell:
 
 ~~~powershell
 $baseUrl = "http://localhost/rest_api_sso"
-$login = Invoke-RestMethod -Method Post -Uri "$baseUrl/api/v1/auth/login" -ContentType "application/json" -Body (@{ id_peg = "<ID_PEGAWAI>"; password = "<PASSWORD_PEGAWAI>"; app = "simpeg" } | ConvertTo-Json)
+$login = Invoke-RestMethod -Method Post -Uri "$baseUrl/api/auth/login" -ContentType "application/json" -Body (@{ id_peg = "<ID_PEGAWAI>"; password = "<PASSWORD_PEGAWAI>"; app = "simpeg" } | ConvertTo-Json)
 $token = $login.data.token
 $token
 ~~~
@@ -110,7 +110,7 @@ Response sukses yang harus tetap dipertahankan:
 
 ~~~powershell
 $headers = @{ Authorization = "Bearer $token" }
-Invoke-RestMethod -Method Get -Uri "$baseUrl/api/v1/auth/whoami" -Headers $headers
+Invoke-RestMethod -Method Get -Uri "$baseUrl/api/auth/whoami" -Headers $headers
 ~~~
 
 Expected:
@@ -123,7 +123,7 @@ Expected:
 ### Test tanpa token
 
 ~~~powershell
-Invoke-RestMethod -Method Get -Uri "$baseUrl/api/v1/auth/whoami"
+Invoke-RestMethod -Method Get -Uri "$baseUrl/api/auth/whoami"
 ~~~
 
 Expected:
@@ -149,7 +149,7 @@ Expected: HTTP 401 dengan message `Invalid token`.
 ## 5. Test endpoint AO
 
 ~~~powershell
-Invoke-RestMethod -Method Get -Uri "$baseUrl/api/v1/ao/list?tipe=dana&kode_cabang=000" -Headers $headers
+Invoke-RestMethod -Method Get -Uri "$baseUrl/api/ao/list?tipe=dana&kode_cabang=000" -Headers $headers
 ~~~
 
 Expected:
@@ -163,9 +163,9 @@ Expected:
 Negative test:
 
 ~~~text
-/api/v1/ao/list
-/api/v1/ao/list?tipe=lain&kode_cabang=000
-/api/v1/ao/list?tipe=dana
+/api/ao/list
+/api/ao/list?tipe=lain&kode_cabang=000
+/api/ao/list?tipe=dana
 ~~~
 
 Expected: HTTP 400 dengan response JSON.
@@ -179,7 +179,7 @@ Endpoint TTD saat ini tidak memakai Bearer token. Setiap request memakai
 
 ~~~powershell
 $ttdBody = @{ id_peg = "<ID_PEGAWAI>"; nama_aplikasi = "simpeg"; pass_endpoint = "<TTD_API_PASSWORD>" } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri "$baseUrl/api/v1/ttd/status" -ContentType "application/json" -Body $ttdBody
+Invoke-RestMethod -Method Post -Uri "$baseUrl/api/ttd/status" -ContentType "application/json" -Body $ttdBody
 ~~~
 
 Expected jika aktif:
@@ -203,7 +203,7 @@ data.active = false
 
 ~~~powershell
 $signBody = @{ id_peg = "<ID_PEGAWAI>"; input_pin = "<PIN_TTD_6_DIGIT>"; nama_aplikasi = "simpeg"; pass_endpoint = "<TTD_API_PASSWORD>"; document_id = "TEST-MIGRATION-001"; document_name = "Dokumen Test Migrasi API" } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri "$baseUrl/api/v1/ttd/sign" -ContentType "application/json" -Body $signBody
+Invoke-RestMethod -Method Post -Uri "$baseUrl/api/ttd/sign" -ContentType "application/json" -Body $signBody
 ~~~
 
 Expected jika berhasil:
@@ -234,8 +234,8 @@ pegawai dan database TTD khusus testing bila tersedia.
 Semua endpoint berikut memakai header Bearer dari login:
 
 ~~~text
-POST /api/v1/auth/change-password
-POST /api/v1/auth/update-profile
+POST /api/auth/change-password
+POST /api/auth/update-profile
 ~~~
 
 `change-password` dan `update-profile` mengubah data nyata. Jalankan hanya pada
@@ -244,9 +244,9 @@ akun testing dan simpan nilai lama untuk pemulihan.
 Reset password terdiri dari tiga tahap:
 
 ~~~text
-POST /api/v1/auth/forgot-password
-POST /api/v1/auth/verify-otp
-POST /api/v1/auth/reset-password
+POST /api/auth/forgot-password
+POST /api/auth/verify-otp
+POST /api/auth/reset-password
 ~~~
 
 Tahap ini mengirim email dan mengubah password. Sebaiknya dijalankan di
@@ -257,14 +257,14 @@ environment development/staging dengan mailbox testing.
 Checklist:
 
 - [ ] URL endpoint lama tetap dapat dipanggil.
-- [ ] Response login `/api/v1` tetap memiliki `status`, `message`, dan `data.token`.
+- [ ] Response login legacy tetap memiliki `status`, `message`, dan `data.token`.
 - [ ] Token yang dibuat dengan secret legacy tetap dapat dipakai.
-- [ ] `/api/v1/auth/whoami` tetap menerima Bearer token.
-- [ ] `/api/v1/ao/list` tetap mengembalikan envelope response lama.
-- [ ] `/api/v1/ttd/status` dan `/api/v1/ttd/sign` tetap memakai `pass_endpoint`.
-- [ ] Endpoint lama `/api/...` tetap dapat dipanggil client lama.
+- [ ] `/api/auth/whoami` tetap menerima Bearer token.
+- [ ] `/api/ao/list` tetap mengembalikan envelope response lama.
+- [ ] `/api/ttd/status` dan `/api/ttd/sign` tetap memakai `pass_endpoint`.
 - [ ] Swagger menampilkan grup `Global TTD`, bukan grup `TTD IN BKK`.
 - [ ] `ttd_in_bkk/` tetap dapat dibuka sebagai UI internal.
+- [ ] Tidak ada endpoint yang diarahkan ke `/api/v1` sebelum kontraknya siap.
 
 ## 9. Pemeriksaan lokal tanpa request bisnis
 

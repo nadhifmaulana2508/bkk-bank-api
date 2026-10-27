@@ -98,7 +98,7 @@ saat domain tersebut mulai dikerjakan.
 ```text
 /api/v1/health
 /api/v1/auth/login
-/api/v1/auth/whoami
+/api/v1/auth/me
 /api/v1/simpeg/pegawai
 /api/v1/simpeg/cabang
 /api/v1/simpeg/jabatan
@@ -119,7 +119,7 @@ controller dan query dibuat.
 | --- | --- | --- |
 | `POST /api/auth/login` | `POST /api/v1/auth/login` | route lama dan response lama wajib tetap |
 | `GET/POST /api/auth/whoami` | `GET /api/v1/auth/me` | route lama dan response lama wajib tetap |
-| `GET /api/ao/list` | `GET /api/v1/ao/list` | route lama dan response lama wajib tetap |
+| `GET /api/ao/list` | `GET /api/v1/simpeg/ao` | route lama dan response lama wajib tetap |
 | `POST /api/ttd/status` | `POST /api/v1/ttd/status` | route lama memakai adapter global TTD |
 | `POST /api/ttd/sign` | `POST /api/v1/ttd/sign` | route lama memakai adapter global TTD |
 

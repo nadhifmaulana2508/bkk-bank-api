@@ -19,11 +19,7 @@ http://localhost/rest_api_sso/docs/
 
 ## Cek status TTD
 
-Canonical migration endpoint:
-
-`POST /api/v1/ttd/status`
-
-Legacy endpoint `/api/ttd/status` tetap tersedia untuk client lama.
+`POST /api/ttd/status`
 
 Request:
 
@@ -39,11 +35,7 @@ Jika pegawai belum memiliki TTD aktif, response tetap JSON dan memiliki `code` `
 
 ## Tanda tangani dokumen
 
-Canonical migration endpoint:
-
-`POST /api/v1/ttd/sign`
-
-Legacy endpoint `/api/ttd/sign` tetap tersedia untuk client lama.
+`POST /api/ttd/sign`
 
 Field wajib:
 
@@ -69,7 +61,7 @@ Field dokumen opsional:
 Contoh `curl`:
 
 ```bash
-curl -X POST "http://localhost/rest_api_sso/api/v1/ttd/sign" \
+curl -X POST "http://localhost/rest_api_sso/api/ttd/sign" \
   -H "Content-Type: application/json" \
   -d '{
     "id_peg": "102-119",
