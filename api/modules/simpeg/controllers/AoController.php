@@ -2,15 +2,12 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/AoService.php';
-require_once dirname(__DIR__, 3) . '/global/auth/SsoAuthenticator.php';
 require_once dirname(__DIR__, 4) . '/helpers/response.php';
 
 final class AoController
 {
     public static function getAoByOffice(): void
     {
-        SsoAuthenticator::user();
-
         $typeAo = (string)($_GET['type_ao'] ?? '');
         $kodeKantor = trim((string)($_GET['kode_kantor'] ?? ''));
 

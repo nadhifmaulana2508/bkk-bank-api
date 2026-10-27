@@ -4,18 +4,30 @@ Folder ini adalah fondasi API pusat untuk integrasi SIMPEG, TTD, Monbis, dan
 Notaris. Branch `develop` difokuskan untuk backend API; aplikasi UI TTD tidak
 ikut di dalamnya.
 
+## Arsitektur aktif
+
+`api/routes.php` adalah composition root. Ia hanya membuat router dan memuat
+registry route dari global serta setiap modul. Detail endpoint tidak dikumpulkan
+di satu file.
+
+Router core mendukung middleware pipeline sehingga autentikasi dapat dipasang
+di route tanpa menyalin pengecekan token ke setiap controller.
+
 ## Aturan folder
 
 - `global/` berisi endpoint bersama lintas aplikasi, termasuk layanan TTD.
 - `legacy/` berisi adapter untuk endpoint lama yang masih dipakai client.
 - `modules/` berisi endpoint dan aturan bisnis berdasarkan domain.
-- `shared/` berisi komponen teknis yang dipakai lintas domain.
+- `Core/` berisi komponen teknis routing dan HTTP yang dipakai lintas domain.
 
 `index.php` di root hanya menjadi bootstrap/router. Implementasi endpoint lama
 berada di `legacy/` dan memanggil service baru melalui adapter.
 
 Routing API berada di `api/routes.php` agar bootstrap root tidak bercampur
 dengan aturan endpoint.
+
+Panduan pengembangan lengkap tersedia di
+`docs/architecture/API_MODERN_ARCHITECTURE.md`.
 
 ## Aturan kompatibilitas
 

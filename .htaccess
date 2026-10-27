@@ -10,7 +10,7 @@ RewriteEngine On
 
 # Blokir folder internal yang tidak pernah menjadi endpoint publik.
 RewriteRule ^(?:\.git|config|helpers|middlewares|vendor)(?:/|$) - [F,L,NC]
-RewriteRule ^api/(?:Router\.php|routes\.php|global|legacy|modules)(?:/|$) - [F,L,NC]
+RewriteRule ^api/(?:Router\.php|routes\.php|Core|global|legacy|modules)(?:/|$) - [F,L,NC]
 RewriteRule ^storage(?:/|$) - [F,L,NC]
 RewriteRule ^swagger\.json$ - [F,L,NC]
 
