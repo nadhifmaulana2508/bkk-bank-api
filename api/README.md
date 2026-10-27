@@ -1,7 +1,8 @@
 # BKK Central API
 
 Folder ini adalah fondasi API pusat untuk integrasi SIMPEG, TTD, Monbis, dan
-Notaris.
+Notaris. Branch `develop` difokuskan untuk backend API; aplikasi UI TTD tidak
+ikut di dalamnya.
 
 ## Aturan folder
 
@@ -29,6 +30,7 @@ Folder `api/global/` adalah struktur internal, bukan prefix URL baru. Jika
 versioning endpoint diperlukan di masa depan, hal tersebut harus diputuskan
 sebagai perubahan kontrak terpisah.
 
-Aturan signing dan verifikasi TTD berada di `global/ttd/` karena TTD adalah
-layanan bersama. Aturan bisnis Monbis dan Notaris tetap berada di modulnya
+Aturan signing dan verifikasi TTD disiapkan di `global/ttd/` karena TTD adalah
+layanan bersama. Route TTD baru diaktifkan setelah dependency database/service
+tersedia di backend. Aturan bisnis Monbis dan Notaris tetap berada di modulnya
 masing-masing.

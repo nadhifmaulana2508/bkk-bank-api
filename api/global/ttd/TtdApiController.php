@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/config/ttd_db.php';
 require_once dirname(__DIR__, 3) . '/helpers/response.php';
-require_once dirname(__DIR__, 3) . '/apps/ttd_in_bkk/lib/signature.php';
+require_once __DIR__ . '/SignatureFunctions.php';
 
 if (!function_exists('client_ip')) {
     function client_ip(): ?string

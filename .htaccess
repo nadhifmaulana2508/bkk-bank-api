@@ -11,14 +11,8 @@ RewriteEngine On
 # Blokir folder internal yang tidak pernah menjadi endpoint publik.
 RewriteRule ^(?:\.git|config|helpers|middlewares|vendor)(?:/|$) - [F,L,NC]
 RewriteRule ^api/(?:Router\.php|routes\.php|global|legacy|modules)(?:/|$) - [F,L,NC]
-RewriteRule ^ttd_in_bkk/(?:config|database|lib|middleware)(?:/|$) - [F,L,NC]
-RewriteCond %{THE_REQUEST} \s/[^\ ]*apps/ttd_in_bkk(?:[/?\ ]|$) [NC]
-RewriteRule ^apps/ttd_in_bkk(?:/|$) - [F,L,NC]
+RewriteRule ^storage(?:/|$) - [F,L,NC]
 RewriteRule ^swagger\.json$ - [F,L,NC]
-
-# URL publik lama tetap berjalan walaupun aplikasi TTD secara fisik berada
-# di folder apps/.
-RewriteRule ^ttd_in_bkk(?:/(.*))?$ apps/ttd_in_bkk/$1 [L,NC]
 
 # Semua request endpoint tetap masuk melalui satu front controller.
 RewriteCond %{REQUEST_FILENAME} !-f

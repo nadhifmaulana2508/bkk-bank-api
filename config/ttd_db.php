@@ -7,21 +7,15 @@ require_once __DIR__ . '/env.php';
 /**
  * Koneksi database TTD IN BKK untuk endpoint REST.
  *
- * Prioritas konfigurasi:
- * 1. TTD_DB_* dari environment server/root .env;
- * 2. DB_* dari apps/ttd_in_bkk/.env;
- * 3. default lokal.
+ * Konfigurasi hanya dibaca dari environment server/root .env.
+ * Adapter ini tidak bergantung pada aplikasi UI TTD lokal.
  */
-$ttdEnvFile = dirname(__DIR__) . '/apps/ttd_in_bkk/.env';
-$ttdEnv = is_file($ttdEnvFile)
-    ? (parse_ini_file($ttdEnvFile, false, INI_SCANNER_RAW) ?: [])
-    : [];
-$ttdEnvValue = static function (string $key, $default = null) use ($ttdEnv) {
+$ttdEnvValue = static function (string $key, $default = null) {
     $configuredValue = app_env_value('TTD_' . $key);
     if ($configuredValue !== null) {
         return $configuredValue;
     }
-    return $ttdEnv[$key] ?? $default;
+    return $default;
 };
 
 $ttdDbHost = (string)$ttdEnvValue('DB_HOST', '127.0.0.1');

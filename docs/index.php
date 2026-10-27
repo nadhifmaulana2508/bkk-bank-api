@@ -50,8 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         body { min-height:100vh; margin:0; display:grid; place-items:center; padding:20px; color:var(--ink); background:linear-gradient(145deg,#062d55,#0d69ad 60%,#20b7c7); font-family:Inter,"Segoe UI",Arial,sans-serif; }
         .box { width:min(460px,100%); padding:32px; background:#fff; border:1px solid rgba(255,255,255,.55); border-radius:22px; box-shadow:0 25px 70px rgba(0,0,0,.22); text-align:center; }
         .brand { display:flex; align-items:center; justify-content:center; gap:12px; color:var(--navy); font-weight:900; font-size:18px; }
-        .brandmark { width:50px; height:50px; padding:3px; background:#fff; border:1px solid #dce8f1; border-radius:15px; box-shadow:0 8px 18px rgba(7,59,107,.12); }
-        .brandmark img { width:100%; height:100%; object-fit:contain; }
+        .brandmark { width:50px; height:50px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg,var(--navy),var(--blue)); border-radius:15px; box-shadow:0 8px 18px rgba(7,59,107,.18); font-size:14px; }
         h1 { margin:26px 0 8px; font-size:26px; }
         p { color:var(--muted); line-height:1.55; }
         form { margin-top:22px; }
@@ -64,9 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 <div class="box">
-    <div class="brand"><span class="brandmark"><img src="../ttd_in_bkk/img/logo.png" alt="Logo BKK"></span><span>REST API BKK</span></div>
+    <div class="brand"><span class="brandmark">API</span><span>REST API BKK</span></div>
     <h1>Akses Dokumentasi API</h1>
-    <p>Masukkan kode akses untuk membuka dokumentasi SSO dan integrasi TTD IN BKK.</p>
+    <p>Masukkan kode akses untuk membuka dokumentasi backend API BKK.</p>
 
     <?php if ($error !== null): ?>
         <div class="error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>

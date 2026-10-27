@@ -1,9 +1,10 @@
 # Global TTD
 
-TTD adalah service global yang dipakai lintas aplikasi. Controller API berada
-di sini, sedangkan `apps/ttd_in_bkk/` tetap menjadi UI internal untuk registrasi dan
-administrasi TTD.
+TTD adalah service global yang dipakai lintas aplikasi. Controller API dan
+adapter-nya disimpan di sini agar tidak bercampur dengan modul SIMPEG,
+Monbis, atau Notaris.
 
-Route legacy `/api/ttd/status` dan `/api/ttd/sign` tetap menggunakan response
-lama. Perapian internal dilakukan di controller global tanpa mengubah kontrak
-client.
+Pada branch `develop`, route `/api/ttd/status` dan `/api/ttd/sign` belum
+didaftarkan karena database/service TTD masih lokal. Kontrak response lama
+tetap dicatat dan dapat diaktifkan kembali setelah dependency TTD dipindahkan
+ke service backend yang tersedia di server.

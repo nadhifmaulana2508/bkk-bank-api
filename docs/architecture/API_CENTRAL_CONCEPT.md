@@ -7,8 +7,9 @@ Status: draft fondasi
 Menyediakan satu lapisan API untuk integrasi SIMPEG, TTD, Monbis, dan Notaris
 tanpa langsung mencampur seluruh aturan bisnis ke dalam satu controller besar.
 
-Branch ini hanya menyiapkan konsep dan struktur. Endpoint lama tetap berjalan
-seperti sebelumnya sampai migrasi dilakukan secara bertahap.
+Branch `develop` menyiapkan konsep dan struktur backend API. Endpoint lama yang
+aktif tetap berjalan seperti sebelumnya sampai migrasi dilakukan bertahap;
+route TTD sementara tidak dimuat karena dependency TTD masih lokal.
 
 ## Batas domain awal
 
@@ -23,12 +24,14 @@ seperti sebelumnya sampai migrasi dilakukan secara bertahap.
 ## Prinsip integrasi
 
 1. `api/` adalah lapisan API pusat yang baru.
-2. `api/global/` berisi endpoint yang dipakai lintas aplikasi, termasuk TTD.
+2. `api/global/` berisi endpoint yang dipakai lintas aplikasi. TTD disiapkan
+   di area global, tetapi route-nya belum diaktifkan di `develop`.
 3. Setiap domain bisnis memiliki controller, service, dan adapter sendiri.
 4. SIMPEG menjadi sumber data pegawai. Data pegawai tidak disalin ke semua
    modul tanpa alasan yang jelas.
 5. TTD menjadi global service karena dipakai Monbis, Notaris, dan aplikasi
-   internal lain. Database TTD yang sudah ada tetap digunakan melalui adapter.
+   internal lain. Database TTD akan digunakan melalui adapter setelah tersedia
+   sebagai dependency backend.
 6. Endpoint lama dianggap legacy dan tidak dihapus selama migrasi.
 7. Migrasi internal tidak mengubah URL publik. Endpoint `/api/...` tetap
    menjadi kontrak client yang sudah terintegrasi.
@@ -123,8 +126,6 @@ membuat `ApiRouter`, lalu memuat route global dan route setiap module.
 /api/auth/verify-otp
 /api/auth/reset-password
 /api/simpeg/ao/list
-/api/ttd/status
-/api/ttd/sign
 ```
 
 URL di atas adalah kontrak yang dipertahankan selama migrasi. Endpoint baru
@@ -138,21 +139,20 @@ autentikasi, dan ownership disepakati.
 | `POST /api/auth/login` | `api/global/auth/SsoService.php` | URL dan response tetap |
 | `GET/POST /api/auth/whoami` | `api/global/auth/SsoService.php` | URL dan response tetap |
 | `GET /api/simpeg/ao/list` | `api/modules/simpeg/AoController.php` dan `AoService.php` | endpoint baru |
-| `POST /api/ttd/status` | `api/global/ttd/TtdApiController.php` | URL dan response tetap |
-| `POST /api/ttd/sign` | `api/global/ttd/TtdApiController.php` | URL dan response tetap |
+| `POST /api/ttd/status` | `api/global/ttd/TtdApiController.php` | disiapkan, route belum aktif |
+| `POST /api/ttd/sign` | `api/global/ttd/TtdApiController.php` | disiapkan, route belum aktif |
 
-## Posisi `apps/ttd_in_bkk/`
+## Posisi aplikasi TTD
 
-`apps/ttd_in_bkk/` diperlakukan sebagai aplikasi web internal untuk registrasi,
-administrasi, dan verifikasi TTD. Folder tersebut bukan domain API terpisah.
+UI `ttd_in_bkk` tidak dibawa ke branch `develop`. Branch ini khusus backend API;
+kode UI dan dependency database lokal TTD dikelola pada branch/aplikasi terpisah.
 
 Karena itu:
 
 - tidak dibuat grup Swagger bernama `TTD IN BKK`;
-- endpoint TTD ditampilkan di grup `Global API` atau tag `Global TTD`;
-- UI internal tetap boleh memakai service TTD global;
-- kode domain TTD baru diarahkan ke `api/global/ttd/` secara bertahap;
-- URL UI lama tidak diputus selama masih dipakai.
+- endpoint TTD belum ditampilkan pada dokumentasi aktif;
+- kode adapter TTD tetap diarahkan ke `api/global/ttd/` secara bertahap;
+- service TTD dapat diaktifkan kembali setelah dependency backend disepakati.
 
 ## Model autentikasi
 

@@ -1,8 +1,9 @@
 # Global API
 
 Folder ini khusus untuk endpoint yang menjadi fondasi bersama semua aplikasi.
-TTD berada di area global karena dipakai oleh Monbis, Notaris, dan aplikasi
-internal lainnya.
+TTD tetap disiapkan sebagai area global karena dipakai oleh Monbis, Notaris,
+dan aplikasi internal lainnya. Pada branch `develop`, route TTD dinonaktifkan
+sementara karena database dan UI TTD belum menjadi dependency backend.
 
 ## Endpoint publik saat ini
 
@@ -16,13 +17,10 @@ POST /api/auth/forgot-password
 POST /api/auth/resend-otp
 POST /api/auth/verify-otp
 POST /api/auth/reset-password
-POST /api/ttd/status
-POST /api/ttd/sign
 ```
 
 Global API tidak menyimpan aturan bisnis spesifik Monbis atau Notaris. Ia
-menyediakan identitas, akses, metadata bersama, TTD, dan kemampuan teknis
-umum.
+menyediakan identitas, akses, metadata bersama, dan kemampuan teknis umum.
 
 Path di atas sengaja tetap menggunakan kontrak `/api/...` yang sudah dipakai
 client. Perpindahan kode ke folder `api/global/` tidak mengubah URL, method,
@@ -41,8 +39,9 @@ api/global/
 
 Controller dan service dibuat setelah kontrak request/response disetujui.
 
-Saat ini `api/global/routes.php` mendaftarkan endpoint Auth dan TTD ke
-`ApiRouter`. Detail endpoint tidak ditulis lagi di `api/routes.php`.
+Saat ini `api/global/routes.php` hanya mendaftarkan endpoint Auth ke
+`ApiRouter`. Integrasi TTD tetap berada di `api/global/ttd/` untuk diaktifkan
+setelah kontrak database/service TTD siap.
 
 ## Adapter route
 
@@ -52,5 +51,5 @@ yang sudah dipakai client.
 
 ## Dokumentasi Swagger
 
-Jangan menampilkan `apps/ttd_in_bkk/` sebagai grup API. Folder tersebut adalah UI
-internal. Endpoint-nya didokumentasikan sebagai `Global TTD`.
+UI `ttd_in_bkk` tidak menjadi bagian branch backend ini. Endpoint TTD tidak
+ditampilkan pada dokumentasi aktif sampai dependency database/service TTD siap.

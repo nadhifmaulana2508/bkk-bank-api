@@ -1,9 +1,15 @@
 # REST API TTD IN BKK
 
+> Status branch `develop`: endpoint TTD dinonaktifkan sementara. Dokumen ini
+> hanya menjadi kontrak migrasi dan belum dapat dites sampai dependency database
+> TTD tersedia sebagai service backend.
+
 Untuk urutan pengujian seluruh endpoint setelah migrasi, lihat
 [Panduan Testing API Setelah Migrasi](API_MIGRATION_TESTING.md).
 
-Endpoint integrasi ini tidak menggunakan Bearer token. Setiap request wajib mengirim `pass_endpoint` pada JSON body.
+Saat diaktifkan, endpoint integrasi ini menggunakan kontrak lama: request wajib
+mengirim `pass_endpoint` pada JSON body. Jangan menaruh password endpoint asli
+di dokumentasi atau repository.
 
 Base URL lokal:
 
@@ -83,15 +89,8 @@ Response berhasil mengandung:
 
 Jika TTD belum terdaftar, endpoint mengembalikan HTTP `409` dengan `code` `SIGNATURE_NOT_REGISTERED` dan `register_url` menuju halaman registrasi TTD.
 
-## Konfigurasi
+## Konfigurasi saat diaktifkan kembali
 
-Password endpoint dapat diubah melalui environment server `TTD_API_PASSWORD`. URL aplikasi TTD dapat diubah melalui `TTD_APP_URL`.
-
-Untuk lokal, default-nya adalah:
-
-```env
-TTD_API_PASSWORD=bkkjateng123
-TTD_APP_URL=http://localhost/rest_api_sso/ttd_in_bkk
-```
-
-Endpoint ini sengaja dibuat tanpa token sesuai kebutuhan integrasi awal. Untuk production, gunakan HTTPS, batasi IP aplikasi pemanggil, dan ganti password endpoint dari nilai default.
+Simpan `TTD_API_PASSWORD` dan konfigurasi service TTD hanya pada environment
+server di luar document root. Untuk production, gunakan HTTPS, batasi IP
+aplikasi pemanggil, dan jangan gunakan password default.
