@@ -4,17 +4,25 @@ Folder ini khusus untuk endpoint yang menjadi fondasi bersama semua aplikasi.
 TTD berada di area global karena dipakai oleh Monbis, Notaris, dan aplikasi
 internal lainnya.
 
-## Kandidat endpoint
+## Endpoint canonical yang sudah tersedia
 
 ```text
-GET  /api/v1/health
 POST /api/v1/auth/login
-GET  /api/v1/auth/me
-GET  /api/v1/global/scopes
+GET  /api/v1/auth/whoami
+POST /api/v1/auth/change-password
+POST /api/v1/auth/update-profile
+POST /api/v1/auth/forgot-password
+POST /api/v1/auth/verify-otp
+POST /api/v1/auth/reset-password
 POST /api/v1/ttd/status
 POST /api/v1/ttd/sign
-GET  /api/v1/ttd/verify/{token}
 ```
+
+Endpoint AO tersedia melalui `/api/v1/ao/list` dan tetap memakai service
+legacy yang sama.
+
+Endpoint seperti health check, scope client, dan verifikasi API khusus masih
+menjadi tahap berikutnya.
 
 Global API tidak menyimpan aturan bisnis spesifik Monbis atau Notaris. Ia
 menyediakan identitas, akses, metadata bersama, TTD, dan kemampuan teknis

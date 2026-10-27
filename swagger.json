@@ -16,7 +16,7 @@
     }
   ],
   "paths": {
-    "/api/auth/login": {
+    "/api/v1/auth/login": {
       "post": {
         "summary": "Login menggunakan id_peg + app",
         "tags": ["Auth"],
@@ -70,7 +70,7 @@
         }
       }
     },
-    "/api/auth/whoami": {
+    "/api/v1/auth/whoami": {
       "get": {
         "summary": "Ambil data user dari token (Bearer)",
         "tags": ["Auth"],
@@ -132,7 +132,7 @@
         }
       }
     },
-    "/api/auth/change-password": {
+    "/api/v1/auth/change-password": {
       "post": {
         "summary": "Ganti Password (Perlu Login)",
         "tags": ["Profile"],
@@ -175,7 +175,7 @@
         }
       }
     },
-    "/api/auth/update-profile": {
+    "/api/v1/auth/update-profile": {
       "post": {
         "summary": "Update Email atau Nomor Telp (Perlu Login)",
         "tags": ["Profile"],
@@ -217,7 +217,7 @@
         }
       }
     },
-    "/api/auth/forgot-password": {
+    "/api/v1/auth/forgot-password": {
       "post": {
         "summary": "Kirim OTP Reset Password ke Email",
         "tags": ["Reset Password"],
@@ -254,7 +254,7 @@
         }
       }
     },
-    "/api/auth/verify-otp": {
+    "/api/v1/auth/verify-otp": {
       "post": {
         "summary": "Verifikasi Kode OTP dari Email",
         "tags": ["Reset Password"],
@@ -294,7 +294,7 @@
         }
       }
     },
-    "/api/auth/reset-password": {
+    "/api/v1/auth/reset-password": {
       "post": {
         "summary": "Aksi Ubah Password via Reset Token",
         "tags": ["Reset Password"],
@@ -333,7 +333,7 @@
         }
       }
     },
-    "/api/ao/list": {
+    "/api/v1/ao/list": {
       "get": {
         "summary": "Ambil daftar AO berdasarkan tipe dan kode cabang",
         "tags": ["AO"],
@@ -393,7 +393,7 @@
         }
       }
     },
-    "/api/ttd/status": {
+    "/api/v1/ttd/status": {
       "post": {
         "summary": "Cek status TTD pegawai tanpa Bearer token",
         "description": "Endpoint integrasi aplikasi lain. Kirim pass_endpoint pada JSON body.",
@@ -445,7 +445,7 @@
         }
       }
     },
-    "/api/ttd/sign": {
+    "/api/v1/ttd/sign": {
       "post": {
         "summary": "Tanda tangani dokumen menggunakan Global TTD",
         "description": "Tidak menggunakan Bearer token. PIN TTD divalidasi server-side dan setiap percobaan dicatat pada audit trail. document_id, document_name, dan document_hash bersifat opsional.",

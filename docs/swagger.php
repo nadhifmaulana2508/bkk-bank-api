@@ -41,7 +41,7 @@ if (($_SESSION['docs_access'] ?? false) !== true) {
 
 <header class="docs-header">
   <h1>Dokumentasi REST API BKK</h1>
-  <p>Dokumentasi endpoint SSO dan Global TTD. Endpoint <code>/api/ttd/status</code> dan <code>/api/ttd/sign</code> tidak menggunakan Bearer token; kirim <code>pass_endpoint</code> melalui JSON body.</p>
+  <p>Dokumentasi endpoint SSO dan Global TTD. Endpoint <code>/api/v1/ttd/status</code> dan <code>/api/v1/ttd/sign</code> tidak menggunakan Bearer token; kirim <code>pass_endpoint</code> melalui JSON body. Endpoint lama <code>/api/ttd/*</code> tetap tersedia untuk kompatibilitas.</p>
 </header>
 
 <div class="docs-note">
