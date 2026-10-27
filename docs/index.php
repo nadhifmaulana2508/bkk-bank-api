@@ -6,10 +6,32 @@ session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax',
     'path' => '/',
+    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
 ]);
 session_start();
 
-$accessCode = 'BKK_SSO_2026';
+function docsAccessCode(): string
+{
+    $environmentValue = getenv('API_DOCS_ACCESS_CODE');
+    if (is_string($environmentValue) && trim($environmentValue) !== '') {
+        return trim($environmentValue);
+    }
+
+    $envFile = dirname(__DIR__) . '/.env';
+    if (!is_file($envFile)) {
+        return '';
+    }
+
+    $values = parse_ini_file($envFile, false, INI_SCANNER_RAW);
+    if (!is_array($values)) {
+        return '';
+    }
+
+    $fileValue = $values['API_DOCS_ACCESS_CODE'] ?? '';
+    return is_string($fileValue) ? trim($fileValue) : '';
+}
+
+$accessCode = docsAccessCode();
 
 if (($_SESSION['docs_access'] ?? false) === true) {
     require __DIR__ . '/swagger.php';
@@ -19,13 +41,15 @@ if (($_SESSION['docs_access'] ?? false) === true) {
 $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $code = (string)($_POST['code'] ?? '');
-    if (hash_equals($accessCode, $code)) {
+    if ($accessCode !== '' && hash_equals($accessCode, $code)) {
         session_regenerate_id(true);
         $_SESSION['docs_access'] = true;
         header('Location: index.php');
         exit;
     }
-    $error = 'Kode akses tidak valid.';
+    $error = $accessCode === ''
+        ? 'Kode akses dokumentasi belum dikonfigurasi di server.'
+        : 'Kode akses tidak valid.';
 }
 ?>
 <!DOCTYPE html>

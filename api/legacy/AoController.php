@@ -3,12 +3,15 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/config/db.php';
 require_once dirname(__DIR__, 2) . '/helpers/response.php';
+require_once dirname(__DIR__) . '/global/auth/SsoAuthenticator.php';
 
 final class AoController
 {
     public static function getAoByCabang(): void
     {
         global $pdo;
+
+        SsoAuthenticator::user();
 
         $tipe = $_GET['tipe'] ?? '';
         $kodeCabang = $_GET['kode_cabang'] ?? '';

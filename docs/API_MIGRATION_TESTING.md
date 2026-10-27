@@ -53,10 +53,41 @@ Swagger:
 http://localhost/rest_api_sso/docs/
 ~~~
 
+Production:
+
+~~~text
+https://apisso.bkkjateng.co.id
+https://apisso.bkkjateng.co.id/docs/
+~~~
+
 Untuk testing branch ini, tetap gunakan endpoint publik `/api/...`. Migrasi
 hanya memindahkan implementasi internal dan tidak mengubah URL endpoint.
 
-## 3. Test login SSO
+## 3. Rekomendasi alat dan proteksi
+
+Gunakan Swagger UI sebagai alat utama karena request, schema, response, dan
+tombol `Authorize` sudah tersedia di satu halaman. Postman atau PowerShell
+dapat dipakai sebagai alternatif untuk pengujian berulang atau otomatisasi.
+
+Halaman dokumentasi dilindungi oleh kode akses session. Kode tersebut wajib
+disimpan di root `.env` dan tidak boleh ditulis di source code:
+
+~~~dotenv
+API_DOCS_ACCESS_CODE=ganti-dengan-kode-random-yang-kuat
+~~~
+
+Setelah masuk ke Swagger:
+
+1. Jalankan `POST /api/auth/login` menggunakan `id_peg`, `password`, dan `app`.
+2. Salin nilai `data.token` dari response login.
+3. Klik `Authorize`, masukkan token JWT, lalu klik `Authorize` kembali.
+4. Jalankan endpoint protected seperti `whoami`, profile, dan AO.
+
+Endpoint login tidak memakai Bearer karena endpoint tersebut menghasilkan
+token. Endpoint reset password memakai token OTP/reset sesuai alurnya. Endpoint
+TTD tetap memakai `pass_endpoint` agar kontrak client lama tidak berubah.
+
+## 4. Test login SSO
 
 ### Request
 
@@ -104,7 +135,7 @@ Response sukses yang harus tetap dipertahankan:
 | aplikasi tidak terdaftar | HTTP 400, `App tidak valid` |
 | pegawai tidak punya akses aplikasi | HTTP 403 |
 
-## 4. Test endpoint protected
+## 5. Test endpoint protected
 
 ### Whoami
 
@@ -146,7 +177,7 @@ Authorization: Bearer token-tidak-valid
 
 Expected: HTTP 401 dengan message `Invalid token`.
 
-## 5. Test endpoint AO
+## 6. Test endpoint AO
 
 ~~~powershell
 Invoke-RestMethod -Method Get -Uri "$baseUrl/api/ao/list?tipe=dana&kode_cabang=000" -Headers $headers
@@ -170,7 +201,7 @@ Negative test:
 
 Expected: HTTP 400 dengan response JSON.
 
-## 6. Test Global TTD
+## 7. Test Global TTD
 
 Endpoint TTD saat ini tidak memakai Bearer token. Setiap request memakai
 `pass_endpoint` pada JSON body.
@@ -229,7 +260,7 @@ Negative test:
 Jangan memakai data tanda tangan pegawai sungguhan untuk test berulang. Gunakan
 pegawai dan database TTD khusus testing bila tersedia.
 
-## 7. Test endpoint profil dan password
+## 8. Test endpoint profil dan password
 
 Semua endpoint berikut memakai header Bearer dari login:
 
@@ -252,7 +283,7 @@ POST /api/auth/reset-password
 Tahap ini mengirim email dan mengubah password. Sebaiknya dijalankan di
 environment development/staging dengan mailbox testing.
 
-## 8. Verifikasi khusus migrasi
+## 9. Verifikasi khusus migrasi
 
 Checklist:
 
@@ -266,7 +297,7 @@ Checklist:
 - [ ] `ttd_in_bkk/` tetap dapat dibuka sebagai UI internal.
 - [ ] Client lama tetap memanggil endpoint `/api/...` tanpa perubahan URL.
 
-## 9. Pemeriksaan lokal tanpa request bisnis
+## 10. Pemeriksaan lokal tanpa request bisnis
 
 Dari root project:
 

@@ -41,11 +41,11 @@ if (($_SESSION['docs_access'] ?? false) !== true) {
 
 <header class="docs-header">
   <h1>Dokumentasi REST API BKK</h1>
-  <p>Dokumentasi endpoint SSO dan Global TTD. Endpoint <code>/api/ttd/status</code> dan <code>/api/ttd/sign</code> tidak menggunakan Bearer token; kirim <code>pass_endpoint</code> melalui JSON body.</p>
+  <p>Dokumentasi endpoint SSO dan Global TTD. Gunakan <b>Authorize</b> setelah login untuk endpoint yang membutuhkan JWT. Endpoint <code>/api/ttd/status</code> dan <code>/api/ttd/sign</code> tetap menggunakan <code>pass_endpoint</code> sesuai kontrak lama.</p>
 </header>
 
 <div class="docs-note">
-  <strong>Integrasi TTD:</strong> gunakan tag <b>Global TTD</b> di bawah untuk mencoba cek status TTD dan signing dokumen. Jika pegawai belum memiliki TTD, API akan mengembalikan kode <code>SIGNATURE_NOT_REGISTERED</code>.
+  <strong>Alur testing:</strong> jalankan <code>/api/auth/login</code>, salin <code>data.token</code>, klik <b>Authorize</b>, lalu masukkan token JWT. Jika pegawai belum memiliki TTD, API akan mengembalikan kode <code>SIGNATURE_NOT_REGISTERED</code>.
 </div>
 
 <div id="swagger-ui"></div>
