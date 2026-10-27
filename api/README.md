@@ -5,7 +5,7 @@ Notaris.
 
 ## Aturan folder
 
-- `global/` berisi endpoint bersama lintas aplikasi.
+- `global/` berisi endpoint bersama lintas aplikasi, termasuk layanan TTD.
 - `modules/` berisi endpoint dan aturan bisnis berdasarkan domain.
 - `shared/` berisi komponen teknis yang dipakai lintas domain.
 
@@ -20,5 +20,6 @@ Endpoint baru menggunakan prefix:
 /api/v1
 ```
 
-Jangan menambahkan aturan bisnis Monbis, Notaris, atau TTD langsung ke folder
-`global/` hanya karena endpoint tersebut dipanggil oleh banyak aplikasi.
+Aturan signing dan verifikasi TTD berada di `global/ttd/` karena TTD adalah
+layanan bersama. Aturan bisnis Monbis dan Notaris tetap berada di modulnya
+masing-masing.

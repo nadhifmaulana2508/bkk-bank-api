@@ -16,18 +16,19 @@ seperti sebelumnya sampai migrasi dilakukan secara bertahap.
 | --- | --- | --- |
 | Global | autentikasi, identitas aktif, cabang, kesehatan API, audit | SSO/API pusat |
 | SIMPEG | pegawai, jabatan, unit kerja, cabang | SIMPEG |
-| TTD | status TTD, signing, hash, verifikasi | database TTD |
+| Global TTD | status TTD, signing, hash, verifikasi lintas aplikasi | database TTD |
 | Monbis | permintaan dan status proses bisnis | Monbis |
 | Notaris | permintaan dokumen dan pertukaran status dengan notaris | Notaris |
 
 ## Prinsip integrasi
 
 1. `api/` adalah lapisan API pusat yang baru.
-2. `api/global/` berisi endpoint yang dipakai lintas aplikasi.
-3. Setiap domain memiliki controller, service, dan adapter sendiri.
+2. `api/global/` berisi endpoint yang dipakai lintas aplikasi, termasuk TTD.
+3. Setiap domain bisnis memiliki controller, service, dan adapter sendiri.
 4. SIMPEG menjadi sumber data pegawai. Data pegawai tidak disalin ke semua
    modul tanpa alasan yang jelas.
-5. TTD tetap menggunakan database TTD yang sudah ada.
+5. TTD menjadi global service karena dipakai Monbis, Notaris, dan aplikasi
+   internal lain. Database TTD yang sudah ada tetap digunakan melalui adapter.
 6. Endpoint lama dianggap legacy dan tidak dihapus selama migrasi.
 7. Semua endpoint baru memakai prefix `/api/v1`.
 8. Autentikasi pengguna dan autentikasi aplikasi dipisahkan.
@@ -37,13 +38,13 @@ seperti sebelumnya sampai migrasi dilakukan secara bertahap.
 ```text
 api/
 ├── global/
-│   ├── Controllers/
-│   ├── Middleware/
-│   ├── Services/
+│   ├── auth/
+│   ├── ttd/
+│   ├── master/
+│   ├── middleware/
 │   └── README.md
 ├── modules/
 │   ├── simpeg/
-│   ├── ttd/
 │   ├── monbis/
 │   └── notaris/
 ├── shared/
@@ -84,8 +85,21 @@ controller dan query dibuat.
 | `POST /api/auth/login` | `POST /api/v1/auth/login` | dipertahankan, lalu dibuat adapter |
 | `GET/POST /api/auth/whoami` | `GET /api/v1/auth/me` | dipertahankan selama masa migrasi |
 | `GET /api/ao/list` | `GET /api/v1/simpeg/ao` | dipindah setelah kontrak disepakati |
-| `POST /api/ttd/status` | `POST /api/v1/ttd/status` | memakai service TTD yang sama |
-| `POST /api/ttd/sign` | `POST /api/v1/ttd/sign` | memakai service TTD yang sama |
+| `POST /api/ttd/status` | `POST /api/v1/ttd/status` | global TTD service |
+| `POST /api/ttd/sign` | `POST /api/v1/ttd/sign` | global TTD service |
+
+## Posisi `ttd_in_bkk/`
+
+`ttd_in_bkk/` diperlakukan sebagai aplikasi web internal untuk registrasi,
+administrasi, dan verifikasi TTD. Folder tersebut bukan domain API terpisah.
+
+Karena itu:
+
+- tidak dibuat grup Swagger bernama `TTD IN BKK`;
+- endpoint TTD ditampilkan di grup `Global API` atau tag `Global TTD`;
+- UI internal tetap boleh memakai service TTD global;
+- kode domain TTD baru diarahkan ke `api/global/ttd/` secara bertahap;
+- URL UI lama tidak diputus selama masih dipakai.
 
 ## Model autentikasi
 
