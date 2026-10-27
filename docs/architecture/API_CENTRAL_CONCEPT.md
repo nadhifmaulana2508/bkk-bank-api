@@ -67,11 +67,16 @@ sebelum seluruh client menyatakan siap.
 
 ```text
 api/
+├── routes.php
 ├── global/
 │   ├── auth/
 │   ├── ttd/
 │   ├── master/
 │   ├── middleware/
+│   └── README.md
+├── legacy/
+│   ├── AuthController.php
+│   ├── AoController.php
 │   └── README.md
 ├── modules/
 │   ├── simpeg/

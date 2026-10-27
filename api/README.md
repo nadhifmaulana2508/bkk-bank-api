@@ -6,11 +6,15 @@ Notaris.
 ## Aturan folder
 
 - `global/` berisi endpoint bersama lintas aplikasi, termasuk layanan TTD.
+- `legacy/` berisi adapter untuk endpoint lama yang masih dipakai client.
 - `modules/` berisi endpoint dan aturan bisnis berdasarkan domain.
 - `shared/` berisi komponen teknis yang dipakai lintas domain.
 
-Endpoint lama di root project belum dipindahkan ke sini. Pemindahan dilakukan
-bertahap setelah kontrak endpoint baru disepakati dan sudah memiliki pengujian.
+`index.php` di root hanya menjadi bootstrap/router. Implementasi endpoint lama
+berada di `legacy/` dan memanggil service baru melalui adapter.
+
+Routing API berada di `api/routes.php` agar bootstrap root tidak bercampur
+dengan aturan endpoint.
 
 ## Aturan kompatibilitas
 

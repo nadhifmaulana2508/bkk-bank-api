@@ -41,11 +41,11 @@ if (($_SESSION['docs_access'] ?? false) !== true) {
 
 <header class="docs-header">
   <h1>Dokumentasi REST API BKK</h1>
-  <p>Dokumentasi endpoint SSO dan TTD IN BKK. Endpoint <code>/api/ttd/status</code> dan <code>/api/ttd/sign</code> tidak menggunakan Bearer token; kirim <code>pass_endpoint</code> melalui JSON body.</p>
+  <p>Dokumentasi endpoint SSO dan Global TTD. Endpoint <code>/api/ttd/status</code> dan <code>/api/ttd/sign</code> tidak menggunakan Bearer token; kirim <code>pass_endpoint</code> melalui JSON body.</p>
 </header>
 
 <div class="docs-note">
-  <strong>Integrasi TTD:</strong> gunakan tag <b>TTD IN BKK</b> di bawah untuk mencoba cek status TTD dan signing dokumen. Jika pegawai belum memiliki TTD, API akan mengembalikan kode <code>SIGNATURE_NOT_REGISTERED</code>.
+  <strong>Integrasi TTD:</strong> gunakan tag <b>Global TTD</b> di bawah untuk mencoba cek status TTD dan signing dokumen. Jika pegawai belum memiliki TTD, API akan mengembalikan kode <code>SIGNATURE_NOT_REGISTERED</code>.
 </div>
 
 <div id="swagger-ui"></div>

@@ -1,33 +1,18 @@
 <?php
-require_once __DIR__ . '/../helpers/response.php';
-require_once __DIR__ . '/../helpers/jwt.php';
+declare(strict_types=1);
 
-$SECRET_KEY = "SSO_BKK_SECRET_2026";
+require_once __DIR__ . '/../api/global/auth/SsoAuthenticator.php';
 
-function getBearerToken() {
-    $headers = getallheaders();
-    if (!isset($headers['Authorization'])) return null;
-
-    if (preg_match('/Bearer\s(\S+)/', $headers['Authorization'], $matches)) {
-        return $matches[1];
+if (!function_exists('getBearerToken')) {
+    function getBearerToken(): ?string
+    {
+        return SsoAuthenticator::bearerToken();
     }
-    return null;
 }
 
-function auth() {
-    global $SECRET_KEY;
-
-    $token = getBearerToken();
-    if (!$token) {
-        sendResponse(401, "Unauthorized");
-        exit;
+if (!function_exists('auth')) {
+    function auth(): array
+    {
+        return SsoAuthenticator::user();
     }
-
-    $decoded = jwt_decode($token, $SECRET_KEY);
-    if (!$decoded) {
-        sendResponse(401, "Invalid token");
-        exit;
-    }
-
-    return $decoded;
 }

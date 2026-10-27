@@ -397,7 +397,7 @@
       "post": {
         "summary": "Cek status TTD pegawai tanpa Bearer token",
         "description": "Endpoint integrasi aplikasi lain. Kirim pass_endpoint pada JSON body.",
-        "tags": ["TTD IN BKK"],
+        "tags": ["Global TTD"],
         "requestBody": {
           "required": true,
           "content": {
@@ -447,9 +447,9 @@
     },
     "/api/ttd/sign": {
       "post": {
-        "summary": "Tanda tangani dokumen menggunakan TTD IN BKK",
+        "summary": "Tanda tangani dokumen menggunakan Global TTD",
         "description": "Tidak menggunakan Bearer token. PIN TTD divalidasi server-side dan setiap percobaan dicatat pada audit trail. document_id, document_name, dan document_hash bersifat opsional.",
-        "tags": ["TTD IN BKK"],
+        "tags": ["Global TTD"],
         "requestBody": {
           "required": true,
           "content": {

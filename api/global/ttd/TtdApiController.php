@@ -1,7 +1,9 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/config/ttd_db.php';
+require_once dirname(__DIR__, 3) . '/config/ttd_db.php';
+require_once dirname(__DIR__, 3) . '/helpers/response.php';
+require_once dirname(__DIR__, 3) . '/ttd_in_bkk/lib/signature.php';
 
 if (!function_exists('client_ip')) {
     function client_ip(): ?string
@@ -16,8 +18,6 @@ if (!function_exists('user_agent')) {
         return substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
     }
 }
-
-require_once __DIR__ . '/ttd_in_bkk/lib/signature.php';
 
 final class TtdApiController
 {
@@ -98,7 +98,7 @@ final class TtdApiController
         if (!password_verify($pin, (string)$security['pin_hash'])) {
             $failed = (int)$security['failed_attempt'] + 1;
             $lockedUntil = $failed >= 5 ? date('Y-m-d H:i:s', time() + 900) : null;
-            $ttdPdo->prepare("UPDATE signature_security SET failed_attempt=:failed,locked_until=:locked WHERE id_peg=:id")
+            $ttdPdo->prepare('UPDATE signature_security SET failed_attempt=:failed,locked_until=:locked WHERE id_peg=:id')
                 ->execute(['failed' => $failed, 'locked' => $lockedUntil, 'id' => $idPeg]);
             log_signature($ttdPdo, $idPeg, 'SIGN', 'FAILED', $docId, $application);
 
@@ -132,10 +132,10 @@ final class TtdApiController
         $token = bin2hex(random_bytes(32));
         $ttdPdo->beginTransaction();
         try {
-            $ttdPdo->prepare("UPDATE signature_security SET failed_attempt=0,locked_until=NULL WHERE id_peg=:id")
+            $ttdPdo->prepare('UPDATE signature_security SET failed_attempt=0,locked_until=NULL WHERE id_peg=:id')
                 ->execute(['id' => $idPeg]);
-            $ttdPdo->prepare("INSERT INTO signature_documents(document_id,id_peg,signature_path,application,document_name,document_hash,verification_token)
-                              VALUES(:doc,:id,:signature_path,:app,:name,:hash,:token)")
+            $ttdPdo->prepare('INSERT INTO signature_documents(document_id,id_peg,signature_path,application,document_name,document_hash,verification_token)
+                              VALUES(:doc,:id,:signature_path,:app,:name,:hash,:token)')
                 ->execute([
                     'doc' => $docId,
                     'id' => $idPeg,
@@ -176,10 +176,7 @@ final class TtdApiController
     {
         $raw = file_get_contents('php://input');
         $input = json_decode($raw ?: '', true);
-        if (!is_array($input)) {
-            $input = $_POST;
-        }
-        return $input;
+        return is_array($input) ? $input : $_POST;
     }
 
     private static function guardEndpoint(array $input): void
@@ -207,8 +204,9 @@ final class TtdApiController
 
     private static function ttdUrl(string $path = ''): string
     {
-        $base = self::setting('TTD_APP_URL', 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/rest_api_sso/ttd_in_bkk');
-        return rtrim((string)$base, '/') . '/' . ltrim($path, '/');
+        $default = 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/rest_api_sso/ttd_in_bkk';
+        $base = self::setting('TTD_APP_URL', $default);
+        return rtrim($base, '/') . '/' . ltrim($path, '/');
     }
 
     private static function setting(string $key, string $default): string
@@ -220,7 +218,7 @@ final class TtdApiController
 
         static $rootEnv;
         if ($rootEnv === null) {
-            $envFile = __DIR__ . '/.env';
+            $envFile = dirname(__DIR__, 3) . '/.env';
             $rootEnv = is_file($envFile)
                 ? (parse_ini_file($envFile, false, INI_SCANNER_RAW) ?: [])
                 : [];
