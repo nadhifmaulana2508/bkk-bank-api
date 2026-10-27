@@ -1,5 +1,8 @@
 # REST API TTD IN BKK
 
+Untuk urutan pengujian seluruh endpoint setelah migrasi, lihat
+[Panduan Testing API Setelah Migrasi](API_MIGRATION_TESTING.md).
+
 Endpoint integrasi ini tidak menggunakan Bearer token. Setiap request wajib mengirim `pass_endpoint` pada JSON body.
 
 Base URL lokal:
