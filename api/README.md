@@ -12,6 +12,15 @@ Notaris.
 Endpoint lama di root project belum dipindahkan ke sini. Pemindahan dilakukan
 bertahap setelah kontrak endpoint baru disepakati dan sudah memiliki pengujian.
 
+## Aturan kompatibilitas
+
+Endpoint yang sudah digunakan aplikasi lain tidak boleh diganti path, method,
+atau format response. Jika implementasi internal dipindahkan ke service baru,
+route lama harus memakai adapter dan serializer response lama.
+
+Endpoint `/api/v1` bersifat additive. Ia tidak menggantikan endpoint lama
+sampai semua client selesai bermigrasi.
+
 ## Target versi
 
 Endpoint baru menggunakan prefix:

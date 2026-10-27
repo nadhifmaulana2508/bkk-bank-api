@@ -33,6 +33,36 @@ seperti sebelumnya sampai migrasi dilakukan secara bertahap.
 7. Semua endpoint baru memakai prefix `/api/v1`.
 8. Autentikasi pengguna dan autentikasi aplikasi dipisahkan.
 
+## Kontrak kompatibilitas endpoint lama
+
+Endpoint yang sudah dipakai sistem lain dianggap kontrak publik dan tidak boleh
+diubah secara diam-diam.
+
+Untuk endpoint lama, hal berikut wajib dipertahankan:
+
+- path dan HTTP method;
+- nama field request;
+- bentuk response JSON;
+- nama field response;
+- HTTP status code;
+- aturan autentikasi yang sedang dipakai;
+- perilaku error yang sudah dikonsumsi oleh client.
+
+Jika kode lama ingin dipindahkan ke service baru, gunakan adapter:
+
+```text
+Client lama
+    -> route lama
+    -> legacy adapter
+    -> global service baru
+    -> legacy response serializer
+    -> response lama
+```
+
+Perubahan format hanya boleh dilakukan pada endpoint baru atau versi baru,
+misalnya `/api/v1/...`. Endpoint lama tidak diarahkan ulang ke format baru
+sebelum seluruh client menyatakan siap.
+
 ## Struktur target
 
 ```text
@@ -82,11 +112,11 @@ controller dan query dibuat.
 
 | Endpoint lama | Rencana tujuan | Perlakuan |
 | --- | --- | --- |
-| `POST /api/auth/login` | `POST /api/v1/auth/login` | dipertahankan, lalu dibuat adapter |
-| `GET/POST /api/auth/whoami` | `GET /api/v1/auth/me` | dipertahankan selama masa migrasi |
-| `GET /api/ao/list` | `GET /api/v1/simpeg/ao` | dipindah setelah kontrak disepakati |
-| `POST /api/ttd/status` | `POST /api/v1/ttd/status` | global TTD service |
-| `POST /api/ttd/sign` | `POST /api/v1/ttd/sign` | global TTD service |
+| `POST /api/auth/login` | `POST /api/v1/auth/login` | route lama dan response lama wajib tetap |
+| `GET/POST /api/auth/whoami` | `GET /api/v1/auth/me` | route lama dan response lama wajib tetap |
+| `GET /api/ao/list` | `GET /api/v1/simpeg/ao` | route lama dan response lama wajib tetap |
+| `POST /api/ttd/status` | `POST /api/v1/ttd/status` | route lama memakai adapter global TTD |
+| `POST /api/ttd/sign` | `POST /api/v1/ttd/sign` | route lama memakai adapter global TTD |
 
 ## Posisi `ttd_in_bkk/`
 

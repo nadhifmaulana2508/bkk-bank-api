@@ -33,6 +33,20 @@ api/global/
 
 Controller dan service dibuat setelah kontrak request/response disetujui.
 
+## Legacy route
+
+Route berikut tetap dipertahankan tanpa perubahan kontrak:
+
+```text
+POST /api/auth/login
+GET  /api/auth/whoami
+POST /api/ttd/status
+POST /api/ttd/sign
+```
+
+Route legacy boleh memanggil service global yang sama, tetapi response-nya
+harus diserialisasi kembali ke format yang sudah dipakai client lama.
+
 ## Dokumentasi Swagger
 
 Jangan menampilkan `ttd_in_bkk/` sebagai grup API. Folder tersebut adalah UI
