@@ -201,7 +201,47 @@ Negative test:
 
 Expected: HTTP 400 dengan response JSON.
 
-## 7. Test Global TTD
+## 7. Test search pegawai SIMPEG
+
+Endpoint ini membutuhkan token dari `POST /api/auth/login` dan mengembalikan
+field yang sama dengan response `whoami`.
+
+~~~powershell
+$encodedIdPeg = [uri]::EscapeDataString("<ID_PEGAWAI>")
+Invoke-RestMethod -Method Get -Uri "$baseUrl/api/simpeg/pegawai/search?id_peg=$encodedIdPeg" -Headers $headers
+~~~
+
+Expected:
+
+~~~json
+{
+  "status": 200,
+  "message": "OK",
+  "data": {
+    "kode": "000",
+    "employee_id": "<ID_PEGAWAI>",
+    "full_name": "Nama Pegawai",
+    "email": "pegawai@example.com",
+    "telp": "081234567890",
+    "branch_name": "Kantor Cabang",
+    "unit_kerja": "Unit Kerja",
+    "job_position": "Staff",
+    "level": "1",
+    "group_jabatan": "Pegawai"
+  }
+}
+~~~
+
+Negative test:
+
+| Skenario | Expected |
+| --- | --- |
+| Token tidak dikirim | HTTP 401, `Unauthorized` |
+| Token tidak valid | HTTP 401, `Invalid token` |
+| `id_peg` kosong | HTTP 400 |
+| `id_peg` tidak ditemukan | HTTP 404, `Pegawai tidak ditemukan` |
+
+## 8. Test Global TTD
 
 Endpoint TTD saat ini tidak memakai Bearer token. Setiap request memakai
 `pass_endpoint` pada JSON body.
@@ -260,7 +300,7 @@ Negative test:
 Jangan memakai data tanda tangan pegawai sungguhan untuk test berulang. Gunakan
 pegawai dan database TTD khusus testing bila tersedia.
 
-## 8. Test endpoint profil dan password
+## 9. Test endpoint profil dan password
 
 Semua endpoint berikut memakai header Bearer dari login:
 
@@ -283,7 +323,7 @@ POST /api/auth/reset-password
 Tahap ini mengirim email dan mengubah password. Sebaiknya dijalankan di
 environment development/staging dengan mailbox testing.
 
-## 9. Verifikasi khusus migrasi
+## 10. Verifikasi khusus migrasi
 
 Checklist:
 
@@ -292,12 +332,14 @@ Checklist:
 - [ ] Token yang dibuat dengan secret legacy tetap dapat dipakai.
 - [ ] `/api/auth/whoami` tetap menerima Bearer token.
 - [ ] `/api/ao/list` tetap mengembalikan envelope response lama.
+- [ ] `/api/simpeg/pegawai/search` menerima token login dan mengembalikan
+      field yang sama seperti `whoami`.
 - [ ] `/api/ttd/status` dan `/api/ttd/sign` tetap memakai `pass_endpoint`.
 - [ ] Swagger menampilkan grup `Global TTD`, bukan grup `TTD IN BKK`.
 - [ ] `ttd_in_bkk/` tetap dapat dibuka sebagai UI internal.
 - [ ] Client lama tetap memanggil endpoint `/api/...` tanpa perubahan URL.
 
-## 10. Pemeriksaan lokal tanpa request bisnis
+## 11. Pemeriksaan lokal tanpa request bisnis
 
 Dari root project:
 
@@ -306,6 +348,8 @@ C:\xampp\php\php.exe -l index.php
 C:\xampp\php\php.exe -l api/routes.php
 C:\xampp\php\php.exe -l api/global/auth/SsoService.php
 C:\xampp\php\php.exe -l api/global/ttd/TtdApiController.php
+C:\xampp\php\php.exe -l api/modules/simpeg/EmployeeService.php
+C:\xampp\php\php.exe -l api/modules/simpeg/EmployeeController.php
 ~~~
 
 Validasi Swagger JSON:

@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/legacy/AuthController.php';
 require_once __DIR__ . '/legacy/AoController.php';
+require_once __DIR__ . '/modules/simpeg/EmployeeController.php';
 
 $uri = $_SERVER['REQUEST_URI'];
 $method = $_SERVER['REQUEST_METHOD'];
@@ -32,6 +33,8 @@ if ($uri === '/api/auth/login' && $method === 'POST') {
     AuthController::resetPassword();
 } elseif ($uri === '/api/ao/list' && $method === 'GET') {
     AoController::getAoByCabang();
+} elseif ($uri === '/api/simpeg/pegawai/search' && $method === 'GET') {
+    EmployeeController::search();
 } elseif ($uri === '/api/ttd/status' && $method === 'POST') {
     require_once __DIR__ . '/global/ttd/TtdApiController.php';
     TtdApiController::status();

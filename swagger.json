@@ -393,6 +393,64 @@
         }
       }
     },
+    "/api/simpeg/pegawai/search": {
+      "get": {
+        "summary": "Cari data pegawai berdasarkan id_peg",
+        "description": "Memerlukan Bearer token dari endpoint login dan mengembalikan struktur data yang sama seperti whoami.",
+        "tags": ["SIMPEG"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id_peg",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID pegawai yang ingin dicari",
+            "example": "102-119"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data pegawai ditemukan",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "OK",
+                  "data": {
+                    "kode": "000",
+                    "employee_id": "102-119",
+                    "full_name": "Nama Pegawai",
+                    "email": "pegawai@example.com",
+                    "telp": "081234567890",
+                    "branch_name": "Kantor Cabang",
+                    "unit_kerja": "Unit Kerja",
+                    "job_position": "Staff",
+                    "level": "1",
+                    "group_jabatan": "Pegawai"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parameter id_peg wajib diisi"
+          },
+          "401": {
+            "description": "Token tidak valid / expired"
+          },
+          "404": {
+            "description": "Pegawai tidak ditemukan"
+          }
+        }
+      }
+    },
     "/api/ttd/status": {
       "post": {
         "summary": "Cek status TTD pegawai tanpa Bearer token",
