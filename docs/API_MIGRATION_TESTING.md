@@ -53,8 +53,8 @@ Swagger:
 http://localhost/rest_api_sso/docs/
 ~~~
 
-Endpoint `/api/v1/...` masih berupa rancangan. Untuk testing branch ini,
-gunakan endpoint legacy `/api/...`.
+Untuk testing branch ini, tetap gunakan endpoint publik `/api/...`. Migrasi
+hanya memindahkan implementasi internal dan tidak mengubah URL endpoint.
 
 ## 3. Test login SSO
 
@@ -264,7 +264,7 @@ Checklist:
 - [ ] `/api/ttd/status` dan `/api/ttd/sign` tetap memakai `pass_endpoint`.
 - [ ] Swagger menampilkan grup `Global TTD`, bukan grup `TTD IN BKK`.
 - [ ] `ttd_in_bkk/` tetap dapat dibuka sebagai UI internal.
-- [ ] Tidak ada endpoint yang diarahkan ke `/api/v1` sebelum kontraknya siap.
+- [ ] Client lama tetap memanggil endpoint `/api/...` tanpa perubahan URL.
 
 ## 9. Pemeriksaan lokal tanpa request bisnis
 

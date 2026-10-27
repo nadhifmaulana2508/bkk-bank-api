@@ -4,21 +4,29 @@ Folder ini khusus untuk endpoint yang menjadi fondasi bersama semua aplikasi.
 TTD berada di area global karena dipakai oleh Monbis, Notaris, dan aplikasi
 internal lainnya.
 
-## Kandidat endpoint
+## Endpoint publik saat ini
 
 ```text
-GET  /api/v1/health
-POST /api/v1/auth/login
-GET  /api/v1/auth/me
-GET  /api/v1/global/scopes
-POST /api/v1/ttd/status
-POST /api/v1/ttd/sign
-GET  /api/v1/ttd/verify/{token}
+POST /api/auth/login
+GET  /api/auth/whoami
+POST /api/auth/whoami
+POST /api/auth/change-password
+POST /api/auth/update-profile
+POST /api/auth/forgot-password
+POST /api/auth/verify-otp
+POST /api/auth/reset-password
+GET  /api/ao/list
+POST /api/ttd/status
+POST /api/ttd/sign
 ```
 
 Global API tidak menyimpan aturan bisnis spesifik Monbis atau Notaris. Ia
 menyediakan identitas, akses, metadata bersama, TTD, dan kemampuan teknis
 umum.
+
+Path di atas sengaja tetap menggunakan kontrak `/api/...` yang sudah dipakai
+client. Perpindahan kode ke folder `api/global/` tidak mengubah URL, method,
+atau format response.
 
 ## Rencana struktur implementasi
 
@@ -33,19 +41,11 @@ api/global/
 
 Controller dan service dibuat setelah kontrak request/response disetujui.
 
-## Legacy route
+## Adapter route
 
-Route berikut tetap dipertahankan tanpa perubahan kontrak:
-
-```text
-POST /api/auth/login
-GET  /api/auth/whoami
-POST /api/ttd/status
-POST /api/ttd/sign
-```
-
-Route legacy boleh memanggil service global yang sama, tetapi response-nya
-harus diserialisasi kembali ke format yang sudah dipakai client lama.
+Route publik tetap memakai path lama. Route tersebut boleh memanggil service
+global yang sama, tetapi response-nya harus diserialisasi kembali ke format
+yang sudah dipakai client.
 
 ## Dokumentasi Swagger
 

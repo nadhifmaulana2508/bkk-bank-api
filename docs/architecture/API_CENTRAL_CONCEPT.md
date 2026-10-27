@@ -30,7 +30,8 @@ seperti sebelumnya sampai migrasi dilakukan secara bertahap.
 5. TTD menjadi global service karena dipakai Monbis, Notaris, dan aplikasi
    internal lain. Database TTD yang sudah ada tetap digunakan melalui adapter.
 6. Endpoint lama dianggap legacy dan tidak dihapus selama migrasi.
-7. Semua endpoint baru memakai prefix `/api/v1`.
+7. Migrasi internal tidak mengubah URL publik. Endpoint `/api/...` tetap
+   menjadi kontrak client yang sudah terintegrasi.
 8. Autentikasi pengguna dan autentikasi aplikasi dipisahkan.
 
 ## Kontrak kompatibilitas endpoint lama
@@ -59,9 +60,9 @@ Client lama
     -> response lama
 ```
 
-Perubahan format hanya boleh dilakukan pada endpoint baru atau versi baru,
-misalnya `/api/v1/...`. Endpoint lama tidak diarahkan ulang ke format baru
-sebelum seluruh client menyatakan siap.
+Perubahan format hanya boleh dilakukan pada endpoint baru atau versi baru
+setelah ada keputusan kontrak terpisah. Migrasi branch ini tidak membuat
+prefix `/api/v1` dan tidak mengarahkan endpoint lama ke URL baru.
 
 ## Struktur target
 
@@ -93,35 +94,34 @@ api/
 Folder di atas adalah batas tanggung jawab. Implementasi folder detail dibuat
 saat domain tersebut mulai dikerjakan.
 
-## Rute target
+## Rute publik saat ini
 
 ```text
-/api/v1/health
-/api/v1/auth/login
-/api/v1/auth/me
-/api/v1/simpeg/pegawai
-/api/v1/simpeg/cabang
-/api/v1/simpeg/jabatan
-/api/v1/ttd/status
-/api/v1/ttd/sign
-/api/v1/ttd/verify
-/api/v1/monbis/requests
-/api/v1/notaris/requests
-/api/v1/notaris/requests/{id}/status
+/api/auth/login
+/api/auth/whoami
+/api/auth/change-password
+/api/auth/update-profile
+/api/auth/forgot-password
+/api/auth/verify-otp
+/api/auth/reset-password
+/api/ao/list
+/api/ttd/status
+/api/ttd/sign
 ```
 
-Nama rute masih berupa kontrak awal. Payload final harus disepakati sebelum
-controller dan query dibuat.
+URL di atas adalah kontrak yang dipertahankan selama migrasi. Endpoint baru
+untuk SIMPEG, Monbis, dan Notaris dapat ditambahkan kemudian setelah payload,
+autentikasi, dan ownership disepakati.
 
-## Pemetaan endpoint lama
+## Pemetaan endpoint ke implementasi global
 
-| Endpoint lama | Rencana tujuan | Perlakuan |
+| Endpoint publik | Implementasi | Perlakuan |
 | --- | --- | --- |
-| `POST /api/auth/login` | `POST /api/v1/auth/login` | route lama dan response lama wajib tetap |
-| `GET/POST /api/auth/whoami` | `GET /api/v1/auth/me` | route lama dan response lama wajib tetap |
-| `GET /api/ao/list` | `GET /api/v1/simpeg/ao` | route lama dan response lama wajib tetap |
-| `POST /api/ttd/status` | `POST /api/v1/ttd/status` | route lama memakai adapter global TTD |
-| `POST /api/ttd/sign` | `POST /api/v1/ttd/sign` | route lama memakai adapter global TTD |
+| `POST /api/auth/login` | `api/global/auth/SsoService.php` | URL dan response tetap |
+| `GET/POST /api/auth/whoami` | `api/global/auth/SsoService.php` | URL dan response tetap |
+| `GET /api/ao/list` | `api/legacy/AoController.php` | URL dan response tetap |
+| `POST /api/ttd/status` | `api/global/ttd/TtdApiController.php` | URL dan response tetap |
+| `POST /api/ttd/sign` | `api/global/ttd/TtdApiController.php` | URL dan response tetap |
 
 ## Posisi `ttd_in_bkk/`
 
@@ -173,8 +173,9 @@ Monbis/Notaris mengirim request
 ## Tahapan implementasi
 
 1. Menetapkan kontrak response, error, authentication, dan correlation ID.
-2. Membuat router `/api/v1` tanpa mengubah router legacy.
-3. Membuat endpoint global: health, auth/me, cabang, dan pegawai.
+2. Memindahkan implementasi ke service global tanpa mengubah router publik.
+3. Menambahkan endpoint global: health, auth, cabang, dan pegawai dengan
+   kontrak URL yang disepakati.
 4. Membungkus integrasi TTD sebagai service yang dapat dipakai Monbis dan
    Notaris.
 5. Menetapkan workflow dokumen Monbis.
