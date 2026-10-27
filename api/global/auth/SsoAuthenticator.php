@@ -10,13 +10,14 @@ final class SsoAuthenticator
     public static function bearerToken(): ?string
     {
         $headers = function_exists('getallheaders') ? getallheaders() : [];
-        $authorization = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+        $headers = is_array($headers) ? array_change_key_case($headers, CASE_LOWER) : [];
+        $authorization = $headers['authorization'] ?? ($_SERVER['HTTP_AUTHORIZATION'] ?? null);
 
         if (!is_string($authorization)) {
             return null;
         }
 
-        if (preg_match('/Bearer\s(\S+)/', $authorization, $matches)) {
+        if (preg_match('/^Bearer\s+(\S+)$/i', trim($authorization), $matches)) {
             return $matches[1];
         }
 
@@ -31,7 +32,15 @@ final class SsoAuthenticator
         }
 
         $decoded = jwt_decode($token, sso_secret_key());
-        if (!$decoded) {
+        if (
+            !is_array($decoded)
+            || empty($decoded['id_peg'])
+            || empty($decoded['app'])
+            || isset($decoded['purpose'])
+            || !isset($decoded['exp'])
+            || !is_numeric($decoded['exp'])
+            || (int) $decoded['exp'] <= time()
+        ) {
             sendResponse(401, 'Invalid token');
         }
 

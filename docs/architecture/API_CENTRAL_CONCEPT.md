@@ -94,6 +94,23 @@ api/
 Folder di atas adalah batas tanggung jawab. Implementasi folder detail dibuat
 saat domain tersebut mulai dikerjakan.
 
+### Struktur routing aktual
+
+```text
+api/
+├── Router.php
+├── routes.php                 # front controller dan loader route module
+├── global/routes.php          # auth global dan route TTD
+└── modules/simpeg/
+    ├── routes.php
+    ├── controllers/
+    ├── EmployeeService.php
+    └── AoService.php
+```
+
+`api/routes.php` tidak mendaftarkan endpoint bisnis satu per satu. Ia hanya
+membuat `ApiRouter`, lalu memuat route global dan route setiap module.
+
 ## Rute publik saat ini
 
 ```text
@@ -102,9 +119,10 @@ saat domain tersebut mulai dikerjakan.
 /api/auth/change-password
 /api/auth/update-profile
 /api/auth/forgot-password
+/api/auth/resend-otp
 /api/auth/verify-otp
 /api/auth/reset-password
-/api/ao/list
+/api/simpeg/ao/list
 /api/ttd/status
 /api/ttd/sign
 ```
@@ -119,13 +137,13 @@ autentikasi, dan ownership disepakati.
 | --- | --- | --- |
 | `POST /api/auth/login` | `api/global/auth/SsoService.php` | URL dan response tetap |
 | `GET/POST /api/auth/whoami` | `api/global/auth/SsoService.php` | URL dan response tetap |
-| `GET /api/ao/list` | `api/legacy/AoController.php` | URL dan response tetap |
+| `GET /api/simpeg/ao/list` | `api/modules/simpeg/AoController.php` dan `AoService.php` | endpoint baru |
 | `POST /api/ttd/status` | `api/global/ttd/TtdApiController.php` | URL dan response tetap |
 | `POST /api/ttd/sign` | `api/global/ttd/TtdApiController.php` | URL dan response tetap |
 
-## Posisi `ttd_in_bkk/`
+## Posisi `apps/ttd_in_bkk/`
 
-`ttd_in_bkk/` diperlakukan sebagai aplikasi web internal untuk registrasi,
+`apps/ttd_in_bkk/` diperlakukan sebagai aplikasi web internal untuk registrasi,
 administrasi, dan verifikasi TTD. Folder tersebut bukan domain API terpisah.
 
 Karena itu:

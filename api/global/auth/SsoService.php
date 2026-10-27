@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/config/db.php';
 require_once dirname(__DIR__, 3) . '/helpers/response.php';
+require_once dirname(__DIR__, 3) . '/helpers/request.php';
 require_once dirname(__DIR__, 3) . '/helpers/jwt.php';
 require_once dirname(__DIR__, 3) . '/helpers/mailHelper.php';
 require_once dirname(__DIR__, 2) . '/modules/simpeg/EmployeeService.php';
@@ -15,7 +16,7 @@ final class SsoService
     {
         global $pdo;
 
-        $input = json_decode(file_get_contents('php://input'), true);
+        $input = jsonRequestBody();
         $idPeg = $input['id_peg'] ?? '';
         $password = $input['password'] ?? '';
         $app = $input['app'] ?? '';
@@ -74,7 +75,7 @@ final class SsoService
         global $pdo;
 
         $user = SsoAuthenticator::user();
-        $input = json_decode(file_get_contents('php://input'), true);
+        $input = jsonRequestBody();
         $oldPassword = $input['old_password'] ?? '';
         $newPassword = $input['new_password'] ?? '';
 
@@ -102,12 +103,20 @@ final class SsoService
         global $pdo;
 
         $user = SsoAuthenticator::user();
-        $input = json_decode(file_get_contents('php://input'), true);
+        $input = jsonRequestBody();
         $email = $input['email'] ?? null;
         $telp = $input['telp'] ?? null;
 
         if (!$email && !$telp) {
             sendResponse(400, 'Minimal kirim email atau telp yang ingin diubah');
+        }
+
+        if ($email !== null && (!is_string($email) || !filter_var($email, FILTER_VALIDATE_EMAIL))) {
+            sendResponse(400, 'Format email tidak valid.');
+        }
+
+        if ($telp !== null && (!is_string($telp) || !preg_match('/^[0-9+()\-\s]{6,20}$/', $telp))) {
+            sendResponse(400, 'Format nomor telepon tidak valid.');
         }
 
         $fields = [];
@@ -131,11 +140,21 @@ final class SsoService
 
     public static function forgotPassword(): void
     {
+        self::sendPasswordOtp();
+    }
+
+    public static function resendOtp(): void
+    {
+        self::sendPasswordOtp();
+    }
+
+    private static function sendPasswordOtp(): void
+    {
         global $pdo;
 
-        $input = json_decode(file_get_contents('php://input'), true);
+        $input = jsonRequestBody();
         $email = $input['email'] ?? '';
-        if (!$email) {
+        if (!is_string($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             sendResponse(400, 'Email wajib diisi');
         }
 
@@ -159,8 +178,9 @@ final class SsoService
 
         try {
             MailHelper::sendOTP($email, $pegawai['nama'], $otpCode);
-        } catch (\Exception $e) {
-            sendResponse(500, $e->getMessage());
+        } catch (\Throwable $e) {
+            error_log('[API] OTP request failed: ' . $e->getMessage());
+            sendResponse(500, 'Gagal mengirim email OTP. Silakan coba lagi nanti.');
         }
 
         sendResponse(200, 'Kode OTP berhasil dikirim ke email Anda.', [
@@ -170,7 +190,7 @@ final class SsoService
 
     public static function verifyOtp(): void
     {
-        $input = json_decode(file_get_contents('php://input'), true);
+        $input = jsonRequestBody();
         $otpToken = $input['otp_token'] ?? '';
         $otpInput = $input['otp_code'] ?? '';
         if (!$otpToken || !$otpInput) {
@@ -181,7 +201,10 @@ final class SsoService
         if (!$decoded || !isset($decoded['purpose']) || $decoded['purpose'] !== 'verify_otp') {
             sendResponse(401, 'Sesi OTP tidak valid atau sudah kadaluarsa.');
         }
-        if (hash('sha256', $otpInput) !== $decoded['otp_hash']) {
+        if (!is_string($otpInput) || !isset($decoded['otp_hash']) || !hash_equals(
+            (string)$decoded['otp_hash'],
+            hash('sha256', $otpInput)
+        )) {
             sendResponse(400, 'Kode OTP salah!');
         }
 
@@ -201,7 +224,7 @@ final class SsoService
     {
         global $pdo;
 
-        $input = json_decode(file_get_contents('php://input'), true);
+        $input = jsonRequestBody();
         $token = $input['reset_token'] ?? '';
         $newPassword = $input['new_password'] ?? '';
         if (!$token || !$newPassword) {

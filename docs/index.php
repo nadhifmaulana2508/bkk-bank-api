@@ -1,10 +1,12 @@
 <?php
 declare(strict_types=1);
 
+require_once dirname(__DIR__) . '/config/env.php';
+
 session_name('BKKAPIDOCSSESSID');
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax',
+    'samesite' => 'Strict',
     'path' => '/',
     'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
 ]);
@@ -12,23 +14,7 @@ session_start();
 
 function docsAccessCode(): string
 {
-    $environmentValue = getenv('API_DOCS_ACCESS_CODE');
-    if (is_string($environmentValue) && trim($environmentValue) !== '') {
-        return trim($environmentValue);
-    }
-
-    $envFile = dirname(__DIR__) . '/.env';
-    if (!is_file($envFile)) {
-        return '';
-    }
-
-    $values = parse_ini_file($envFile, false, INI_SCANNER_RAW);
-    if (!is_array($values)) {
-        return '';
-    }
-
-    $fileValue = $values['API_DOCS_ACCESS_CODE'] ?? '';
-    return is_string($fileValue) ? trim($fileValue) : '';
+    return trim((string) app_env_value('API_DOCS_ACCESS_CODE', ''));
 }
 
 $accessCode = docsAccessCode();

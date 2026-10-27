@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/config/ttd_db.php';
 require_once dirname(__DIR__, 3) . '/helpers/response.php';
-require_once dirname(__DIR__, 3) . '/ttd_in_bkk/lib/signature.php';
+require_once dirname(__DIR__, 3) . '/apps/ttd_in_bkk/lib/signature.php';
 
 if (!function_exists('client_ip')) {
     function client_ip(): ?string
@@ -181,7 +181,12 @@ final class TtdApiController
 
     private static function guardEndpoint(array $input): void
     {
-        $expected = self::setting('TTD_API_PASSWORD', 'bkkjateng123');
+        $expected = self::setting('TTD_API_PASSWORD', '');
+        if ($expected === '') {
+            error_log('[SSO API] TTD_API_PASSWORD belum dikonfigurasi.');
+            sendResponse(503, 'Endpoint TTD belum dikonfigurasi.');
+        }
+
         $provided = (string)($input['pass_endpoint'] ?? '');
         if ($provided === '' || !hash_equals((string)$expected, $provided)) {
             sendResponse(401, 'pass_endpoint tidak valid.', [
@@ -211,18 +216,6 @@ final class TtdApiController
 
     private static function setting(string $key, string $default): string
     {
-        $serverValue = getenv($key);
-        if ($serverValue !== false && $serverValue !== '') {
-            return (string)$serverValue;
-        }
-
-        static $rootEnv;
-        if ($rootEnv === null) {
-            $envFile = dirname(__DIR__, 3) . '/.env';
-            $rootEnv = is_file($envFile)
-                ? (parse_ini_file($envFile, false, INI_SCANNER_RAW) ?: [])
-                : [];
-        }
-        return (string)($rootEnv[$key] ?? $default);
+        return (string) app_env_value($key, $default);
     }
 }

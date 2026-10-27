@@ -13,9 +13,9 @@ POST /api/auth/whoami
 POST /api/auth/change-password
 POST /api/auth/update-profile
 POST /api/auth/forgot-password
+POST /api/auth/resend-otp
 POST /api/auth/verify-otp
 POST /api/auth/reset-password
-GET  /api/ao/list
 POST /api/ttd/status
 POST /api/ttd/sign
 ```
@@ -41,6 +41,9 @@ api/global/
 
 Controller dan service dibuat setelah kontrak request/response disetujui.
 
+Saat ini `api/global/routes.php` mendaftarkan endpoint Auth dan TTD ke
+`ApiRouter`. Detail endpoint tidak ditulis lagi di `api/routes.php`.
+
 ## Adapter route
 
 Route publik tetap memakai path lama. Route tersebut boleh memanggil service
@@ -49,5 +52,5 @@ yang sudah dipakai client.
 
 ## Dokumentasi Swagger
 
-Jangan menampilkan `ttd_in_bkk/` sebagai grup API. Folder tersebut adalah UI
+Jangan menampilkan `apps/ttd_in_bkk/` sebagai grup API. Folder tersebut adalah UI
 internal. Endpoint-nya didokumentasikan sebagai `Global TTD`.

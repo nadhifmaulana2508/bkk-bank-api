@@ -1,7 +1,7 @@
 # Global TTD
 
 TTD adalah service global yang dipakai lintas aplikasi. Controller API berada
-di sini, sedangkan `ttd_in_bkk/` tetap menjadi UI internal untuk registrasi dan
+di sini, sedangkan `apps/ttd_in_bkk/` tetap menjadi UI internal untuk registrasi dan
 administrasi TTD.
 
 Route legacy `/api/ttd/status` dan `/api/ttd/sign` tetap menggunakan response

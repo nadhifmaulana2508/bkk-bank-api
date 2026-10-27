@@ -2,31 +2,24 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../helpers/response.php';
+require_once __DIR__ . '/env.php';
 
 /**
  * Koneksi database TTD IN BKK untuk endpoint REST.
  *
  * Prioritas konfigurasi:
  * 1. TTD_DB_* dari environment server/root .env;
- * 2. DB_* dari ttd_in_bkk/.env;
+ * 2. DB_* dari apps/ttd_in_bkk/.env;
  * 3. default lokal.
  */
-$ttdEnvFile = dirname(__DIR__) . '/ttd_in_bkk/.env';
+$ttdEnvFile = dirname(__DIR__) . '/apps/ttd_in_bkk/.env';
 $ttdEnv = is_file($ttdEnvFile)
     ? (parse_ini_file($ttdEnvFile, false, INI_SCANNER_RAW) ?: [])
     : [];
-$rootEnvFile = dirname(__DIR__) . '/.env';
-$rootEnv = is_file($rootEnvFile)
-    ? (parse_ini_file($rootEnvFile, false, INI_SCANNER_RAW) ?: [])
-    : [];
-
-$ttdEnvValue = static function (string $key, $default = null) use ($ttdEnv, $rootEnv) {
-    $serverValue = getenv('TTD_' . $key);
-    if ($serverValue !== false && $serverValue !== '') {
-        return $serverValue;
-    }
-    if (isset($rootEnv['TTD_' . $key]) && $rootEnv['TTD_' . $key] !== '') {
-        return $rootEnv['TTD_' . $key];
+$ttdEnvValue = static function (string $key, $default = null) use ($ttdEnv) {
+    $configuredValue = app_env_value('TTD_' . $key);
+    if ($configuredValue !== null) {
+        return $configuredValue;
     }
     return $ttdEnv[$key] ?? $default;
 };

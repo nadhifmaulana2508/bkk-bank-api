@@ -7,6 +7,6 @@ tetap sama.
 Adapter saat ini:
 
 - `AuthController.php` meneruskan `/api/auth/*` ke Global SSO;
-- `AoController.php` mempertahankan `/api/ao/list`.
 
-Router tetap berada di `index.php` agar URL lama tidak berubah.
+AO sekarang berada di modul SIMPEG dan memakai route baru
+`/api/simpeg/ao/list` karena endpoint tersebut belum dipakai client.

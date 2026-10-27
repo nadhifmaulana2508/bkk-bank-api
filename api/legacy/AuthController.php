@@ -35,6 +35,11 @@ final class AuthController
         SsoService::forgotPassword();
     }
 
+    public static function resendOtp(): void
+    {
+        SsoService::resendOtp();
+    }
+
     public static function verifyOtp(): void
     {
         SsoService::verifyOtp();

@@ -254,6 +254,44 @@
         }
       }
     },
+    "/api/auth/resend-otp": {
+      "post": {
+        "summary": "Kirim ulang OTP Reset Password ke Email",
+        "description": "Gunakan endpoint ini jika OTP sebelumnya belum diterima atau sudah kadaluarsa. Token OTP baru akan dikembalikan.",
+        "tags": ["Reset Password"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "pegawai_bkk@gmail.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP baru berhasil dikirim, mengembalikan otp_token sementara"
+          },
+          "400": {
+            "description": "Email wajib diisi"
+          },
+          "404": {
+            "description": "Email tidak terdaftar di sistem"
+          },
+          "500": {
+            "description": "Gagal mengirim email OTP (Error Mailer atau akun SMTP suspended)"
+          }
+        }
+      }
+    },
     "/api/auth/verify-otp": {
       "post": {
         "summary": "Verifikasi Kode OTP dari Email",
@@ -269,7 +307,7 @@
                   "otp_token": {
                     "type": "string",
                     "example": "eyJhbGciOiJIUzI1NiIs...",
-                    "description": "Token yang didapat dari response /forgot-password"
+                    "description": "Token yang didapat dari response /forgot-password atau /resend-otp"
                   },
                   "otp_code": {
                     "type": "string",
@@ -333,10 +371,11 @@
         }
       }
     },
-    "/api/ao/list": {
+    "/api/simpeg/ao/list": {
       "get": {
-        "summary": "Ambil daftar AO berdasarkan tipe dan kode cabang",
-        "tags": ["AO"],
+        "summary": "Ambil daftar AO SIMPEG berdasarkan type_ao dan kode kantor",
+        "description": "Jika kode_kantor bernilai 000, data AO diambil dari kantor 001 sampai 028.",
+        "tags": ["SIMPEG"],
         "security": [
           {
             "bearerAuth": []
@@ -345,22 +384,23 @@
         "parameters": [
           {
             "in": "query",
-            "name": "tipe",
+            "name": "type_ao",
             "required": true,
             "schema": {
               "type": "string",
               "enum": ["dana", "kredit", "remedial"]
             },
-            "description": "Tipe Account Officer: dana, kredit, atau remedial"
+            "description": "Jenis Account Officer: dana, kredit, atau remedial"
           },
           {
             "in": "query",
-            "name": "kode_cabang",
+            "name": "kode_kantor",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "Kode Cabang/Kantor (contoh: 000, 001, dll)"
+            "description": "Kode kantor. Gunakan 000 untuk mengambil AO dari kantor 001 sampai 028.",
+            "example": "000"
           }
         ],
         "responses": {
@@ -385,7 +425,7 @@
             }
           },
           "400": {
-            "description": "Parameter 'tipe' atau 'kode_cabang' tidak valid/kosong"
+            "description": "Parameter 'type_ao' atau kode kantor wajib diisi; type_ao harus dana, kredit, atau remedial"
           },
           "401": {
             "description": "Token tidak valid / expired"
@@ -395,24 +435,29 @@
     },
     "/api/simpeg/pegawai/search": {
       "get": {
-        "summary": "Cari data pegawai berdasarkan id_peg",
-        "description": "Memerlukan Bearer token dari endpoint login dan mengembalikan struktur data yang sama seperti whoami.",
+        "summary": "Cari data pegawai berdasarkan id_peg atau nama",
+        "description": "Cari pegawai berdasarkan id_peg atau sebagian nama. Endpoint publik dan mengembalikan employee_id serta full_name.",
         "tags": ["SIMPEG"],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "parameters": [
           {
             "in": "query",
             "name": "id_peg",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             },
             "description": "ID pegawai yang ingin dicari",
             "example": "102-119"
+          },
+          {
+            "in": "query",
+            "name": "nama",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Sebagian atau seluruh nama pegawai",
+            "example": "Nama Pegawai"
           }
         ],
         "responses": {
@@ -423,147 +468,19 @@
                 "example": {
                   "status": 200,
                   "message": "OK",
-                  "data": {
-                    "kode": "000",
-                    "employee_id": "102-119",
-                    "full_name": "Nama Pegawai",
-                    "email": "pegawai@example.com",
-                    "telp": "081234567890",
-                    "branch_name": "Kantor Cabang",
-                    "unit_kerja": "Unit Kerja",
-                    "job_position": "Staff",
-                    "level": "1",
-                    "group_jabatan": "Pegawai"
-                  }
+                  "data": [
+                    {
+                      "employee_id": "102-119",
+                      "full_name": "Nama Pegawai"
+                    }
+                  ]
                 }
               }
             }
           },
           "400": {
-            "description": "Parameter id_peg wajib diisi"
-          },
-          "401": {
-            "description": "Token tidak valid / expired"
-          },
-          "404": {
-            "description": "Pegawai tidak ditemukan"
+            "description": "Minimal salah satu parameter id_peg atau nama wajib diisi"
           }
-        }
-      }
-    },
-    "/api/ttd/status": {
-      "post": {
-        "summary": "Cek status TTD pegawai tanpa Bearer token",
-        "description": "Endpoint integrasi aplikasi lain. Kirim pass_endpoint pada JSON body.",
-        "tags": ["Global TTD"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["id_peg", "nama_aplikasi", "pass_endpoint"],
-                "properties": {
-                  "id_peg": {"type": "string", "example": "102-119"},
-                  "nama_aplikasi": {"type": "string", "example": "simpeg"},
-                  "pass_endpoint": {"type": "string", "format": "password", "example": "bkkjateng123"}
-                }
-              },
-              "example": {
-                "id_peg": "102-119",
-                "nama_aplikasi": "simpeg",
-                "pass_endpoint": "bkkjateng123"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Status TTD berhasil dibaca",
-            "content": {
-              "application/json": {
-                "example": {
-                  "status": 200,
-                  "message": "TTD aktif.",
-                  "data": {
-                    "code": "SIGNATURE_ACTIVE",
-                    "id_peg": "102-119",
-                    "nama_aplikasi": "simpeg",
-                    "registered": true,
-                    "active": true,
-                    "can_sign": true,
-                    "signature_url": "http://localhost/rest_api_sso/ttd_in_bkk/storage/signatures/example.png"
-                  }
-                }
-              }
-            }
-          },
-          "401": {"description": "pass_endpoint tidak valid"},
-          "422": {"description": "Field wajib belum diisi"}
-        }
-      }
-    },
-    "/api/ttd/sign": {
-      "post": {
-        "summary": "Tanda tangani dokumen menggunakan Global TTD",
-        "description": "Tidak menggunakan Bearer token. PIN TTD divalidasi server-side dan setiap percobaan dicatat pada audit trail. document_id, document_name, dan document_hash bersifat opsional.",
-        "tags": ["Global TTD"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["id_peg", "input_pin", "nama_aplikasi", "pass_endpoint"],
-                "properties": {
-                  "id_peg": {"type": "string", "example": "102-119"},
-                  "input_pin": {"type": "string", "example": "123456", "minLength": 6, "maxLength": 6},
-                  "nama_aplikasi": {"type": "string", "example": "simpeg"},
-                  "pass_endpoint": {"type": "string", "format": "password", "example": "bkkjateng123"},
-                  "document_id": {"type": "string", "example": "SURAT-2026-0001"},
-                  "document_name": {"type": "string", "example": "Nota Persetujuan Internal"},
-                  "document_hash": {"type": "string", "description": "SHA-256 dokumen jika aplikasi pemanggil sudah memilikinya", "example": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
-                }
-              },
-              "example": {
-                "id_peg": "102-119",
-                "input_pin": "123456",
-                "nama_aplikasi": "simpeg",
-                "pass_endpoint": "bkkjateng123",
-                "document_id": "SURAT-2026-0001",
-                "document_name": "Nota Persetujuan Internal"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Dokumen berhasil ditandatangani",
-            "content": {
-              "application/json": {
-                "example": {
-                  "status": 200,
-                  "message": "Dokumen berhasil ditandatangani.",
-                  "data": {
-                    "code": "SIGNATURE_SUCCESS",
-                    "id_peg": "102-119",
-                    "nama_aplikasi": "simpeg",
-                    "document_id": "SURAT-2026-0001",
-                    "signature_url": "http://localhost/rest_api_sso/ttd_in_bkk/storage/signatures/example.png",
-                    "verification_url": "http://localhost/rest_api_sso/ttd_in_bkk/verify.php?token=...",
-                    "qr_content": "http://localhost/rest_api_sso/ttd_in_bkk/verify.php?token=...",
-                    "document_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                    "signed_at": "2026-09-18 10:00:00"
-                  }
-                }
-              }
-            }
-          },
-          "401": {"description": "pass_endpoint atau input_pin tidak valid"},
-          "409": {"description": "Pegawai belum memiliki TTD aktif"},
-          "422": {"description": "Format input tidak valid"},
-          "423": {"description": "PIN TTD terkunci sementara"},
-          "503": {"description": "Database TTD tidak tersedia"}
         }
       }
     }

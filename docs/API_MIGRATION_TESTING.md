@@ -12,23 +12,18 @@ client tetap menggunakan path dan response lama.
 Client
   -> index.php
   -> api/routes.php
-  -> api/legacy/*
-  -> api/global/*
+  -> api/global/routes.php atau api/modules/*/routes.php
+  -> controller module
+  -> service domain
 ~~~
 
 Contoh SSO:
 
 ~~~text
 /api/auth/login
+  -> api/global/routes.php
   -> api/legacy/AuthController.php
   -> api/global/auth/SsoService.php
-~~~
-
-Contoh TTD:
-
-~~~text
-/api/ttd/sign
-  -> api/global/ttd/TtdApiController.php
 ~~~
 
 ## 2. Base URL dan prasyarat
@@ -43,9 +38,7 @@ Pastikan:
 
 - Apache dan MySQL XAMPP aktif;
 - `.env` root tersedia dan koneksi database dapat digunakan;
-- database TTD tersedia untuk testing endpoint TTD;
 - memiliki `id_peg`, password, dan nama aplikasi yang memang diizinkan;
-- password endpoint TTD disiapkan melalui `TTD_API_PASSWORD`.
 
 Swagger:
 
@@ -70,11 +63,16 @@ tombol `Authorize` sudah tersedia di satu halaman. Postman atau PowerShell
 dapat dipakai sebagai alternatif untuk pengujian berulang atau otomatisasi.
 
 Halaman dokumentasi dilindungi oleh kode akses session. Kode tersebut wajib
-disimpan di root `.env` dan tidak boleh ditulis di source code:
+disimpan di environment server atau file environment di luar document root,
+dan tidak boleh ditulis di source code. Untuk local development, key berikut
+bisa diletakkan di `.env`:
 
 ~~~dotenv
 API_DOCS_ACCESS_CODE=ganti-dengan-kode-random-yang-kuat
 ~~~
+
+Checklist deployment keamanan lengkap tersedia di
+`docs/SECURITY_DEPLOYMENT.md`.
 
 Setelah masuk ke Swagger:
 
@@ -84,8 +82,7 @@ Setelah masuk ke Swagger:
 4. Jalankan endpoint protected seperti `whoami`, profile, dan AO.
 
 Endpoint login tidak memakai Bearer karena endpoint tersebut menghasilkan
-token. Endpoint reset password memakai token OTP/reset sesuai alurnya. Endpoint
-TTD tetap memakai `pass_endpoint` agar kontrak client lama tidak berubah.
+token. Endpoint reset password memakai token OTP/reset sesuai alurnya.
 
 ## 4. Test login SSO
 
@@ -180,7 +177,7 @@ Expected: HTTP 401 dengan message `Invalid token`.
 ## 6. Test endpoint AO
 
 ~~~powershell
-Invoke-RestMethod -Method Get -Uri "$baseUrl/api/ao/list?tipe=dana&kode_cabang=000" -Headers $headers
+Invoke-RestMethod -Method Get -Uri "$baseUrl/api/simpeg/ao/list?type_ao=dana&kode_kantor=000" -Headers $headers
 ~~~
 
 Expected:
@@ -194,21 +191,27 @@ Expected:
 Negative test:
 
 ~~~text
-/api/ao/list
-/api/ao/list?tipe=lain&kode_cabang=000
-/api/ao/list?tipe=dana
+/api/simpeg/ao/list
+/api/simpeg/ao/list?type_ao=lain&kode_kantor=000
+/api/simpeg/ao/list?type_ao=dana&kode_kantor=000
+/api/simpeg/ao/list?type_ao=dana
 ~~~
 
-Expected: HTTP 400 dengan response JSON.
+Nilai `kode_kantor=000` mengambil AO dari kantor `001` sampai `028`. Expected negative test:
+HTTP 400 dengan response JSON.
 
 ## 7. Test search pegawai SIMPEG
 
-Endpoint ini membutuhkan token dari `POST /api/auth/login` dan mengembalikan
-field yang sama dengan response `whoami`.
+Endpoint ini tidak membutuhkan token login. Gunakan `id_peg` untuk pencarian
+spesifik atau `nama` untuk pencarian sebagian nama. Setiap hasil hanya berisi
+`employee_id` dan `full_name`.
 
 ~~~powershell
 $encodedIdPeg = [uri]::EscapeDataString("<ID_PEGAWAI>")
-Invoke-RestMethod -Method Get -Uri "$baseUrl/api/simpeg/pegawai/search?id_peg=$encodedIdPeg" -Headers $headers
+Invoke-RestMethod -Method Get -Uri "$baseUrl/api/simpeg/pegawai/search?id_peg=$encodedIdPeg"
+
+$encodedName = [uri]::EscapeDataString("Nama Pegawai")
+Invoke-RestMethod -Method Get -Uri "$baseUrl/api/simpeg/pegawai/search?nama=$encodedName"
 ~~~
 
 Expected:
@@ -217,18 +220,12 @@ Expected:
 {
   "status": 200,
   "message": "OK",
-  "data": {
-    "kode": "000",
-    "employee_id": "<ID_PEGAWAI>",
-    "full_name": "Nama Pegawai",
-    "email": "pegawai@example.com",
-    "telp": "081234567890",
-    "branch_name": "Kantor Cabang",
-    "unit_kerja": "Unit Kerja",
-    "job_position": "Staff",
-    "level": "1",
-    "group_jabatan": "Pegawai"
-  }
+  "data": [
+    {
+      "employee_id": "<ID_PEGAWAI>",
+      "full_name": "Nama Pegawai"
+    }
+  ]
 }
 ~~~
 
@@ -236,71 +233,11 @@ Negative test:
 
 | Skenario | Expected |
 | --- | --- |
-| Token tidak dikirim | HTTP 401, `Unauthorized` |
-| Token tidak valid | HTTP 401, `Invalid token` |
-| `id_peg` kosong | HTTP 400 |
-| `id_peg` tidak ditemukan | HTTP 404, `Pegawai tidak ditemukan` |
+| `id_peg` dan `nama` kosong | HTTP 400 |
+| `id_peg` tidak ditemukan | HTTP 200 dengan `data: []` |
+| `nama` tidak ditemukan | HTTP 200 dengan `data: []` |
 
-## 8. Test Global TTD
-
-Endpoint TTD saat ini tidak memakai Bearer token. Setiap request memakai
-`pass_endpoint` pada JSON body.
-
-### Cek status TTD
-
-~~~powershell
-$ttdBody = @{ id_peg = "<ID_PEGAWAI>"; nama_aplikasi = "simpeg"; pass_endpoint = "<TTD_API_PASSWORD>" } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri "$baseUrl/api/ttd/status" -ContentType "application/json" -Body $ttdBody
-~~~
-
-Expected jika aktif:
-
-~~~text
-HTTP 200
-data.code = SIGNATURE_ACTIVE
-data.active = true
-data.can_sign = true
-~~~
-
-Expected jika belum terdaftar:
-
-~~~text
-HTTP 200
-data.code = SIGNATURE_NOT_REGISTERED
-data.active = false
-~~~
-
-### Tanda tangan dokumen
-
-~~~powershell
-$signBody = @{ id_peg = "<ID_PEGAWAI>"; input_pin = "<PIN_TTD_6_DIGIT>"; nama_aplikasi = "simpeg"; pass_endpoint = "<TTD_API_PASSWORD>"; document_id = "TEST-MIGRATION-001"; document_name = "Dokumen Test Migrasi API" } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri "$baseUrl/api/ttd/sign" -ContentType "application/json" -Body $signBody
-~~~
-
-Expected jika berhasil:
-
-- HTTP 200;
-- `data.code = SIGNATURE_SUCCESS`;
-- `data.document_id = TEST-MIGRATION-001`;
-- `data.document_hash` tersedia;
-- `data.verification_url` tersedia;
-- `data.signed_at` tersedia.
-
-Negative test:
-
-| Skenario | Expected |
-| --- | --- |
-| `pass_endpoint` salah | HTTP 401, `INVALID_ENDPOINT_PASSWORD` |
-| PIN bukan 6 digit | HTTP 422, `INVALID_PIN_FORMAT` |
-| TTD belum aktif | HTTP 409, `SIGNATURE_NOT_REGISTERED` |
-| PIN salah | HTTP 401, `INVALID_SIGNATURE_PIN` |
-| PIN salah lima kali | HTTP 423, `SIGNATURE_PIN_LOCKED` |
-| hash bukan SHA-256 64 karakter | HTTP 422, `INVALID_DOCUMENT_HASH` |
-
-Jangan memakai data tanda tangan pegawai sungguhan untuk test berulang. Gunakan
-pegawai dan database TTD khusus testing bila tersedia.
-
-## 9. Test endpoint profil dan password
+## 8. Test endpoint profil dan password
 
 Semua endpoint berikut memakai header Bearer dari login:
 
@@ -312,18 +249,24 @@ POST /api/auth/update-profile
 `change-password` dan `update-profile` mengubah data nyata. Jalankan hanya pada
 akun testing dan simpan nilai lama untuk pemulihan.
 
-Reset password terdiri dari tiga tahap:
+Reset password terdiri dari tahap kirim OTP, verifikasi OTP, dan ubah password.
+Resend bersifat opsional:
 
 ~~~text
 POST /api/auth/forgot-password
+POST /api/auth/resend-otp
 POST /api/auth/verify-otp
 POST /api/auth/reset-password
 ~~~
 
+Panggil `/api/auth/resend-otp` dengan email yang sama jika OTP belum diterima
+atau sudah kadaluarsa. Endpoint tersebut menghasilkan `otp_token` baru, jadi
+gunakan token terbaru saat memanggil `/api/auth/verify-otp`.
+
 Tahap ini mengirim email dan mengubah password. Sebaiknya dijalankan di
 environment development/staging dengan mailbox testing.
 
-## 10. Verifikasi khusus migrasi
+## 9. Verifikasi khusus migrasi
 
 Checklist:
 
@@ -331,15 +274,12 @@ Checklist:
 - [ ] Response login legacy tetap memiliki `status`, `message`, dan `data.token`.
 - [ ] Token yang dibuat dengan secret legacy tetap dapat dipakai.
 - [ ] `/api/auth/whoami` tetap menerima Bearer token.
-- [ ] `/api/ao/list` tetap mengembalikan envelope response lama.
-- [ ] `/api/simpeg/pegawai/search` menerima token login dan mengembalikan
-      field yang sama seperti `whoami`.
-- [ ] `/api/ttd/status` dan `/api/ttd/sign` tetap memakai `pass_endpoint`.
-- [ ] Swagger menampilkan grup `Global TTD`, bukan grup `TTD IN BKK`.
-- [ ] `ttd_in_bkk/` tetap dapat dibuka sebagai UI internal.
+- [ ] `/api/simpeg/ao/list` mengembalikan envelope response AO.
+- [ ] `/api/simpeg/pegawai/search` dapat dicari memakai `id_peg` atau `nama`
+      tanpa token dan hanya mengembalikan `employee_id` serta `full_name`.
 - [ ] Client lama tetap memanggil endpoint `/api/...` tanpa perubahan URL.
 
-## 11. Pemeriksaan lokal tanpa request bisnis
+## 10. Pemeriksaan lokal tanpa request bisnis
 
 Dari root project:
 
@@ -347,7 +287,6 @@ Dari root project:
 C:\xampp\php\php.exe -l index.php
 C:\xampp\php\php.exe -l api/routes.php
 C:\xampp\php\php.exe -l api/global/auth/SsoService.php
-C:\xampp\php\php.exe -l api/global/ttd/TtdApiController.php
 C:\xampp\php\php.exe -l api/modules/simpeg/EmployeeService.php
 C:\xampp\php\php.exe -l api/modules/simpeg/EmployeeController.php
 ~~~
@@ -361,6 +300,5 @@ C:\xampp\php\php.exe -r "json_decode(file_get_contents('swagger.json')); exit(js
 ## Referensi
 
 - [Swagger JSON](../swagger.json)
-- [Dokumentasi TTD](TTD_API.md)
 - [Konsep Central API](architecture/API_CENTRAL_CONCEPT.md)
 

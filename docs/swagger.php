@@ -5,7 +5,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
   session_name('BKKAPIDOCSSESSID');
   session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax',
+    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+    'samesite' => 'Strict',
     'path' => '/',
   ]);
   session_start();
@@ -41,11 +42,11 @@ if (($_SESSION['docs_access'] ?? false) !== true) {
 
 <header class="docs-header">
   <h1>Dokumentasi REST API BKK</h1>
-  <p>Dokumentasi endpoint SSO dan Global TTD. Gunakan <b>Authorize</b> setelah login untuk endpoint yang membutuhkan JWT. Endpoint <code>/api/ttd/status</code> dan <code>/api/ttd/sign</code> tetap menggunakan <code>pass_endpoint</code> sesuai kontrak lama.</p>
+  <p>Dokumentasi endpoint SSO dan SIMPEG. Gunakan <b>Authorize</b> setelah login untuk endpoint yang membutuhkan JWT.</p>
 </header>
 
 <div class="docs-note">
-  <strong>Alur testing:</strong> jalankan <code>/api/auth/login</code>, salin <code>data.token</code>, klik <b>Authorize</b>, lalu masukkan token JWT. Jika pegawai belum memiliki TTD, API akan mengembalikan kode <code>SIGNATURE_NOT_REGISTERED</code>.
+  <strong>Alur testing:</strong> jalankan <code>/api/auth/login</code>, salin <code>data.token</code>, lalu klik <b>Authorize</b> untuk endpoint yang membutuhkan JWT. Dokumentasi TTD sementara disembunyikan karena database TTD masih berada di lokal.
 </div>
 
 <div id="swagger-ui"></div>
@@ -54,7 +55,7 @@ if (($_SESSION['docs_access'] ?? false) !== true) {
 
 <script>
 SwaggerUIBundle({
-  url: "../swagger.json?v=<?=rawurlencode((string)@filemtime(__DIR__ . '/../swagger.json'))?>",
+  url: "openapi.php?v=<?=rawurlencode((string)@filemtime(__DIR__ . '/../swagger.json'))?>",
   dom_id: "#swagger-ui",
   deepLinking: true,
   displayRequestDuration: true,
