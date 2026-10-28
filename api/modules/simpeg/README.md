@@ -32,8 +32,8 @@ GET /api/simpeg/pegawai/search?nama=<NAMA_PEGAWAI>
 ```
 
 Isi salah satu parameter `id_peg` atau `nama`. Hasil selalu berupa array
-dengan field `employee_id` dan `full_name`, maksimal 50 data. Endpoint tidak
-mengubah URL atau response endpoint lama.
+dengan field `employee_id`, `full_name`, `kode`, dan `job_position`, maksimal
+50 data. Nama field mengikuti response `whoami` agar client konsisten.
 
 ## Endpoint AO
 

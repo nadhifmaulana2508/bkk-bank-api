@@ -14,7 +14,8 @@ final class EmployeeService
         ?string $idPeg = null,
         ?string $name = null,
         bool $includeProfileFields = false,
-        bool $includeBranchCode = false
+        bool $includeBranchCode = false,
+        bool $includeSearchFields = false
     ): array
     {
         global $pdo;
@@ -36,6 +37,12 @@ final class EmployeeService
             if ($includeBranchCode) {
                 array_unshift($columns, 'k.kode_cabang AS kode');
             }
+        }
+        if ($includeSearchFields) {
+            $columns = array_merge($columns, [
+                'k.kode_cabang AS kode',
+                'mj.nama_jabatan AS job_position',
+            ]);
         }
 
         $conditions = ["j.status_jab = 'Aktif'"];
@@ -66,6 +73,16 @@ final class EmployeeService
         $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Return the compact employee directory response used by public search.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function searchDirectory(?string $idPeg = null, ?string $name = null): array
+    {
+        return self::searchActive($idPeg, $name, false, false, true);
     }
 
     /**

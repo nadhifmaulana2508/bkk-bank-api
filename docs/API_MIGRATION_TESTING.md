@@ -203,8 +203,9 @@ HTTP 400 dengan response JSON.
 ## 7. Test search pegawai SIMPEG
 
 Endpoint ini tidak membutuhkan token login. Gunakan `id_peg` untuk pencarian
-spesifik atau `nama` untuk pencarian sebagian nama. Setiap hasil hanya berisi
-`employee_id` dan `full_name`.
+spesifik atau `nama` untuk pencarian sebagian nama. Setiap hasil berisi
+`employee_id`, `full_name`, `kode`, dan `job_position` seperti response
+`whoami`.
 
 ~~~powershell
 $encodedIdPeg = [uri]::EscapeDataString("<ID_PEGAWAI>")
@@ -223,7 +224,9 @@ Expected:
   "data": [
     {
       "employee_id": "<ID_PEGAWAI>",
-      "full_name": "Nama Pegawai"
+      "full_name": "Nama Pegawai",
+      "kode": "001",
+      "job_position": "Staf"
     }
   ]
 }
@@ -276,7 +279,7 @@ Checklist:
 - [ ] `/api/auth/whoami` tetap menerima Bearer token.
 - [ ] `/api/simpeg/ao/list` mengembalikan envelope response AO.
 - [ ] `/api/simpeg/pegawai/search` dapat dicari memakai `id_peg` atau `nama`
-      tanpa token dan hanya mengembalikan `employee_id` serta `full_name`.
+      tanpa token dan mengembalikan field yang konsisten dengan `whoami`.
 - [ ] Client lama tetap memanggil endpoint `/api/...` tanpa perubahan URL.
 
 ## 10. Pemeriksaan lokal tanpa request bisnis

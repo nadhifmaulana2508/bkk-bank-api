@@ -436,7 +436,7 @@
     "/api/simpeg/pegawai/search": {
       "get": {
         "summary": "Cari data pegawai berdasarkan id_peg atau nama",
-        "description": "Cari pegawai berdasarkan id_peg atau sebagian nama. Endpoint publik dan mengembalikan employee_id serta full_name.",
+        "description": "Cari pegawai berdasarkan id_peg atau sebagian nama. Endpoint publik dan mengembalikan field ringkas yang konsisten dengan whoami.",
         "tags": ["SIMPEG"],
         "parameters": [
           {
@@ -471,7 +471,9 @@
                   "data": [
                     {
                       "employee_id": "102-119",
-                      "full_name": "Nama Pegawai"
+                      "full_name": "Nama Pegawai",
+                      "kode": "001",
+                      "job_position": "Staf"
                     }
                   ]
                 }

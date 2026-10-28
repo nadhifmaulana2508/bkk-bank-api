@@ -14,7 +14,7 @@ final class EmployeeController
             sendResponse(400, "Parameter 'id_peg' atau 'nama' wajib diisi.");
         }
 
-        $data = EmployeeService::searchActive(
+        $data = EmployeeService::searchDirectory(
             $idPeg !== '' ? $idPeg : null,
             $name !== '' ? $name : null
         );
