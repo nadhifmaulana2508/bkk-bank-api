@@ -9,6 +9,7 @@ require_once dirname(__DIR__, 3) . '/helpers/mailHelper.php';
 require_once dirname(__DIR__, 2) . '/modules/simpeg/EmployeeService.php';
 require_once __DIR__ . '/SsoConfig.php';
 require_once __DIR__ . '/SsoAuthenticator.php';
+require_once __DIR__ . '/AppTokenAuthenticator.php';
 
 final class SsoService
 {
@@ -23,6 +24,15 @@ final class SsoService
 
         if (!$app) {
             sendResponse(400, 'App wajib diisi (monbis, simpeg, dll)');
+        }
+
+        $application = AppTokenAuthenticator::current();
+        if (
+            AppTokenAuthenticator::isRequired()
+            && is_array($application)
+            && strtolower((string) $app) !== strtolower((string) ($application['app_code'] ?? ''))
+        ) {
+            sendResponse(403, 'App login tidak sesuai dengan header App.');
         }
 
         $stmt = $pdo->prepare('

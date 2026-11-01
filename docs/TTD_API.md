@@ -17,7 +17,7 @@ Base URL lokal:
 http://localhost/rest_api_sso
 ```
 
-Dokumentasi Swagger tersedia pada:
+Dokumentasi API tersedia pada:
 
 ```text
 http://localhost/rest_api_sso/docs/
@@ -33,7 +33,7 @@ Request:
 {
   "id_peg": "102-119",
   "nama_aplikasi": "simpeg",
-  "pass_endpoint": "bkkjateng123"
+  "pass_endpoint": "<TTD_API_PASSWORD>"
 }
 ```
 
@@ -50,7 +50,7 @@ Field wajib:
   "id_peg": "102-119",
   "input_pin": "123456",
   "nama_aplikasi": "simpeg",
-  "pass_endpoint": "bkkjateng123"
+  "pass_endpoint": "<TTD_API_PASSWORD>"
 }
 ```
 
@@ -73,7 +73,7 @@ curl -X POST "http://localhost/rest_api_sso/api/ttd/sign" \
     "id_peg": "102-119",
     "input_pin": "123456",
     "nama_aplikasi": "simpeg",
-    "pass_endpoint": "bkkjateng123",
+    "pass_endpoint": "<TTD_API_PASSWORD>",
     "document_id": "SURAT-2026-0001",
     "document_name": "Nota Persetujuan Internal"
   }'

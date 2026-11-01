@@ -1,3 +1,11 @@
 .env
-swagger.json
+.env.*
+!.env.example
+
+*.log
+*.bak
+*.key
+*.pem
+
 storage/
+/check.php

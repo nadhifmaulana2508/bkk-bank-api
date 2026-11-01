@@ -20,6 +20,12 @@
       "post": {
         "summary": "Login menggunakan id_peg + app",
         "tags": ["Auth"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -34,7 +40,7 @@
                   },
                   "password": {
                     "type": "string",
-                    "example": "bkkjtg123"
+                    "example": "<PASSWORD_PEGAWAI>"
                   },
                   "app": {
                     "type": "string",
@@ -76,6 +82,8 @@
         "tags": ["Auth"],
         "security": [
           {
+            "appTokenAuth": [],
+            "appCode": [],
             "bearerAuth": []
           }
         ],
@@ -104,6 +112,12 @@
       },
       "post": {
         "summary": "Ambil data user dari token (Body JSON)",
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
         "tags": ["Auth"],
         "requestBody": {
           "required": true,
@@ -138,6 +152,8 @@
         "tags": ["Profile"],
         "security": [
           {
+            "appTokenAuth": [],
+            "appCode": [],
             "bearerAuth": []
           }
         ],
@@ -151,7 +167,7 @@
                 "properties": {
                   "old_password": {
                     "type": "string",
-                    "example": "bkkjtg123"
+                    "example": "<PASSWORD_PEGAWAI>"
                   },
                   "new_password": {
                     "type": "string",
@@ -181,6 +197,8 @@
         "tags": ["Profile"],
         "security": [
           {
+            "appTokenAuth": [],
+            "appCode": [],
             "bearerAuth": []
           }
         ],
@@ -221,6 +239,12 @@
       "post": {
         "summary": "Kirim OTP Reset Password ke Email",
         "tags": ["Reset Password"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -259,6 +283,12 @@
         "summary": "Kirim ulang OTP Reset Password ke Email",
         "description": "Gunakan endpoint ini jika OTP sebelumnya belum diterima atau sudah kadaluarsa. Token OTP baru akan dikembalikan.",
         "tags": ["Reset Password"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -296,6 +326,12 @@
       "post": {
         "summary": "Verifikasi Kode OTP dari Email",
         "tags": ["Reset Password"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -336,6 +372,12 @@
       "post": {
         "summary": "Aksi Ubah Password via Reset Token",
         "tags": ["Reset Password"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -378,6 +420,8 @@
         "tags": ["SIMPEG"],
         "security": [
           {
+            "appTokenAuth": [],
+            "appCode": [],
             "bearerAuth": []
           }
         ],
@@ -436,8 +480,14 @@
     "/api/simpeg/pegawai/search": {
       "get": {
         "summary": "Cari data pegawai berdasarkan id_peg atau nama",
-        "description": "Cari pegawai berdasarkan id_peg atau sebagian nama. Endpoint publik dan mengembalikan field ringkas yang konsisten dengan whoami.",
+        "description": "Cari pegawai berdasarkan id_peg atau sebagian nama. Endpoint memakai app token dan mengembalikan field ringkas yang konsisten dengan whoami.",
         "tags": ["SIMPEG"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
         "parameters": [
           {
             "in": "query",
@@ -493,6 +543,18 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      },
+      "appTokenAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-App-Token",
+        "description": "Token aplikasi. Kirim juga header App dengan kode aplikasi, misalnya simpeg."
+      },
+      "appCode": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "App",
+        "description": "Kode aplikasi yang terdaftar, misalnya simpeg."
       }
     }
   }

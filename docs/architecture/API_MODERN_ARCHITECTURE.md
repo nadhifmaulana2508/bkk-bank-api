@@ -45,7 +45,7 @@ HTTP request
     -> index.php
     -> api/routes.php
     -> route registry global/module
-    -> middleware (auth, scope, rate limit)
+    -> middleware (app token, auth, scope, rate limit)
     -> controller
     -> service
     -> repository/adapter
@@ -59,7 +59,9 @@ hanya mengetahui daftar modul, bukan detail endpoint setiap modul.
 
 1. URL dan response endpoint existing dianggap kontrak publik.
 2. Domain baru tidak boleh menaruh route di `api/routes.php` langsung.
-3. Auth, scope, dan rate limit dipasang sebagai middleware route.
+3. App token, auth, scope, dan rate limit dipasang sebagai middleware pipeline.
+   `RequireAppMiddleware` menjadi gerbang global untuk aplikasi pemanggil;
+   `RequireUserMiddleware` tetap dipakai hanya saat identitas pegawai diperlukan.
 4. Semua query memakai prepared statement dan repository/service yang sesuai.
 5. Dependency harus di-load pada bootstrap/composition root agar scope global
    seperti `$pdo` tidak bergantung pada closure route.

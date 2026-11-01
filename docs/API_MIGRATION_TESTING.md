@@ -40,7 +40,7 @@ Pastikan:
 - `.env` root tersedia dan koneksi database dapat digunakan;
 - memiliki `id_peg`, password, dan nama aplikasi yang memang diizinkan;
 
-Swagger:
+Dokumentasi interaktif:
 
 ~~~text
 http://localhost/rest_api_sso/docs/
@@ -56,30 +56,45 @@ https://apisso.bkkjateng.co.id/docs/
 Untuk testing branch ini, tetap gunakan endpoint publik `/api/...`. Migrasi
 hanya memindahkan implementasi internal dan tidak mengubah URL endpoint.
 
+## App token global
+
+Setiap aplikasi pemanggil API wajib memiliki registry dan token aplikasi sendiri.
+Dokumentasi setup ada di [APP_TOKEN_AUTH.md](APP_TOKEN_AUTH.md). Header yang
+digunakan:
+
+~~~http
+App: simpeg
+X-App-Token: app_<token-rahasia>
+~~~
+
+`Authorization: Bearer <JWT>` tetap khusus token login pegawai. Jangan memakai
+`Authorization` untuk token aplikasi karena satu request dapat membutuhkan dua
+kredensial berbeda.
+
+Saat `APP_TOKEN_REQUIRED=false`, endpoint lama masih dapat diuji tanpa app
+token. Pada URL development baru, set `APP_TOKEN_REQUIRED=true` setelah tabel
+`api_applications` dan token aplikasi selesai disiapkan.
+
 ## 3. Rekomendasi alat dan proteksi
 
-Gunakan Swagger UI sebagai alat utama karena request, schema, response, dan
+Gunakan halaman dokumentasi interaktif sebagai alat utama karena request, schema, response, dan
 tombol `Authorize` sudah tersedia di satu halaman. Postman atau PowerShell
 dapat dipakai sebagai alternatif untuk pengujian berulang atau otomatisasi.
 
-Halaman dokumentasi dilindungi oleh kode akses session. Kode tersebut wajib
-disimpan di environment server atau file environment di luar document root,
-dan tidak boleh ditulis di source code. Untuk local development, key berikut
-bisa diletakkan di `.env`:
-
-~~~dotenv
-API_DOCS_ACCESS_CODE=ganti-dengan-kode-random-yang-kuat
-~~~
+Halaman dokumentasi memakai session yang sama dengan SSO Control Plane. User
+harus memiliki permission docs yang sesuai; tidak ada login kode dokumentasi
+kedua.
 
 Checklist deployment keamanan lengkap tersedia di
 `docs/SECURITY_DEPLOYMENT.md`.
 
-Setelah masuk ke Swagger:
+Setelah masuk ke halaman dokumentasi:
 
-1. Jalankan `POST /api/auth/login` menggunakan `id_peg`, `password`, dan `app`.
-2. Salin nilai `data.token` dari response login.
-3. Klik `Authorize`, masukkan token JWT, lalu klik `Authorize` kembali.
-4. Jalankan endpoint protected seperti `whoami`, profile, dan AO.
+1. Kirim header `App` dan `X-App-Token` bila `APP_TOKEN_REQUIRED=true`.
+2. Jalankan `POST /api/auth/login` menggunakan `id_peg`, `password`, dan `app`.
+3. Salin nilai `data.token` dari response login.
+4. Klik `Authorize`, masukkan token JWT, lalu klik `Authorize` kembali.
+5. Jalankan endpoint protected seperti `whoami`, profile, dan AO.
 
 Endpoint login tidak memakai Bearer karena endpoint tersebut menghasilkan
 token. Endpoint reset password memakai token OTP/reset sesuai alurnya.
@@ -105,7 +120,8 @@ PowerShell:
 
 ~~~powershell
 $baseUrl = "http://localhost/rest_api_sso"
-$login = Invoke-RestMethod -Method Post -Uri "$baseUrl/api/auth/login" -ContentType "application/json" -Body (@{ id_peg = "<ID_PEGAWAI>"; password = "<PASSWORD_PEGAWAI>"; app = "simpeg" } | ConvertTo-Json)
+$appHeaders = @{ App = "simpeg"; "X-App-Token" = "<APP_TOKEN>" }
+$login = Invoke-RestMethod -Method Post -Uri "$baseUrl/api/auth/login" -Headers $appHeaders -ContentType "application/json" -Body (@{ id_peg = "<ID_PEGAWAI>"; password = "<PASSWORD_PEGAWAI>"; app = "simpeg" } | ConvertTo-Json)
 $token = $login.data.token
 $token
 ~~~
@@ -137,7 +153,7 @@ Response sukses yang harus tetap dipertahankan:
 ### Whoami
 
 ~~~powershell
-$headers = @{ Authorization = "Bearer $token" }
+$headers = @{ App = "simpeg"; "X-App-Token" = "<APP_TOKEN>"; Authorization = "Bearer $token" }
 Invoke-RestMethod -Method Get -Uri "$baseUrl/api/auth/whoami" -Headers $headers
 ~~~
 
@@ -202,17 +218,19 @@ HTTP 400 dengan response JSON.
 
 ## 7. Test search pegawai SIMPEG
 
-Endpoint ini tidak membutuhkan token login. Gunakan `id_peg` untuk pencarian
+Endpoint ini tidak membutuhkan token login pegawai, tetapi tetap membutuhkan
+app token ketika `APP_TOKEN_REQUIRED=true`. Gunakan `id_peg` untuk pencarian
 spesifik atau `nama` untuk pencarian sebagian nama. Setiap hasil berisi
 `employee_id`, `full_name`, `kode`, dan `job_position` seperti response
 `whoami`.
 
 ~~~powershell
+$appHeaders = @{ App = "simpeg"; "X-App-Token" = "<APP_TOKEN>" }
 $encodedIdPeg = [uri]::EscapeDataString("<ID_PEGAWAI>")
-Invoke-RestMethod -Method Get -Uri "$baseUrl/api/simpeg/pegawai/search?id_peg=$encodedIdPeg"
+Invoke-RestMethod -Method Get -Uri "$baseUrl/api/simpeg/pegawai/search?id_peg=$encodedIdPeg" -Headers $appHeaders
 
 $encodedName = [uri]::EscapeDataString("Nama Pegawai")
-Invoke-RestMethod -Method Get -Uri "$baseUrl/api/simpeg/pegawai/search?nama=$encodedName"
+Invoke-RestMethod -Method Get -Uri "$baseUrl/api/simpeg/pegawai/search?nama=$encodedName" -Headers $appHeaders
 ~~~
 
 Expected:
@@ -279,7 +297,7 @@ Checklist:
 - [ ] `/api/auth/whoami` tetap menerima Bearer token.
 - [ ] `/api/simpeg/ao/list` mengembalikan envelope response AO.
 - [ ] `/api/simpeg/pegawai/search` dapat dicari memakai `id_peg` atau `nama`
-      tanpa token dan mengembalikan field yang konsisten dengan `whoami`.
+      dengan app token dan mengembalikan field yang konsisten dengan `whoami`.
 - [ ] Client lama tetap memanggil endpoint `/api/...` tanpa perubahan URL.
 
 ## 10. Pemeriksaan lokal tanpa request bisnis
@@ -294,7 +312,7 @@ C:\xampp\php\php.exe -l api/modules/simpeg/EmployeeService.php
 C:\xampp\php\php.exe -l api/modules/simpeg/EmployeeController.php
 ~~~
 
-Validasi Swagger JSON:
+Validasi kontrak OpenAPI JSON:
 
 ~~~powershell
 C:\xampp\php\php.exe -r "json_decode(file_get_contents('swagger.json')); exit(json_last_error() === JSON_ERROR_NONE ? 0 : 1);"
@@ -302,6 +320,6 @@ C:\xampp\php\php.exe -r "json_decode(file_get_contents('swagger.json')); exit(js
 
 ## Referensi
 
-- [Swagger JSON](../swagger.json)
+- [OpenAPI JSON](../swagger.json)
 - [Konsep Central API](architecture/API_CENTRAL_CONCEPT.md)
 

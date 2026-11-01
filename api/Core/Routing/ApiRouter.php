@@ -14,6 +14,18 @@ final class ApiRouter
     private array $routes = [];
 
     /**
+     * @var array<int, callable>
+     */
+    private array $globalMiddleware = [];
+
+    public function addGlobalMiddleware(callable $middleware): self
+    {
+        $this->globalMiddleware[] = $middleware;
+
+        return $this;
+    }
+
+    /**
      * @param array<int, string> $methods
      * @param array<int, callable> $middleware
      */
@@ -76,7 +88,8 @@ final class ApiRouter
             }
 
             $pipeline = $route['handler'];
-            foreach (array_reverse($route['middleware']) as $middleware) {
+            $middlewareStack = array_merge($this->globalMiddleware, $route['middleware']);
+            foreach (array_reverse($middlewareStack) as $middleware) {
                 $next = $pipeline;
                 $pipeline = static function () use ($middleware, $next): void {
                     $middleware($next);

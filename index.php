@@ -16,6 +16,8 @@ header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('Referrer-Policy: no-referrer');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
+header('X-Permitted-Cross-Domain-Policies: none');
 header('Cache-Control: no-store');
 
 $maxRequestBytes = 1024 * 1024;
@@ -41,7 +43,7 @@ if ($origin !== '' && in_array($origin, $allowedOrigins, true)) {
     header("Access-Control-Allow-Origin: {$origin}");
     header('Access-Control-Allow-Credentials: true');
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Origin, Content-Type, Accept, Authorization, X-Employee-Id');
+    header('Access-Control-Allow-Headers: Origin, Content-Type, Accept, Authorization, App, X-App-Name, X-App-Token, X-Employee-Id');
     header('Vary: Origin');
 }
 
