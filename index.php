@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 require_once __DIR__ . '/config/env.php';
 
 // =========================================
 // 🔥 PENGAMAN CORS (WAJIB DI PALING ATAS)
 // =========================================
 // API tidak boleh membocorkan warning/path/stack trace ke client.
-ini_set('display_errors', '0');
-ini_set('log_errors', '1');
 error_reporting(E_ALL);
 
 header('Content-Type: application/json; charset=utf-8');
@@ -36,7 +36,10 @@ if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > $maxRequestBytes) {
 $configuredOrigins = app_env_value('CORS_ALLOWED_ORIGINS');
 $allowedOrigins = $configuredOrigins === null
     ? []
-    : array_values(array_filter(array_map('trim', explode(',', $configuredOrigins))));
+    : array_values(array_filter(
+        array_map('trim', explode(',', $configuredOrigins)),
+        static fn(string $configuredOrigin): bool => $configuredOrigin !== '' && $configuredOrigin !== '*'
+    ));
 $origin = trim((string) ($_SERVER['HTTP_ORIGIN'] ?? ''));
 
 if ($origin !== '' && in_array($origin, $allowedOrigins, true)) {

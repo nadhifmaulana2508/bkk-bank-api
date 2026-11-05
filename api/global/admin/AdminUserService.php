@@ -174,6 +174,9 @@ final class AdminUserService
     /** @param mixed $value */
     private static function id($value): int
     {
+        if (!is_int($value) && !is_string($value)) {
+            throw new InvalidArgumentException('ID user tidak valid.');
+        }
         $id = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($id === false) {
             throw new InvalidArgumentException('ID user tidak valid.');
@@ -184,6 +187,9 @@ final class AdminUserService
     /** @param mixed $value */
     private static function username($value): string
     {
+        if (!is_string($value)) {
+            throw new InvalidArgumentException('Username tidak valid.');
+        }
         $username = strtolower(trim((string) $value));
         if (!preg_match('/^[a-z0-9][a-z0-9._-]{2,79}$/', $username)) {
             throw new InvalidArgumentException('Username hanya boleh berisi huruf kecil, angka, titik, strip, atau underscore; minimal 3 karakter.');
@@ -194,6 +200,9 @@ final class AdminUserService
     /** @param mixed $value */
     private static function employeeId($value): ?string
     {
+        if ($value !== null && !is_string($value)) {
+            throw new InvalidArgumentException('ID pegawai tidak valid.');
+        }
         $employeeId = trim((string) $value);
         if ($employeeId === '') {
             return null;
@@ -217,6 +226,9 @@ final class AdminUserService
     /** @param mixed $value */
     private static function fullName($value): string
     {
+        if (!is_string($value)) {
+            throw new InvalidArgumentException('Nama lengkap tidak valid.');
+        }
         $name = trim((string) $value);
         if ($name === '' || strlen($name) > 120) {
             throw new InvalidArgumentException('Nama lengkap wajib diisi dan maksimal 120 karakter.');
@@ -227,6 +239,9 @@ final class AdminUserService
     /** @param mixed $value */
     private static function email($value): ?string
     {
+        if ($value !== null && !is_string($value)) {
+            throw new InvalidArgumentException('Format email tidak valid.');
+        }
         $email = trim((string) $value);
         if ($email === '') {
             return null;
@@ -240,6 +255,9 @@ final class AdminUserService
     /** @param mixed $value */
     private static function roleCode($value): string
     {
+        if (!is_string($value)) {
+            throw new InvalidArgumentException('Role user tidak valid.');
+        }
         $role = strtolower(trim((string) $value));
         if (!preg_match('/^[a-z][a-z0-9_-]{1,39}$/', $role)) {
             throw new InvalidArgumentException('Role user tidak valid.');
@@ -260,6 +278,9 @@ final class AdminUserService
     /** @param mixed $value */
     private static function password($value, bool $required): string
     {
+        if (!is_string($value)) {
+            throw new InvalidArgumentException('Password tidak valid.');
+        }
         $password = (string) $value;
         if ($required && strlen($password) < 12) {
             throw new InvalidArgumentException('Password minimal 12 karakter.');

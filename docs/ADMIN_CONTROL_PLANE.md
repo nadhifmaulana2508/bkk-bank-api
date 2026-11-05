@@ -5,19 +5,29 @@ Dashboard internal untuk mengelola registry aplikasi dan membaca audit hit SSO.
 ## URL lokal
 
 ```text
-http://localhost/rest_api_sso/admin/
+http://localhost/rest_api_sso/admin/registry
 ```
+
+URL development:
+
+```text
+https://devsso.bkkjateng.co.id/admin/registry
+```
+
+Production tetap memakai `https://apisso.bkkjateng.co.id` setelah seluruh
+perubahan selesai diuji di development.
 
 Halaman control plane:
 
 ```text
-?page=registry       Registry aplikasi dan create/edit token
-?page=audit          Hit endpoint terbaru
-?page=recap          Rekap hit harian
-?page=rbac           User SSO dan permission per menu
-../docs/?group=global    Dokumentasi API Global
-../docs/?group=simontok  Dokumentasi API Simontok
-../docs/?group=monbis    Dokumentasi API Monbis
+/admin/registry          Registry aplikasi dan create/edit token
+/admin/audit             Hit endpoint terbaru
+/admin/recap             Rekap hit harian
+/admin/rbac              User SSO dan permission per menu
+/docs/global             Dokumentasi API Global
+/docs/simpeg             Dokumentasi endpoint API Simpeg
+/docs/simontok           Placeholder dokumentasi API Simontok
+/docs/monbis             Placeholder dokumentasi API Monbis
 ```
 
 Menu API Docs pada navbar membuka dokumentasi interaktif terproteksi untuk testing endpoint.

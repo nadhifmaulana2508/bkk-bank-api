@@ -8,8 +8,19 @@ final class EmployeeController
 {
     public static function search(): void
     {
-        $idPeg = trim((string)($_GET['id_peg'] ?? ''));
-        $name = trim((string)($_GET['nama'] ?? ''));
+        $idPeg = $_GET['id_peg'] ?? null;
+        $name = $_GET['nama'] ?? null;
+        if (($idPeg !== null && !is_string($idPeg)) || ($name !== null && !is_string($name))) {
+            sendResponse(400, "Parameter 'id_peg' atau 'nama' tidak valid.");
+        }
+        $idPeg = trim((string) $idPeg);
+        $name = trim((string) $name);
+        if (strlen($idPeg) > 80 || strlen($name) > 80) {
+            sendResponse(400, "Parameter pencarian maksimal 80 karakter.");
+        }
+        if ($idPeg !== '' && !preg_match('/^[A-Za-z0-9._-]+$/', $idPeg)) {
+            sendResponse(400, "Format 'id_peg' tidak valid.");
+        }
         if ($idPeg === '' && $name === '') {
             sendResponse(400, "Parameter 'id_peg' atau 'nama' wajib diisi.");
         }

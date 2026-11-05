@@ -38,23 +38,59 @@ Pastikan:
 
 - Apache dan MySQL XAMPP aktif;
 - `.env` root tersedia dan koneksi database dapat digunakan;
-- memiliki `id_peg`, password, dan nama aplikasi yang memang diizinkan;
+- memiliki `id_peg`, nomor HP pegawai, password, dan token aplikasi yang sudah terdaftar;
 
 Dokumentasi interaktif:
 
 ~~~text
 http://localhost/rest_api_sso/docs/
+http://localhost/rest_api_sso/docs/global
+http://localhost/rest_api_sso/docs/simpeg
 ~~~
 
-Production:
+Development server:
+
+~~~text
+https://devsso.bkkjateng.co.id
+https://devsso.bkkjateng.co.id/docs/global
+https://devsso.bkkjateng.co.id/docs/simpeg
+~~~
+
+Production server setelah seluruh pengujian selesai:
 
 ~~~text
 https://apisso.bkkjateng.co.id
-https://apisso.bkkjateng.co.id/docs/
+https://apisso.bkkjateng.co.id/docs/global
+https://apisso.bkkjateng.co.id/docs/simpeg
 ~~~
 
 Untuk testing branch ini, tetap gunakan endpoint publik `/api/...`. Migrasi
 hanya memindahkan implementasi internal dan tidak mengubah URL endpoint.
+
+### Smoke test PowerShell
+
+Tersedia runner yang tidak menyimpan token atau password ke source code:
+
+~~~powershell
+cd C:\xampp\htdocs\rest_api_sso
+Set-ExecutionPolicy -Scope Process Bypass
+.\tools\test_api.ps1 -BaseUrl "https://devsso.bkkjateng.co.id" -AppCode "monbis"
+~~~
+
+Script akan meminta `X-App-Token` secara aman, lalu menguji search pegawai dan
+list AO. Untuk sekaligus menguji login dan `whoami`, tambahkan ID pegawai:
+
+~~~powershell
+.\tools\test_api.ps1 `
+  -BaseUrl "https://devsso.bkkjateng.co.id" `
+  -AppCode "monbis" `
+  -EmployeeId "<ID_PEGAWAI>"
+~~~
+
+Password pegawai diminta melalui prompt dan JWT tidak dicetak. Jika route API
+masih mengembalikan `404`, periksa root site dan rewrite Nginx sebelum menguji
+token. Gunakan `-SkipAo` atau `-SkipSearch` jika salah satu database modul belum
+tersedia di environment development.
 
 ## App token global
 
@@ -77,8 +113,10 @@ token. Pada URL development baru, set `APP_TOKEN_REQUIRED=true` setelah tabel
 
 ## 3. Rekomendasi alat dan proteksi
 
-Gunakan halaman dokumentasi interaktif sebagai alat utama karena request, schema, response, dan
-tombol `Authorize` sudah tersedia di satu halaman. Postman atau PowerShell
+Gunakan halaman dokumentasi interaktif sesuai modul sebagai alat utama. API
+Global berisi autentikasi, profil, dan reset password; API Simpeg berisi
+pencarian pegawai dan daftar AO. Request, schema, response, dan tombol `Authorize`
+tersedia di halaman masing-masing. Postman atau PowerShell
 dapat dipakai sebagai alternatif untuk pengujian berulang atau otomatisasi.
 
 Halaman dokumentasi memakai session yang sama dengan SSO Control Plane. User
@@ -91,7 +129,7 @@ Checklist deployment keamanan lengkap tersedia di
 Setelah masuk ke halaman dokumentasi:
 
 1. Kirim header `App` dan `X-App-Token` bila `APP_TOKEN_REQUIRED=true`.
-2. Jalankan `POST /api/auth/login` menggunakan `id_peg`, `password`, dan `app`.
+2. Jalankan `POST /api/auth/login` menggunakan `id_peg`, `telp`, dan `password`. Kode aplikasi dibaca dari header `App`.
 3. Salin nilai `data.token` dari response login.
 4. Klik `Authorize`, masukkan token JWT, lalu klik `Authorize` kembali.
 5. Jalankan endpoint protected seperti `whoami`, profile, dan AO.
@@ -111,8 +149,8 @@ Content-Type: application/json
 ~~~json
 {
   "id_peg": "<ID_PEGAWAI>",
-  "password": "<PASSWORD_PEGAWAI>",
-  "app": "simpeg"
+  "telp": "<NOMOR_HP_PEGAWAI>",
+  "password": "<PASSWORD_PEGAWAI>"
 }
 ~~~
 
@@ -121,7 +159,7 @@ PowerShell:
 ~~~powershell
 $baseUrl = "http://localhost/rest_api_sso"
 $appHeaders = @{ App = "simpeg"; "X-App-Token" = "<APP_TOKEN>" }
-$login = Invoke-RestMethod -Method Post -Uri "$baseUrl/api/auth/login" -Headers $appHeaders -ContentType "application/json" -Body (@{ id_peg = "<ID_PEGAWAI>"; password = "<PASSWORD_PEGAWAI>"; app = "simpeg" } | ConvertTo-Json)
+$login = Invoke-RestMethod -Method Post -Uri "$baseUrl/api/auth/login" -Headers $appHeaders -ContentType "application/json" -Body (@{ id_peg = "<ID_PEGAWAI>"; telp = "<NOMOR_HP_PEGAWAI>"; password = "<PASSWORD_PEGAWAI>" } | ConvertTo-Json)
 $token = $login.data.token
 $token
 ~~~
@@ -142,11 +180,9 @@ Response sukses yang harus tetap dipertahankan:
 
 | Skenario | Expected |
 | --- | --- |
-| `app` kosong | HTTP 400, `App wajib diisi (monbis, simpeg, dll)` |
-| ID pegawai tidak ditemukan | HTTP 401, `User tidak ditemukan` |
-| password salah | HTTP 401, `Password salah` |
-| aplikasi tidak terdaftar | HTTP 400, `App tidak valid` |
-| pegawai tidak punya akses aplikasi | HTTP 403 |
+| `id_peg`, `telp`, atau password tidak valid | HTTP 400, `ID pegawai dan nomor HP wajib valid, password minimal 6 karakter.` |
+| `id_peg` atau nomor HP tidak cocok dengan password | HTTP 401, `ID pegawai, nomor HP, atau password salah.` |
+| aplikasi belum terdaftar atau token salah | HTTP 403, `Token aplikasi tidak valid atau tidak aktif.` |
 
 ## 5. Test endpoint protected
 

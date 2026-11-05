@@ -45,16 +45,50 @@
     window.setTimeout(() => { notice.hidden = true; }, 5000);
   };
 
+  const copyText = async (text) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    try {
+      if (!document.execCommand('copy')) throw new Error('Clipboard tidak tersedia.');
+    } finally {
+      textarea.remove();
+    }
+  };
+
   const request = async (action, options = {}) => {
     const { query, ...fetchOptions } = options;
-    const queryString = query ? `&${new URLSearchParams(query).toString()}` : '';
+    const route = (() => {
+      if (action === 'dashboard') return `api/dashboard/${encodeURIComponent(String(query?.page || 'registry'))}`;
+      if (action === 'employee-search') return `api/employee-search/${encodeURIComponent(String(query?.q || ''))}`;
+      if (action === 'users') return 'api/users';
+      if (action === 'login') return 'api/login';
+      if (action === 'logout') return 'api/logout';
+      if (action === 'create') return 'api/applications';
+      if (action === 'update') return 'api/applications/update';
+      if (action === 'rotate') return 'api/applications/rotate';
+      if (action === 'user-create') return 'api/users/create';
+      if (action === 'user-update') return 'api/users/update';
+      return `api/${encodeURIComponent(action)}`;
+    })();
     const headers = {
       Accept: 'application/json',
       ...(fetchOptions.body ? { 'Content-Type': 'application/json' } : {}),
       ...(state.csrf ? { 'X-CSRF-Token': state.csrf } : {}),
       ...(fetchOptions.headers || {}),
     };
-    const response = await fetch(`api.php?action=${encodeURIComponent(action)}${queryString}`, {
+    const response = await fetch(route, {
       credentials: 'same-origin',
       ...fetchOptions,
       headers,
@@ -106,8 +140,8 @@
         <td><strong>${escapeHtml(formatNumber(application.hits_7d))}</strong></td>
         <td>${escapeHtml(formatDate(application.last_used_at))}</td>
         <td class="row-actions">${canManage ? `
-          <button class="table-action" data-action="edit" data-id="${application.id}" type="button" title="Edit aplikasi" aria-label="Edit aplikasi">${actionIcons.edit}</button>
-          <button class="table-action" data-action="rotate" data-id="${application.id}" type="button" title="Rotasi token" aria-label="Rotasi token">${actionIcons.rotate}</button>
+          <button class="table-action" data-action="edit" data-id="${escapeHtml(application.id)}" type="button" title="Edit aplikasi" aria-label="Edit aplikasi">${actionIcons.edit}</button>
+          <button class="table-action" data-action="rotate" data-id="${escapeHtml(application.id)}" type="button" title="Rotasi token" aria-label="Rotasi token">${actionIcons.rotate}</button>
         ` : '<span class="field-help">Read only</span>'}</td>
       </tr>
     `).join('');
@@ -209,6 +243,34 @@
     if (dialog?.open) dialog.close();
   };
 
+  const bindDismissibleUi = () => {
+    const closeDetailsExcept = (except = null) => {
+      document.querySelectorAll('details[open]').forEach((details) => {
+        if (details !== except) details.removeAttribute('open');
+      });
+    };
+
+    document.addEventListener('click', (event) => {
+      const clickedDetails = event.target.closest?.('details') || null;
+      closeDetailsExcept(clickedDetails);
+
+      const dialog = event.target.closest?.('dialog') || null;
+      if (dialog && event.target === dialog) closeDialog(dialog);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      closeDetailsExcept();
+      document.querySelectorAll('dialog[open]').forEach((dialog) => closeDialog(dialog));
+    });
+
+    document.querySelectorAll('dialog').forEach((dialog) => {
+      dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) closeDialog(dialog);
+      });
+    });
+  };
+
   const clearTokenDialog = () => {
     $('#token-app-name').textContent = '';
     $('#token-app-code').textContent = '';
@@ -277,7 +339,7 @@
   const copyToken = async () => {
     const token = $('#new-token').textContent;
     try {
-      await navigator.clipboard.writeText(token);
+      await copyText(token);
       $('#copy-token').textContent = 'Tersalin';
       window.setTimeout(() => { $('#copy-token').textContent = 'Salin token'; }, 1800);
     } catch (error) {
@@ -289,11 +351,25 @@
   const copyCredentials = async () => {
     const credentials = $('#credential-snippet').textContent;
     try {
-      await navigator.clipboard.writeText(credentials);
+      await copyText(credentials);
       $('#copy-credentials').textContent = 'Header tersalin';
       window.setTimeout(() => { $('#copy-credentials').textContent = 'Salin header'; }, 1800);
     } catch (error) {
       $('#token-error').textContent = 'Clipboard tidak tersedia. Blok header lalu salin manual.';
+      $('#token-error').hidden = false;
+    }
+  };
+
+  const copyDeveloperCredentials = async () => {
+    const appCode = $('#token-app-code').textContent.trim();
+    const token = $('#new-token').textContent.trim();
+    const credentials = `# Bank API BKK - simpan di secret environment aplikasi\nSSO_APP=${appCode}\nSSO_APP_TOKEN=${token}\n\n# Header setiap request\nApp: ${appCode}\nX-App-Token: ${token}`;
+    try {
+      await copyText(credentials);
+      $('#copy-developer').textContent = 'Paket tersalin';
+      window.setTimeout(() => { $('#copy-developer').textContent = 'Salin untuk developer'; }, 1800);
+    } catch (error) {
+      $('#token-error').textContent = 'Clipboard tidak tersedia. Salin paket konfigurasi secara manual.';
       $('#token-error').hidden = false;
     }
   };
@@ -336,7 +412,7 @@
         <td>${escapeHtml(formatNumber(user.permissions.length))} permission${user.employee_id ? ` <span class="app-code">· ${escapeHtml(user.employee_id)}</span>` : ''}</td>
         <td><span class="status status-${user.is_active ? 'active' : 'inactive'}">${user.is_active ? 'Aktif' : 'Nonaktif'}</span></td>
         <td>${escapeHtml(formatDate(user.last_login_at, 'Belum pernah'))}</td>
-        <td class="row-actions"><button class="table-action" data-user-action="edit" data-id="${user.id}" type="button" title="Edit user" aria-label="Edit user">${actionIcons.edit}</button></td>
+        <td class="row-actions"><button class="table-action" data-user-action="edit" data-id="${escapeHtml(user.id)}" type="button" title="Edit user" aria-label="Edit user">${actionIcons.edit}</button></td>
       </tr>
     `).join('');
   };
@@ -500,6 +576,8 @@
     return;
   }
 
+  bindDismissibleUi();
+
   if (page.startsWith('docs-')) return;
 
   bindLogout();
@@ -542,6 +620,7 @@
   $('#done-token').addEventListener('click', () => closeDialog($('#token-dialog')));
   $('#copy-token').addEventListener('click', copyToken);
   $('#copy-credentials').addEventListener('click', copyCredentials);
+  $('#copy-developer').addEventListener('click', copyDeveloperCredentials);
   $('#token-dialog').addEventListener('close', clearTokenDialog);
   $('#applications-body')?.addEventListener('click', (event) => {
     const button = event.target.closest('button[data-action]');

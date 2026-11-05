@@ -1,14 +1,15 @@
 <?php
 declare(strict_types=1);
 
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 require_once dirname(__DIR__) . '/config/env.php';
 require_once dirname(__DIR__) . '/helpers/request.php';
 require_once dirname(__DIR__) . '/helpers/response.php';
+require_once dirname(__DIR__) . '/helpers/webPath.php';
 require_once dirname(__DIR__) . '/api/global/admin/AdminSession.php';
 require_once dirname(__DIR__) . '/api/global/admin/AdminController.php';
 
-ini_set('display_errors', '0');
-ini_set('log_errors', '1');
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 header('X-Content-Type-Options: nosniff');
@@ -17,8 +18,33 @@ header('Referrer-Policy: no-referrer');
 header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
 
 AdminSession::start();
-$action = strtolower(trim((string) ($_GET['action'] ?? '')));
+$actionQuery = $_GET['action'] ?? '';
+$action = is_string($actionQuery) ? strtolower(trim($actionQuery)) : '';
 $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+$cleanEmployeeQuery = null;
+$cleanDashboardPage = null;
+$cleanRoute = web_route_after(web_script_base());
+$cleanSegments = array_values(array_filter(explode('/', $cleanRoute), static fn(string $segment): bool => $segment !== ''));
+if (($cleanSegments[0] ?? '') === 'api') {
+    $cleanAction = $cleanSegments[1] ?? '';
+    if ($cleanAction === 'login' || $cleanAction === 'logout') {
+        $action = $cleanAction;
+    } elseif ($cleanAction === 'dashboard' && isset($cleanSegments[2])) {
+        $cleanDashboardPage = strtolower(rawurldecode($cleanSegments[2]));
+        $action = 'dashboard';
+    } elseif ($cleanAction === 'users') {
+        $action = isset($cleanSegments[2])
+            ? 'user-' . strtolower(rawurldecode($cleanSegments[2]))
+            : 'users';
+    } elseif ($cleanAction === 'employee-search') {
+        $action = 'employee-search';
+        $cleanEmployeeQuery = isset($cleanSegments[2]) ? rawurldecode($cleanSegments[2]) : '';
+    } elseif ($cleanAction === 'applications') {
+        $action = isset($cleanSegments[2])
+            ? strtolower(rawurldecode($cleanSegments[2]))
+            : 'create';
+    }
+}
 
 if ($action === 'login' && $method === 'POST') {
     if (!AdminSession::canAttemptLogin()) {
@@ -27,9 +53,13 @@ if ($action === 'login' && $method === 'POST') {
     }
 
     $payload = jsonRequestBody();
+    if (!is_string($payload['username'] ?? null) || !is_string($payload['password'] ?? null)) {
+        AdminSession::recordFailedLogin();
+        sendResponse(401, 'Username atau password tidak valid.');
+    }
     if (!AdminSession::login(
-        (string) ($payload['username'] ?? ''),
-        (string) ($payload['password'] ?? '')
+        $payload['username'],
+        $payload['password']
     )) {
         sendResponse(401, 'Username atau password tidak valid.');
     }
@@ -50,11 +80,13 @@ AdminSession::requireAuthenticated();
 
 if ($method === 'GET' && $action === 'employee-search') {
     AdminSession::requirePermission('users.manage');
-    AdminController::searchEmployees((string) ($_GET['q'] ?? ''));
+    $query = $cleanEmployeeQuery ?? ($_GET['q'] ?? '');
+    AdminController::searchEmployees(is_string($query) ? $query : '');
 }
 
 if ($method === 'GET' && $action === 'dashboard') {
-    $page = strtolower(trim((string) ($_GET['page'] ?? 'registry')));
+    $pageQuery = $cleanDashboardPage ?? ($_GET['page'] ?? 'registry');
+    $page = is_string($pageQuery) ? strtolower(trim($pageQuery)) : 'registry';
     $permission = match ($page) {
         'audit' => 'audit.view',
         'recap' => 'recap.view',

@@ -14,7 +14,7 @@ The sticky navbar exposes Registry, Audit, Recap, RBAC, and documentation pages 
 the Global API, Simontok API, and Monbis API. Every page remains behind the
 admin session.
 
-The RBAC page uses `?page=rbac`. Internal employees can be selected through the
+The RBAC page uses `/admin/rbac`. Internal employees can be selected through the
 server-side employee search by name or `id_peg`; external users keep the manual
 form. Registered application codes are detected in the registry form and are
 also protected by the database unique constraint.

@@ -8,15 +8,24 @@ final class AoController
 {
     public static function getAoByOffice(): void
     {
-        $typeAo = (string)($_GET['type_ao'] ?? '');
-        $kodeKantor = trim((string)($_GET['kode_kantor'] ?? ''));
+        $typeAo = $_GET['type_ao'] ?? null;
+        $kodeKantor = $_GET['kode_kantor'] ?? null;
+        if (!is_string($typeAo) || !is_string($kodeKantor)) {
+            sendResponse(400, "Parameter 'type_ao' dan 'kode_kantor' tidak valid.");
+        }
+        $typeAo = strtolower(trim($typeAo));
+        $kodeKantor = trim($kodeKantor);
 
-        if (!$typeAo || !$kodeKantor) {
+        if ($typeAo === '' || $kodeKantor === '') {
             sendResponse(400, "Parameter 'type_ao' (dana/kredit/remedial) dan 'kode_kantor' wajib diisi.");
         }
 
         if (!in_array($typeAo, ['dana', 'kredit', 'remedial'], true)) {
             sendResponse(400, 'Tipe AO tidak valid. Pilih: dana, kredit, atau remedial.');
+        }
+
+        if (!preg_match('/^\d{3}$/', $kodeKantor)) {
+            sendResponse(400, "Kode kantor harus 3 digit, misalnya 000 atau 001.");
         }
 
         $data = AoService::listByTypeAndOffice($typeAo, $kodeKantor);

@@ -1,17 +1,27 @@
 <?php
 declare(strict_types=1);
 
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 require_once dirname(__DIR__) . '/api/global/admin/AdminSession.php';
+require_once dirname(__DIR__) . '/helpers/webPath.php';
 AdminSession::start();
 
-$group = strtolower(trim((string) ($_GET['group'] ?? $_SESSION['docs_group'] ?? 'global')));
+$docsBaseUrl = web_script_base();
+$adminBaseUrl = rtrim(dirname($docsBaseUrl), '/') . '/admin';
+$docsRoute = web_route_after($docsBaseUrl);
+$routeGroup = strtolower(trim(explode('/', $docsRoute, 2)[0] ?? ''));
+$groupQuery = $_GET['group'] ?? $_SESSION['docs_group'] ?? 'global';
+$group = in_array($routeGroup, ['global', 'simpeg', 'simontok', 'monbis'], true)
+    ? $routeGroup
+    : (is_string($groupQuery) ? strtolower(trim($groupQuery)) : 'global');
 if (!in_array($group, ['global', 'simpeg', 'simontok', 'monbis'], true)) {
     $group = 'global';
 }
 $docsPermissionGroup = $group === 'simpeg' ? 'global' : $group;
 
 if (!AdminSession::isAuthenticated()) {
-    header('Location: ../admin/?page=registry');
+    header('Location: ' . $adminBaseUrl . '/registry');
     exit;
 }
 
@@ -24,11 +34,11 @@ $_SESSION['docs_group'] = $group;
 $groupMeta = [
     'global' => [
         'label' => 'API Global',
-        'description' => 'Kontrak endpoint bersama untuk autentikasi, profil, reset password, SIMPEG, dan AO.',
+        'description' => 'Kontrak endpoint bersama untuk autentikasi, profil, dan reset password.',
     ],
     'simpeg' => [
         'label' => 'API Simpeg',
-        'description' => 'Belum ada endpoint khusus SIMPEG yang didaftarkan pada Control Plane.',
+        'description' => 'Endpoint SIMPEG untuk pencarian pegawai dan daftar AO.',
     ],
     'simontok' => [
         'label' => 'API Simontok',
@@ -39,10 +49,13 @@ $groupMeta = [
         'description' => 'Belum ada endpoint khusus MONBIS yang didaftarkan pada Control Plane.',
     ],
 ][$group];
+$hasDocs = in_array($group, ['global', 'simpeg'], true);
 
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('Referrer-Policy: same-origin');
+header('Cache-Control: no-store');
+header('X-Permitted-Cross-Domain-Policies: none');
 header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
 ?>
 <!DOCTYPE html>
@@ -54,24 +67,29 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="docs-group" content="<?= htmlspecialchars($group, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-spec-version" content="<?= htmlspecialchars((string) @filemtime(__DIR__ . '/../swagger.json'), ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-app-default" content="<?= htmlspecialchars($group === 'global' ? 'monbis' : $group, ENT_QUOTES, 'UTF-8') ?>">
-    <link rel="stylesheet" href="swagger.css?v=20261102-2">
+    <meta name="docs-base" content="<?= htmlspecialchars($docsBaseUrl, ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="swagger.css?v=20261105-4">
 </head>
 <body>
 <div class="docs-shell">
     <header class="docs-topbar">
-        <a class="docs-logo" href="../admin/?page=registry" aria-label="Kembali ke Control Plane">
-            <span class="docs-logo-mark" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M4 10h16M6 10v8m4-8v8m4-8v8m4-8v8M3 20h18M5 10l7-6 7 6"/></svg>
-            </span>
-            <span><strong>Bank API BKK</strong><small>API Documentation</small></span>
-        </a>
+        <div class="docs-nav-left">
+            <a class="docs-back docs-back-icon" href="<?= htmlspecialchars($adminBaseUrl . '/registry', ENT_QUOTES, 'UTF-8') ?>" data-back-link aria-label="Kembali ke Control Plane" title="Kembali ke Control Plane">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h10"/></svg>
+            </a>
+            <a class="docs-logo" href="<?= htmlspecialchars($adminBaseUrl . '/registry', ENT_QUOTES, 'UTF-8') ?>" aria-label="Kembali ke Control Plane">
+                <span class="docs-logo-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 10h16M6 10v8m4-8v8m4-8v8m4-8v8M3 20h18M5 10l7-6 7 6"/></svg>
+                </span>
+                <span><strong>Bank API BKK</strong><small>API Documentation</small></span>
+            </a>
+        </div>
         <div class="docs-top-actions">
             <span class="docs-session"><i></i> Admin session aktif</span>
-            <a class="docs-back" href="../admin/?page=registry" data-back-link><span aria-hidden="true">&larr;</span> Kembali</a>
         </div>
     </header>
 
-    <section class="docs-hero <?= $group === 'global' ? '' : 'docs-hero-empty' ?>">
+    <section class="docs-hero <?= $hasDocs ? '' : 'docs-hero-empty' ?>">
         <div>
             <p class="docs-kicker">SSO / <?= strtoupper(htmlspecialchars($group, ENT_QUOTES, 'UTF-8')) ?></p>
             <h1><?= htmlspecialchars($groupMeta['label'], ENT_QUOTES, 'UTF-8') ?></h1>
@@ -81,10 +99,10 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                 <span class="docs-meta-text">Session admin dipakai bersama Control Plane</span>
             </div>
             <nav class="docs-group-nav" aria-label="Kelompok dokumentasi">
-                <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'global' ? 'is-active' : '' ?>" href="?group=global">Global</a><?php endif; ?>
-                <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-active' : '' ?>" href="?group=simpeg">Simpeg</a><?php endif; ?>
-                <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-active' : '' ?>" href="?group=simontok">Simontok</a><?php endif; ?>
-                <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-active' : '' ?>" href="?group=monbis">Monbis</a><?php endif; ?>
+                <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'global' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>">Global</a><?php endif; ?>
+                <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>">Simpeg</a><?php endif; ?>
+                <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>">Simontok</a><?php endif; ?>
+                <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>">Monbis</a><?php endif; ?>
             </nav>
         </div>
         <?php if ($group === 'global'): ?><div class="docs-target-card">
@@ -94,7 +112,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
         </div><?php endif; ?>
     </section>
 
-    <?php if ($group !== 'global'): ?>
+    <?php if (!$hasDocs): ?>
     <main class="docs-empty-page">
         <div class="empty-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 13h5M10 17h5"/></svg>
@@ -102,7 +120,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
         <p class="section-kicker">BELUM TERSEDIA</p>
         <h2>Dokumentasi <?= htmlspecialchars($groupMeta['label'], ENT_QUOTES, 'UTF-8') ?> belum dibuat</h2>
         <p>Tab ini sengaja dikosongkan sampai endpoint khusus <?= htmlspecialchars(strtoupper($group), ENT_QUOTES, 'UTF-8') ?> resmi tersedia. API Global tetap dapat dibuka dari tab Global.</p>
-        <a class="empty-link" href="?group=global">Buka API Global <span aria-hidden="true">&rarr;</span></a>
+        <a class="empty-link" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>">Buka API Global <span aria-hidden="true">&rarr;</span></a>
     </main>
     <?php else: ?>
     <div class="docs-layout">
@@ -150,6 +168,6 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <?php endif; ?>
 </div>
 
-<?php if ($group === 'global'): ?><script src="swagger-init.js?v=20261102-2" defer></script><?php endif; ?>
+<?php if ($hasDocs): ?><script src="swagger-init.js?v=20261105-5" defer></script><?php endif; ?>
 </body>
 </html>

@@ -15,6 +15,7 @@
   const authJwt = $('[data-auth-jwt]');
   const saveHeadersButton = $('[data-save-headers]');
   const clearHeadersButton = $('[data-clear-headers]');
+  const docsBase = $('meta[name="docs-base"]')?.content || './';
   const countTargets = $$('[data-endpoint-count]');
   const methods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'];
   const state = { spec: null, operations: [], visible: [], activeId: null };
@@ -118,8 +119,11 @@
       ? state.spec.servers
       : [{ url: window.location.origin, description: 'Current origin' }];
     serverSelect.innerHTML = servers.map((server, index) => `<option value="${escapeHtml(server.url)}">${escapeHtml(server.description || server.url || `Server ${index + 1}`)}</option>`).join('');
+    const currentOrigin = window.location.origin.replace(/\/$/, '');
+    const currentServer = servers.find((server) => String(server.url || '').replace(/\/$/, '') === currentOrigin);
     const local = servers.find((server) => /localhost|127\.0\.0\.1/i.test(server.url || ''));
-    if (local) serverSelect.value = local.url;
+    if (currentServer) serverSelect.value = currentServer.url;
+    else if (local) serverSelect.value = local.url;
   };
 
   const renderNav = () => {
@@ -169,15 +173,18 @@
   };
 
   const renderField = (field) => {
-    const isLong = /token|password|secret/i.test(field.name) || String(field.example || '').length > 80;
+    const isLong = /token|secret/i.test(field.name) || String(field.example || '').length > 80;
     const inputType = /password|token|secret/i.test(field.name) ? 'password' : field.schema.type === 'number' || field.schema.type === 'integer' ? 'number' : 'text';
+    const valueType = escapeHtml(field.schema.type || 'string');
     const value = typeof field.example === 'object' ? JSON.stringify(field.example) : String(field.example ?? '');
     const enumOptions = Array.isArray(field.schema.enum) ? field.schema.enum : [];
+    const minLength = Number.isInteger(field.schema.minLength) ? ` minlength="${field.schema.minLength}"` : '';
+    const maxLength = Number.isInteger(field.schema.maxLength) ? ` maxlength="${field.schema.maxLength}"` : '';
     const control = enumOptions.length
-      ? `<select name="${escapeHtml(field.name)}" data-location="${escapeHtml(field.location)}" ${field.required ? 'required' : ''}>${enumOptions.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('')}</select>`
+      ? `<select name="${escapeHtml(field.name)}" data-location="${escapeHtml(field.location)}" data-value-type="${valueType}" ${field.required ? 'required' : ''}>${enumOptions.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('')}</select>`
       : isLong
-        ? `<textarea name="${escapeHtml(field.name)}" data-location="${escapeHtml(field.location)}" placeholder="${escapeHtml(value)}" ${field.required ? 'required' : ''}></textarea>`
-        : `<input type="${inputType}" name="${escapeHtml(field.name)}" data-location="${escapeHtml(field.location)}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.example ? '' : field.name)}" ${field.required ? 'required' : ''}>`;
+        ? `<textarea name="${escapeHtml(field.name)}" data-location="${escapeHtml(field.location)}" data-value-type="${valueType}" placeholder="${escapeHtml(value)}"${minLength}${maxLength} ${field.required ? 'required' : ''}></textarea>`
+        : `<input type="${inputType}" name="${escapeHtml(field.name)}" data-location="${escapeHtml(field.location)}" data-value-type="${valueType}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.example ? '' : field.name)}"${minLength}${maxLength} ${field.required ? 'required' : ''}>`;
     return `<div class="field ${field.location === 'body' && isLong ? 'field-full' : ''}"><label><span>${escapeHtml(field.name)}${field.required ? ' *' : ''}<small>${escapeHtml(field.location)}</small></span>${control}${field.description ? `<small>${escapeHtml(field.description)}</small>` : ''}</label></div>`;
   };
 
@@ -248,9 +255,18 @@
     const body = {};
     $$('[name][data-location]', form).forEach((input) => {
       if (!input.value) return;
-      if (input.dataset.location === 'query') query.set(input.name, input.value);
+      const value = ['id_peg', 'app'].includes(input.name) ? input.value.trim() : input.value;
+      if (input.dataset.location === 'query') query.set(input.name, value);
       if (input.dataset.location === 'body') {
-        try { body[input.name] = JSON.parse(input.value); } catch (_) { body[input.name] = input.value; }
+        if (input.dataset.valueType === 'number' || input.dataset.valueType === 'integer') {
+          body[input.name] = Number(value);
+        } else if (input.dataset.valueType === 'boolean') {
+          body[input.name] = value === 'true';
+        } else if (input.dataset.valueType === 'object' || input.dataset.valueType === 'array') {
+          try { body[input.name] = JSON.parse(value); } catch (_) { body[input.name] = value; }
+        } else {
+          body[input.name] = value;
+        }
       }
     });
     return { query, body };
@@ -339,7 +355,7 @@
 
   const loadSpec = async () => {
     try {
-      const response = await fetch(`openapi.php?group=${encodeURIComponent(group)}&v=${encodeURIComponent(version)}`, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      const response = await fetch(`${docsBase}/openapi/${encodeURIComponent(group)}`, { credentials: 'same-origin', headers: { Accept: 'application/json', 'X-Docs-Version': version } });
       if (!response.ok) throw new Error(`Kontrak API tidak dapat dimuat (${response.status}).`);
       state.spec = await response.json();
       state.operations = Object.entries(state.spec.paths || {}).flatMap(([path, pathItem]) => methods.filter((method) => pathItem?.[method]).map((method) => ({ id: operationId(method, path), path, method: method.toUpperCase(), operation: pathItem[method] })));

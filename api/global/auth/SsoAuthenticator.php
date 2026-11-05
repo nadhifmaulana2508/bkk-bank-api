@@ -18,7 +18,7 @@ final class SsoAuthenticator
         }
 
         if (preg_match('/^Bearer\s+(\S+)$/i', trim($authorization), $matches)) {
-            return $matches[1];
+            return strlen($matches[1]) <= 4096 ? $matches[1] : null;
         }
 
         return null;
@@ -34,8 +34,10 @@ final class SsoAuthenticator
         $decoded = jwt_decode($token, sso_secret_key());
         if (
             !is_array($decoded)
-            || empty($decoded['id_peg'])
-            || empty($decoded['app'])
+            || !is_string($decoded['id_peg'] ?? null)
+            || !preg_match('/^[A-Za-z0-9._-]{1,80}$/', $decoded['id_peg'])
+            || !is_string($decoded['app'] ?? null)
+            || !preg_match('/^[a-z0-9][a-z0-9._-]{0,49}$/', $decoded['app'])
             || isset($decoded['purpose'])
             || !isset($decoded['exp'])
             || !is_numeric($decoded['exp'])

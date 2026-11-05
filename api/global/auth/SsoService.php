@@ -18,47 +18,59 @@ final class SsoService
         global $pdo;
 
         $input = jsonRequestBody();
-        $idPeg = $input['id_peg'] ?? '';
-        $password = $input['password'] ?? '';
-        $app = $input['app'] ?? '';
+        $idPeg = $input['id_peg'] ?? null;
+        $telp = $input['telp'] ?? null;
+        $password = $input['password'] ?? null;
 
-        if (!$app) {
-            sendResponse(400, 'App wajib diisi (monbis, simpeg, dll)');
+        if (is_string($idPeg)) {
+            $idPeg = trim($idPeg);
+        }
+        if (is_string($telp)) {
+            $telp = trim($telp);
+        }
+
+        if (
+            !is_string($idPeg)
+            || $idPeg === ''
+            || strlen($idPeg) > 80
+            || !preg_match('/^[A-Za-z0-9._-]+$/', $idPeg)
+            ||
+            !is_string($telp)
+            || !preg_match('/^[0-9+()\-\s]{6,20}$/', $telp)
+            || !is_string($password)
+            || $password === ''
+            || strlen($password) < 6
+            || strlen($password) > 255
+        ) {
+            sendResponse(400, 'ID pegawai dan nomor HP wajib valid, password minimal 6 karakter.');
         }
 
         $application = AppTokenAuthenticator::current();
-        if (
-            AppTokenAuthenticator::isRequired()
-            && is_array($application)
-            && strtolower((string) $app) !== strtolower((string) ($application['app_code'] ?? ''))
-        ) {
-            sendResponse(403, 'App login tidak sesuai dengan header App.');
+        if (AppTokenAuthenticator::isRequired()) {
+            if (!is_array($application)) {
+                sendResponse(403, 'Aplikasi belum terdaftar atau token aplikasi belum valid.');
+            }
         }
+
+        $app = is_array($application)
+            ? strtolower((string) ($application['app_code'] ?? 'sso'))
+            : 'sso';
 
         $stmt = $pdo->prepare('
             SELECT a.*, p.nama FROM tb_apk a
             JOIN tb_pegawai p ON a.id_peg = p.id_peg
-            WHERE a.id_peg = :id_peg LIMIT 1
+            WHERE a.id_peg = :id_peg AND p.telp = :telp
+            LIMIT 1
         ');
-        $stmt->execute(['id_peg' => $idPeg]);
+        $stmt->execute(['id_peg' => $idPeg, 'telp' => $telp]);
         $user = $stmt->fetch();
 
-        if (!$user) {
-            sendResponse(401, 'User tidak ditemukan');
-        }
-        if (!password_verify($password, $user['pass'])) {
-            sendResponse(401, 'Password salah');
+        if (!is_array($user)) {
+            sendResponse(401, 'ID pegawai, nomor HP, atau password salah.');
         }
 
-        $allowedApps = [
-            'monbis', 'ims', 'rekrutmen', 'simontok', 'simstock',
-            'simpeg', 'vitised_ao', 'portal_bkk', 'sipatuh',
-        ];
-        if (!in_array($app, $allowedApps, true)) {
-            sendResponse(400, 'App tidak valid');
-        }
-        if ((int)$user[$app] !== 1) {
-            sendResponse(403, "Tidak punya akses ke aplikasi {$app}");
+        if (!is_string($user['pass'] ?? null) || !password_verify($password, $user['pass'])) {
+            sendResponse(401, 'ID pegawai, nomor HP, atau password salah.');
         }
 
         $payload = [
@@ -86,22 +98,33 @@ final class SsoService
 
         $user = SsoAuthenticator::user();
         $input = jsonRequestBody();
-        $oldPassword = $input['old_password'] ?? '';
-        $newPassword = $input['new_password'] ?? '';
+        $oldPassword = $input['old_password'] ?? null;
+        $newPassword = $input['new_password'] ?? null;
 
-        if (!$oldPassword || !$newPassword) {
-            sendResponse(400, 'Password lama dan baru wajib diisi');
+        if (
+            !is_string($oldPassword)
+            || $oldPassword === ''
+            || strlen($oldPassword) < 6
+            || strlen($oldPassword) > 255
+            || !is_string($newPassword)
+            || strlen($newPassword) < 6
+            || strlen($newPassword) > 255
+        ) {
+            sendResponse(400, 'Password lama dan password baru minimal 6 karakter.');
         }
 
         $stmt = $pdo->prepare('SELECT pass FROM tb_apk WHERE id_peg = :id_peg');
         $stmt->execute(['id_peg' => $user['id_peg']]);
         $dbUser = $stmt->fetch();
 
-        if (!password_verify($oldPassword, $dbUser['pass'])) {
+        if (!is_array($dbUser) || !is_string($dbUser['pass'] ?? null) || !password_verify($oldPassword, $dbUser['pass'])) {
             sendResponse(400, 'Password lama yang Anda masukkan salah!');
         }
 
-        $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        if (!is_string($hashedPassword)) {
+            sendResponse(500, 'Password baru tidak dapat diproses.');
+        }
         $update = $pdo->prepare('UPDATE tb_apk SET pass = :pass WHERE id_peg = :id_peg');
         $update->execute(['pass' => $hashedPassword, 'id_peg' => $user['id_peg']]);
 
@@ -164,7 +187,10 @@ final class SsoService
 
         $input = jsonRequestBody();
         $email = $input['email'] ?? '';
-        if (!is_string($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (is_string($email)) {
+            $email = trim($email);
+        }
+        if (!is_string($email) || strlen($email) > 254 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             sendResponse(400, 'Email wajib diisi');
         }
 
@@ -177,7 +203,7 @@ final class SsoService
             sendResponse(404, 'Email tidak terdaftar di sistem!');
         }
 
-        $otpCode = sprintf('%06d', mt_rand(1, 999999));
+        $otpCode = sprintf('%06d', random_int(0, 999999));
         $payload = [
             'id_peg' => $pegawai['id_peg'],
             'otp_hash' => hash('sha256', $otpCode),
@@ -203,7 +229,18 @@ final class SsoService
         $input = jsonRequestBody();
         $otpToken = $input['otp_token'] ?? '';
         $otpInput = $input['otp_code'] ?? '';
-        if (!$otpToken || !$otpInput) {
+        // JSON client sering mengirim OTP sebagai angka. Normalisasi hanya
+        // tipe integer agar format string seperti 012345 tetap didukung.
+        if (is_int($otpInput)) {
+            $otpInput = (string) $otpInput;
+        }
+        if (
+            !is_string($otpToken)
+            || $otpToken === ''
+            || strlen($otpToken) > 4096
+            || !is_string($otpInput)
+            || !preg_match('/^\d{6}$/', $otpInput)
+        ) {
             sendResponse(400, 'Token OTP dan Kode OTP wajib diisi!');
         }
 
@@ -211,11 +248,15 @@ final class SsoService
         if (!$decoded || !isset($decoded['purpose']) || $decoded['purpose'] !== 'verify_otp') {
             sendResponse(401, 'Sesi OTP tidak valid atau sudah kadaluarsa.');
         }
-        if (!is_string($otpInput) || !isset($decoded['otp_hash']) || !hash_equals(
-            (string)$decoded['otp_hash'],
+        if (!is_string($decoded['otp_hash'] ?? null) || !hash_equals(
+            $decoded['otp_hash'],
             hash('sha256', $otpInput)
         )) {
             sendResponse(400, 'Kode OTP salah!');
+        }
+
+        if (!is_string($decoded['id_peg'] ?? null) || !preg_match('/^[A-Za-z0-9._-]{1,80}$/', $decoded['id_peg'])) {
+            sendResponse(401, 'Sesi OTP tidak valid atau sudah kadaluarsa.');
         }
 
         $resetPayload = [
@@ -237,8 +278,15 @@ final class SsoService
         $input = jsonRequestBody();
         $token = $input['reset_token'] ?? '';
         $newPassword = $input['new_password'] ?? '';
-        if (!$token || !$newPassword) {
-            sendResponse(400, 'Token reset dan password baru wajib diisi!');
+        if (
+            !is_string($token)
+            || $token === ''
+            || strlen($token) > 4096
+            || !is_string($newPassword)
+            || strlen($newPassword) < 6
+            || strlen($newPassword) > 255
+        ) {
+            sendResponse(400, 'Token reset wajib diisi dan password baru minimal 6 karakter.');
         }
 
         $decoded = jwt_decode($token, sso_secret_key());
@@ -246,7 +294,20 @@ final class SsoService
             sendResponse(401, 'Sesi reset password tidak valid atau sudah kadaluarsa!');
         }
 
-        $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+        if (!is_string($decoded['id_peg'] ?? null) || !preg_match('/^[A-Za-z0-9._-]{1,80}$/', $decoded['id_peg'])) {
+            sendResponse(401, 'Sesi reset password tidak valid atau sudah kadaluarsa!');
+        }
+
+        $account = $pdo->prepare('SELECT id_peg FROM tb_apk WHERE id_peg = :id_peg LIMIT 1');
+        $account->execute(['id_peg' => $decoded['id_peg']]);
+        if (!$account->fetchColumn()) {
+            sendResponse(404, 'Akun login pegawai tidak ditemukan.');
+        }
+
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        if (!is_string($hashedPassword)) {
+            sendResponse(500, 'Password baru tidak dapat diproses.');
+        }
         $update = $pdo->prepare('UPDATE tb_apk SET pass = :pass WHERE id_peg = :id_peg');
         $update->execute(['pass' => $hashedPassword, 'id_peg' => $decoded['id_peg']]);
 

@@ -1,17 +1,26 @@
 <?php
 declare(strict_types=1);
 
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 require_once dirname(__DIR__) . '/api/global/admin/AdminSession.php';
+require_once dirname(__DIR__) . '/helpers/webPath.php';
 
 AdminSession::start();
-$group = strtolower(trim((string) ($_GET['group'] ?? 'global')));
+$docsBaseUrl = web_script_base();
+$docsRoute = web_route_after($docsBaseUrl);
+$routeGroup = strtolower(trim(explode('/', $docsRoute, 2)[0] ?? ''));
+$groupQuery = $_GET['group'] ?? 'global';
+$group = in_array($routeGroup, ['global', 'simpeg', 'simontok', 'monbis'], true)
+    ? $routeGroup
+    : (is_string($groupQuery) ? strtolower(trim($groupQuery)) : 'global');
 if (!in_array($group, ['global', 'simpeg', 'simontok', 'monbis'], true)) {
     $group = 'global';
 }
 $docsPermissionGroup = $group === 'simpeg' ? 'global' : $group;
 
 if (!AdminSession::isAuthenticated()) {
-    header('Location: ../admin/?page=registry');
+    header('Location: ' . rtrim(dirname($docsBaseUrl), '/') . '/admin/registry');
     exit;
 }
 

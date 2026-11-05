@@ -23,15 +23,37 @@ class MailHelper {
             $env[$key] = $value;
         }
 
+        $host = trim((string) $env['SMTP_HOST']);
+        $port = filter_var($env['SMTP_PORT'], FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1, 'max_range' => 65535],
+        ]);
+        if (
+            (!filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) && !filter_var($host, FILTER_VALIDATE_IP))
+            || $port === false
+        ) {
+            throw new \RuntimeException('Konfigurasi SMTP_HOST atau SMTP_PORT tidak valid.');
+        }
+
+        $encryption = strtolower(trim((string) app_env_value(
+            'SMTP_ENCRYPTION',
+            (int) $port === 465 ? 'ssl' : 'tls'
+        )));
+        if (!in_array($encryption, ['ssl', 'tls', 'none'], true)) {
+            throw new \RuntimeException('Konfigurasi SMTP_ENCRYPTION tidak valid.');
+        }
+
         $mail = new PHPMailer(true);
         try {
             $mail->isSMTP();
-            $mail->Host       = $env['SMTP_HOST']; // Ambil dari $env
+            $mail->Host       = $host;
             $mail->SMTPAuth   = true;
             $mail->Username   = $env['SMTP_USER']; 
             $mail->Password   = $env['SMTP_PASS']; 
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = $env['SMTP_PORT'];
+            $mail->SMTPSecure = $encryption === 'ssl'
+                ? PHPMailer::ENCRYPTION_SMTPS
+                : ($encryption === 'tls' ? PHPMailer::ENCRYPTION_STARTTLS : '');
+            $mail->Port       = (int) $port;
+            $mail->Timeout    = 15;
 
             // Pengirim & Penerima
             // Pengirim & Penerima (Email pengirim WAJIB SAMA dengan akun SMTP_USER)

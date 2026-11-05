@@ -33,6 +33,9 @@ final class AdminRbac
         $allowed = self::permissions();
         $normalized = [];
         foreach ($permissions as $permission) {
+            if (!is_string($permission)) {
+                continue;
+            }
             $permission = strtolower(trim((string) $permission));
             if (isset($allowed[$permission])) {
                 $normalized[$permission] = true;

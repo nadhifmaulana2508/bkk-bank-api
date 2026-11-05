@@ -34,7 +34,7 @@ function jwt_encode($payload, $secret) {
 }
 
 function jwt_decode($jwt, $secret) {
-    if (!is_string($jwt) || !is_string($secret) || $secret === '') {
+    if (!is_string($jwt) || strlen($jwt) > 4096 || !is_string($secret) || $secret === '') {
         return false;
     }
 

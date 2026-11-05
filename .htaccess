@@ -2,11 +2,18 @@ Options -Indexes
 
 # Jangan izinkan file konfigurasi, secret, metadata repository, dan file
 # internal aplikasi dibaca langsung melalui web server.
-<FilesMatch "(?i)^(?:\.env(?:\..*)?|\.htaccess|composer\.(?:json|lock)|.*\.(?:ini|log|sql|bak|dist))$">
+<FilesMatch "(?i)^(?:\.env(?:\..*)?|\.user\.ini|\.htaccess|composer\.(?:json|lock)|.*\.(?:ini|log|sql|bak|dist))$">
     Require all denied
 </FilesMatch>
 
 RewriteEngine On
+
+# URL control plane tanpa query string. Parameter lama tetap ditangani oleh
+# file PHP agar link yang sudah tersimpan tidak langsung rusak.
+RewriteRule ^admin/(registry|audit|recap|rbac|users)/?$ admin/index.php [L]
+RewriteRule ^admin/api/(login|logout|dashboard/(?:registry|audit|recap)|users(?:/(?:create|update))?|employee-search(?:/[^/]+)?|applications(?:/(?:update|rotate))?)/?$ admin/api.php [L]
+RewriteRule ^docs/(global|simpeg|simontok|monbis)/?$ docs/index.php [L]
+RewriteRule ^docs/openapi/(global|simpeg|simontok|monbis)/?$ docs/openapi.php [L]
 
 # Blokir folder internal yang tidak pernah menjadi endpoint publik.
 RewriteRule ^(?:\.git|config|helpers|middlewares|vendor)(?:/|$) - [F,L,NC]

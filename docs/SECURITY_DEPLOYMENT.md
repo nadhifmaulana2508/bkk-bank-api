@@ -38,19 +38,53 @@ password membutuhkan app token serta Bearer JWT.
 
 Gunakan HTTPS di server, user database dengan privilege minimum, backup secret secara aman, serta matikan `display_errors` pada PHP production. Buat user pertama melalui `tools/create_sso_user.php`; jangan menjadikan password atau token sebagai source code.
 
-Pada Nginx, `.htaccess` tidak berlaku. Letakkan rule berikut sebelum blok PHP
-umum di virtual host agar file internal tidak dapat dieksekusi langsung:
+Pada Nginx, `.htaccess` tidak berlaku. Tambahkan rule berikut di konfigurasi
+site aaPanel, masih di dalam blok `server { ... }`, sebelum include/blok PHP
+umum. Rule ini menutup file secret, metadata Git, source internal, dan
+dokumentasi markdown dari akses langsung:
 
 ```nginx
-location ~ ^/(?:api/(?:Core|global|legacy|modules|routes\.php)|config|helpers|middlewares|database|tools)(?:/|$) {
+location ~* ^/(?:\.env(?:\..*)?|\.git|\.svn|\.user\.ini|\.htaccess|composer\.(?:json|lock)|swagger\.json|check\.php)$ {
     return 404;
 }
 
-location ~ ^/(?:admin|docs)/.*\.md$ {
+location ~* ^/(?:api/(?:Core|global|legacy|modules|routes\.php)|config|helpers|middlewares|vendor|database|storage|tools)(?:/|$) {
     return 404;
 }
 
-location = /check.php {
+location ~* ^/(?:admin|docs)/.*\.md$ {
     return 404;
 }
 ```
+
+Agar URL Control Plane tetap bersih, tambahkan rewrite berikut sebelum
+`include enable-php-84.conf;`. Query pada target rewrite hanya internal di
+server; URL yang terlihat user tetap tidak memiliki `?` atau `=`:
+
+```nginx
+rewrite ^/admin/(registry|audit|recap|rbac|users)/?$ /admin/index.php?page=$1 last;
+rewrite ^/admin/api/login/?$ /admin/api.php?action=login last;
+rewrite ^/admin/api/logout/?$ /admin/api.php?action=logout last;
+rewrite ^/admin/api/dashboard/(registry|audit|recap)/?$ /admin/api.php?action=dashboard&page=$1 last;
+rewrite ^/admin/api/users/?$ /admin/api.php?action=users last;
+rewrite ^/admin/api/users/(create|update)/?$ /admin/api.php?action=user-$1 last;
+rewrite ^/admin/api/employee-search/(.+)/?$ /admin/api.php?action=employee-search&q=$1 last;
+rewrite ^/admin/api/applications/?$ /admin/api.php?action=create last;
+rewrite ^/admin/api/applications/(update|rotate)/?$ /admin/api.php?action=$1 last;
+rewrite ^/docs/(global|simpeg|simontok|monbis)/?$ /docs/index.php?group=$1 last;
+rewrite ^/docs/openapi/(global|simpeg|simontok|monbis)/?$ /docs/openapi.php?group=$1 last;
+```
+
+Simpan `.env` di luar document root, misalnya
+`/www/server/secure/devsso.bkkjateng.co.id.env`, ubah permission menjadi `600`,
+lalu tambahkan `APP_ENV_FILE` ke blok PHP-FPM site aaPanel. Contoh di dalam
+`location ~ \\.php$ { ... }`:
+
+```nginx
+fastcgi_param APP_ENV_FILE /www/server/secure/devsso.bkkjateng.co.id.env;
+```
+
+Jangan menaruh `APP_ENV_FILE` pada URL, query string, atau source code. Setelah
+menyimpan konfigurasi, gunakan `nginx -t` lalu reload dari aaPanel. Jika semua
+subdomain sudah HTTPS, aktifkan HSTS dan gunakan hanya `TLSv1.2 TLSv1.3`; jangan
+aktifkan TLSv1.1.

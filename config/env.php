@@ -27,11 +27,42 @@ function app_env_value(string $key, ?string $fallback = null): ?string
             : dirname(__DIR__) . '/.env';
 
         if (is_file($envFile)) {
-            $parsed = @parse_ini_file($envFile, false, INI_SCANNER_RAW);
-            if (is_array($parsed)) {
-                $values = $parsed;
+            $lines = @file($envFile, FILE_IGNORE_NEW_LINES);
+            if (is_array($lines)) {
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if ($line === '' || str_starts_with($line, '#')) {
+                        continue;
+                    }
+
+                    if (str_starts_with($line, 'export ')) {
+                        $line = trim(substr($line, 7));
+                    }
+
+                    $separator = strpos($line, '=');
+                    if ($separator === false) {
+                        continue;
+                    }
+
+                    $parsedKey = trim(substr($line, 0, $separator));
+                    if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $parsedKey)) {
+                        continue;
+                    }
+
+                    $value = trim(substr($line, $separator + 1));
+                    $length = strlen($value);
+                    if ($length >= 2) {
+                        $first = $value[0];
+                        $last = $value[$length - 1];
+                        if (($first === '"' && $last === '"') || ($first === "'" && $last === "'")) {
+                            $value = substr($value, 1, -1);
+                        }
+                    }
+
+                    $values[$parsedKey] = $value;
+                }
             } else {
-                error_log('[API] File environment tidak valid.');
+                error_log('[API] File environment tidak dapat dibaca.');
             }
         }
     }

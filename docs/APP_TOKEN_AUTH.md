@@ -16,9 +16,11 @@ pegawai. `App` dan `X-App-Token` dikirim pada semua endpoint setelah proteksi
 diaktifkan. Token aplikasi tidak dikirim lewat body karena body pada request
 GET tidak konsisten dan raw token dapat ikut tersimpan di log payload.
 
-Nilai `App` pada header login harus sama dengan field `app` pada body login.
-Untuk endpoint yang membutuhkan JWT, aplikasi pada header juga harus sama dengan
-claim `app` di JWT tersebut.
+Nilai `App` pada header login harus sudah terdaftar di Registry API. Field `app`
+tidak dikirim di body login; login pegawai memakai `id_peg`, `telp`, dan
+`password`. Tidak ada lagi daftar aplikasi yang harus ditambahkan manual ke
+source code. Untuk endpoint yang membutuhkan JWT, aplikasi pada header juga
+harus sama dengan claim `app` di JWT tersebut.
 
 ## Menyiapkan tabel
 
@@ -36,6 +38,19 @@ tetapi token hasil generator lebih aman karena memiliki entropy yang lebih tingg
 
 ## Mendaftarkan aplikasi
 
+Untuk mendaftarkan aplikasi lewat Control Plane, buka halaman berikut setelah
+login admin:
+
+```text
+/admin/registry
+```
+
+Klik **Tambah aplikasi**, isi kode `monbis` dan nama `MONBIS`, lalu simpan.
+Dialog setelah penyimpanan menyediakan tiga opsi salin. Pilih **Salin untuk
+developer** untuk menyalin konfigurasi `.env` dan header request sekaligus.
+Token mentah hanya tampil pada dialog create atau rotate; setelah dialog
+ditutup, token tidak dapat dibaca ulang dari database.
+
 Dari root project, jalankan melalui PHP CLI:
 
 ```powershell
@@ -45,6 +60,25 @@ C:\xampp\php\php.exe tools/create_app_token.php --code=simpeg --name="SIMPEG"
 Simpan token yang tercetak di password manager atau secret manager. Token hanya
 ditampilkan saat pendaftaran. Ulangi untuk `monbis`, `notaris`, dan aplikasi
 lainnya dengan `--code` yang berbeda.
+
+Contoh konfigurasi pada aplikasi MONBIS:
+
+```dotenv
+SSO_APP=monbis
+SSO_APP_TOKEN=app_<token-rahasia>
+```
+
+Contoh request ke endpoint global:
+
+```http
+GET /api/simpeg/pegawai/search?q=rifqi
+App: monbis
+X-App-Token: app_<token-rahasia>
+```
+
+Endpoint publik dan response bisnis lama tetap memakai URL yang sama. URL
+bersih seperti `/admin/registry` dan `/docs/global` hanya dipakai untuk
+Control Plane dan dokumentasi.
 
 ## Mengaktifkan proteksi
 

@@ -1,7 +1,10 @@
 <?php
 declare(strict_types=1);
 
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 require_once dirname(__DIR__) . '/api/global/admin/AdminSession.php';
+require_once dirname(__DIR__) . '/helpers/webPath.php';
 AdminSession::start();
 
 if (!AdminSession::isAuthenticated()) {
@@ -15,7 +18,14 @@ if (!is_file($specFile)) {
     exit;
 }
 
-$group = strtolower(trim((string) ($_GET['group'] ?? $_SESSION['docs_group'] ?? 'global')));
+$docsBaseUrl = web_script_base();
+$docsRoute = web_route_after($docsBaseUrl);
+$routeSegments = explode('/', $docsRoute);
+$routeGroup = ($routeSegments[0] ?? '') === 'openapi' ? strtolower(trim($routeSegments[1] ?? '')) : '';
+$groupQuery = $_GET['group'] ?? $_SESSION['docs_group'] ?? 'global';
+$group = in_array($routeGroup, ['global', 'simpeg', 'simontok', 'monbis'], true)
+    ? $routeGroup
+    : (is_string($groupQuery) ? strtolower(trim($groupQuery)) : 'global');
 if (!in_array($group, ['global', 'simpeg', 'simontok', 'monbis'], true)) {
     $group = 'global';
 }
@@ -39,7 +49,39 @@ $groupLabels = [
 ];
 $activeAppCode = $group === 'global' ? 'monbis' : $group;
 $spec['info']['title'] = ($groupLabels[$group] ?? 'API Global') . ' BKK';
-$spec['info']['description'] = 'Dokumentasi interaktif untuk testing kontrak API. App code aktif: ' . $group . '.';
+$spec['info']['description'] = $group === 'global'
+    ? 'Dokumentasi endpoint bersama untuk autentikasi, profil, dan reset password.'
+    : 'Dokumentasi endpoint SIMPEG untuk data pegawai dan AO.';
+
+$groupTag = $group === 'simpeg' ? 'SIMPEG' : null;
+foreach (array_keys($spec['paths']) as $path) {
+    $pathItem = $spec['paths'][$path];
+    if (!is_array($pathItem)) {
+        unset($spec['paths'][$path]);
+        continue;
+    }
+
+    $operationTags = [];
+    foreach ($pathItem as $method => $operation) {
+        if ($method === 'parameters' || !is_array($operation)) {
+            continue;
+        }
+        foreach (($operation['tags'] ?? []) as $tag) {
+            if (is_string($tag)) {
+                $operationTags[] = strtoupper($tag);
+            }
+        }
+    }
+
+    $isSimpegPath = in_array('SIMPEG', $operationTags, true);
+    $keepPath = $group === 'global'
+        ? !$isSimpegPath
+        : $groupTag !== null && in_array($groupTag, $operationTags, true);
+
+    if (!$keepPath) {
+        unset($spec['paths'][$path]);
+    }
+}
 
 foreach ($spec['paths'] as &$pathItem) {
     if (!is_array($pathItem)) {
@@ -69,4 +111,5 @@ if (isset($spec['components']['securitySchemes']['appCode']['description'])) {
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 header('X-Content-Type-Options: nosniff');
+header('X-Permitted-Cross-Domain-Policies: none');
 echo json_encode($spec, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

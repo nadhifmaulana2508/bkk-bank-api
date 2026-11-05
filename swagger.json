@@ -11,6 +11,10 @@
       "description": "Local Dev"
     },
     {
+      "url": "https://devsso.bkkjateng.co.id",
+      "description": "Development SSO"
+    },
+    {
       "url": "https://apisso.bkkjateng.co.id",
       "description": "Production SSO"
     }
@@ -18,7 +22,7 @@
   "paths": {
     "/api/auth/login": {
       "post": {
-        "summary": "Login menggunakan id_peg + app",
+        "summary": "Login menggunakan id_peg + nomor HP pegawai",
         "tags": ["Auth"],
         "security": [
           {
@@ -32,20 +36,22 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["id_peg", "password", "app"],
+                "required": ["id_peg", "telp", "password"],
                 "properties": {
                   "id_peg": {
                     "type": "string",
-                    "example": "102-119"
+                    "example": "102-119",
+                    "description": "ID pegawai"
+                  },
+                  "telp": {
+                    "type": "string",
+                    "example": "087716632356",
+                    "description": "Nomor HP pegawai yang harus sesuai dengan id_peg"
                   },
                   "password": {
                     "type": "string",
+                    "minLength": 6,
                     "example": "<PASSWORD_PEGAWAI>"
-                  },
-                  "app": {
-                    "type": "string",
-                    "example": "monbis",
-                    "description": "Nama aplikasi: monbis, simpeg, ims, dll"
                   }
                 }
               }
@@ -68,10 +74,13 @@
             }
           },
           "401": {
-            "description": "User tidak ditemukan / password salah"
+            "description": "ID pegawai, nomor HP, atau password salah"
+          },
+          "400": {
+            "description": "ID pegawai dan nomor HP wajib valid, password minimal 6 karakter"
           },
           "403": {
-            "description": "Tidak punya akses ke aplikasi"
+            "description": "Aplikasi belum terdaftar atau token aplikasi tidak valid"
           }
         }
       }
@@ -167,11 +176,15 @@
                 "properties": {
                   "old_password": {
                     "type": "string",
+                    "minLength": 6,
                     "example": "<PASSWORD_PEGAWAI>"
                   },
                   "new_password": {
                     "type": "string",
-                    "example": "BkkBaru2026!"
+                    "minLength": 6,
+                    "maxLength": 255,
+                    "example": "BkkBaru2026!",
+                    "description": "Password baru minimal 6 karakter"
                   }
                 }
               }
@@ -183,7 +196,7 @@
             "description": "Password berhasil diubah"
           },
           "400": {
-            "description": "Password lama salah / input tidak lengkap"
+            "description": "Password lama salah atau password baru minimal 6 karakter"
           },
           "401": {
             "description": "Token tidak valid / expired"
@@ -393,7 +406,10 @@
                   },
                   "new_password": {
                     "type": "string",
-                    "example": "BkkBaru2026!"
+                    "minLength": 6,
+                    "maxLength": 255,
+                    "example": "BkkBaru2026!",
+                    "description": "Password baru minimal 6 karakter"
                   }
                 }
               }
@@ -405,7 +421,7 @@
             "description": "Password berhasil di-reset"
           },
           "400": {
-            "description": "Input tidak lengkap"
+            "description": "Token reset wajib diisi dan password baru minimal 6 karakter"
           },
           "401": {
             "description": "Sesi reset password tidak valid atau sudah kadaluarsa (lebih dari 15 menit)"

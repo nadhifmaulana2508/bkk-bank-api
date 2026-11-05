@@ -1,12 +1,22 @@
 <?php
 declare(strict_types=1);
 
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 require_once dirname(__DIR__) . '/api/global/admin/AdminSession.php';
+require_once dirname(__DIR__) . '/helpers/webPath.php';
 
 AdminSession::start();
 $authenticated = AdminSession::isAuthenticated();
 $allowedPages = ['registry', 'audit', 'recap', 'rbac', 'users', 'docs-global', 'docs-simpeg', 'docs-simontok', 'docs-monbis'];
-$page = strtolower(trim((string) ($_GET['page'] ?? 'registry')));
+$adminBaseUrl = web_script_base();
+$adminRoute = web_route_after($adminBaseUrl);
+if ($adminRoute === 'index.php') {
+    $adminRoute = '';
+}
+$cleanPage = strtolower(trim(explode('/', $adminRoute, 2)[0] ?? ''));
+$pageQuery = $_GET['page'] ?? 'registry';
+$page = $cleanPage !== '' ? $cleanPage : (is_string($pageQuery) ? strtolower(trim($pageQuery)) : 'registry');
 if (!in_array($page, $allowedPages, true)) {
     $page = 'registry';
 }
@@ -78,7 +88,8 @@ $pageMeta = [
         'description' => 'Akun ini belum memiliki permission untuk membuka menu tersebut.',
     ],
 ][$page];
-$pageUrl = static fn(string $target): string => '?page=' . rawurlencode($target);
+$pageUrl = static fn(string $target): string => $adminBaseUrl . '/' . rawurlencode($target === 'users' ? 'rbac' : $target);
+$docsBaseUrl = rtrim(dirname($adminBaseUrl), '/') . '/docs';
 $navIcon = static fn(string $name): string => match ($name) {
     'bank' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9 12 4l9 5"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/><path d="m10 14-2 2 2 2M14 14l2 2-2 2"/></svg>',
     'registry' => '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
@@ -90,12 +101,14 @@ $navIcon = static fn(string $name): string => match ($name) {
 };
 if (str_starts_with($page, 'docs-')) {
     $docsGroup = substr($page, 5);
-    header('Location: ../docs/?group=' . rawurlencode($docsGroup));
+    header('Location: ' . $docsBaseUrl . '/' . rawurlencode($docsGroup));
     exit;
 }
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('Referrer-Policy: no-referrer');
+header('Cache-Control: no-store');
+header('X-Permitted-Cross-Domain-Policies: none');
 header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
 ?>
 <!doctype html>
@@ -141,10 +154,10 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
             <?php if ($can('docs.global') || $can('docs.simontok') || $can('docs.monbis')): ?><details class="nav-menu">
                 <summary class="nav-icon-link" aria-label="API Docs" data-tooltip="API Docs"><?= $navIcon('docs') ?><span class="visually-hidden">API Docs</span></summary>
                 <div class="nav-menu-popover">
-                    <?php if ($can('docs.global')): ?><a href="../docs/?group=global">API Global</a><?php endif; ?>
-                    <?php if ($can('docs.global')): ?><a href="../docs/?group=simpeg">API Simpeg</a><?php endif; ?>
-                    <?php if ($can('docs.simontok')): ?><a href="../docs/?group=simontok">API Simontok</a><?php endif; ?>
-                    <?php if ($can('docs.monbis')): ?><a href="../docs/?group=monbis">API Monbis</a><?php endif; ?>
+                    <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>">API Global</a><?php endif; ?>
+                    <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>">API Simpeg</a><?php endif; ?>
+                    <?php if ($can('docs.simontok')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>">API Simontok</a><?php endif; ?>
+                    <?php if ($can('docs.monbis')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>">API Monbis</a><?php endif; ?>
                 </div>
             </details><?php endif; ?>
         </nav>
@@ -368,7 +381,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
                 </div>
                 <button class="icon-button" id="close-token" type="button" aria-label="Tutup dialog">×</button>
             </div>
-            <p class="lede">Token mentah tidak akan bisa dilihat lagi dari dashboard setelah dialog ini ditutup.</p>
+            <p class="lede">Satu token ini dipakai untuk seluruh endpoint yang diizinkan bagi aplikasi ini. Token mentah tidak akan bisa dilihat lagi setelah dialog ditutup.</p>
             <div class="credential-meta">
                 <div>
                     <span>Aplikasi</span>
@@ -388,6 +401,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
             <p class="form-error" id="token-error" role="alert" hidden></p>
             <div class="dialog-actions">
                 <button class="button button-secondary" id="copy-credentials" type="button">Salin header</button>
+                <button class="button button-secondary" id="copy-developer" type="button">Salin untuk developer</button>
                 <button class="button button-primary" id="done-token" type="button">Saya sudah menyimpannya</button>
             </div>
         </div>

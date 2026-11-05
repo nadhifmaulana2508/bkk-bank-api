@@ -306,6 +306,9 @@ final class AdminApplicationService
 
     private static function id($value): int
     {
+        if (!is_int($value) && !is_string($value)) {
+            throw new InvalidArgumentException('ID aplikasi tidak valid.');
+        }
         $id = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($id === false) {
             throw new InvalidArgumentException('ID aplikasi tidak valid.');
@@ -316,6 +319,9 @@ final class AdminApplicationService
 
     private static function appCode($value): string
     {
+        if (!is_string($value)) {
+            throw new InvalidArgumentException('Kode aplikasi tidak valid.');
+        }
         $code = strtolower(trim((string) $value));
         if (!preg_match('/^[a-z0-9][a-z0-9._-]{0,49}$/', $code)) {
             throw new InvalidArgumentException('Kode aplikasi hanya boleh berisi huruf kecil, angka, titik, strip, atau underscore.');
@@ -326,6 +332,9 @@ final class AdminApplicationService
 
     private static function appName($value): string
     {
+        if (!is_string($value)) {
+            throw new InvalidArgumentException('Nama aplikasi tidak valid.');
+        }
         $name = trim((string) $value);
         if ($name === '' || strlen($name) > 100) {
             throw new InvalidArgumentException('Nama aplikasi wajib diisi dan maksimal 100 karakter.');
@@ -336,6 +345,9 @@ final class AdminApplicationService
 
     private static function expiry($value): ?string
     {
+        if ($value !== null && !is_string($value)) {
+            throw new InvalidArgumentException('Format masa berlaku tidak valid.');
+        }
         $value = trim((string) $value);
         if ($value === '') {
             return null;
