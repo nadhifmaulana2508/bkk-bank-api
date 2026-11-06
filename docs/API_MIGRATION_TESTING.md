@@ -46,6 +46,7 @@ Dokumentasi interaktif:
 http://localhost/rest_api_sso/docs/
 http://localhost/rest_api_sso/docs/global
 http://localhost/rest_api_sso/docs/simpeg
+http://localhost/rest_api_sso/docs/simontok
 ~~~
 
 Development server:
@@ -54,6 +55,7 @@ Development server:
 https://devsso.bkkjateng.co.id
 https://devsso.bkkjateng.co.id/docs/global
 https://devsso.bkkjateng.co.id/docs/simpeg
+https://devsso.bkkjateng.co.id/docs/simontok
 ~~~
 
 Production server setelah seluruh pengujian selesai:
@@ -62,6 +64,7 @@ Production server setelah seluruh pengujian selesai:
 https://apisso.bkkjateng.co.id
 https://apisso.bkkjateng.co.id/docs/global
 https://apisso.bkkjateng.co.id/docs/simpeg
+https://apisso.bkkjateng.co.id/docs/simontok
 ~~~
 
 Untuk testing branch ini, tetap gunakan endpoint publik `/api/...`. Migrasi

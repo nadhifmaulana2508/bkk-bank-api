@@ -42,14 +42,14 @@ $groupMeta = [
     ],
     'simontok' => [
         'label' => 'API Simontok',
-        'description' => 'Belum ada endpoint khusus SIMONTOK yang didaftarkan pada Control Plane.',
+        'description' => 'Endpoint SIMONTOK untuk pencarian rekening, detail kredit, agunan, dan master cabang.',
     ],
     'monbis' => [
         'label' => 'API Monbis',
         'description' => 'Belum ada endpoint khusus MONBIS yang didaftarkan pada Control Plane.',
     ],
 ][$group];
-$hasDocs = in_array($group, ['global', 'simpeg'], true);
+$hasDocs = in_array($group, ['global', 'simpeg', 'simontok'], true);
 
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
@@ -68,26 +68,16 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="docs-spec-version" content="<?= htmlspecialchars((string) @filemtime(__DIR__ . '/../swagger.json'), ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-app-default" content="<?= htmlspecialchars($group === 'global' ? 'monbis' : $group, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-base" content="<?= htmlspecialchars($docsBaseUrl, ENT_QUOTES, 'UTF-8') ?>">
-    <link rel="stylesheet" href="swagger.css?v=20261105-4">
+    <link rel="stylesheet" href="swagger.css?v=20261106-3">
 </head>
 <body>
 <div class="docs-shell">
-    <header class="docs-topbar">
-        <div class="docs-nav-left">
-            <a class="docs-back docs-back-icon" href="<?= htmlspecialchars($adminBaseUrl . '/registry', ENT_QUOTES, 'UTF-8') ?>" data-back-link aria-label="Kembali ke Control Plane" title="Kembali ke Control Plane">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h10"/></svg>
-            </a>
-            <a class="docs-logo" href="<?= htmlspecialchars($adminBaseUrl . '/registry', ENT_QUOTES, 'UTF-8') ?>" aria-label="Kembali ke Control Plane">
-                <span class="docs-logo-mark" aria-hidden="true">
-                    <svg viewBox="0 0 24 24"><path d="M4 10h16M6 10v8m4-8v8m4-8v8m4-8v8M3 20h18M5 10l7-6 7 6"/></svg>
-                </span>
-                <span><strong>Bank API BKK</strong><small>API Documentation</small></span>
-            </a>
-        </div>
-        <div class="docs-top-actions">
-            <span class="docs-session"><i></i> Admin session aktif</span>
-        </div>
-    </header>
+    <div class="docs-page-controls">
+        <a class="docs-back-link" href="<?= htmlspecialchars($adminBaseUrl . '/registry', ENT_QUOTES, 'UTF-8') ?>" data-back-link aria-label="Kembali ke Control Plane">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h10"/></svg>
+            <span>Kembali ke Control Plane</span>
+        </a>
+    </div>
 
     <section class="docs-hero <?= $hasDocs ? '' : 'docs-hero-empty' ?>">
         <div>
@@ -98,11 +88,11 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                 <span class="docs-chip" data-endpoint-count>Memuat endpoint...</span>
                 <span class="docs-meta-text">Session admin dipakai bersama Control Plane</span>
             </div>
-            <nav class="docs-group-nav" aria-label="Kelompok dokumentasi">
-                <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'global' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>">Global</a><?php endif; ?>
-                <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>">Simpeg</a><?php endif; ?>
-                <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>">Simontok</a><?php endif; ?>
-                <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>">Monbis</a><?php endif; ?>
+            <nav class="docs-group-tabs" aria-label="Kelompok dokumentasi">
+                <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'global' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'global' ? 'aria-current="page"' : '' ?>>Global</a><?php endif; ?>
+                <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simpeg' ? 'aria-current="page"' : '' ?>>Simpeg</a><?php endif; ?>
+                <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simontok' ? 'aria-current="page"' : '' ?>>Simontok</a><?php endif; ?>
+                <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'monbis' ? 'aria-current="page"' : '' ?>>Monbis</a><?php endif; ?>
             </nav>
         </div>
         <?php if ($group === 'global'): ?><div class="docs-target-card">
@@ -124,9 +114,12 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     </main>
     <?php else: ?>
     <div class="docs-layout">
-        <aside class="docs-sidebar" aria-label="Daftar endpoint">
+        <aside class="docs-sidebar" id="docs-sidebar" data-endpoint-sidebar aria-label="Daftar endpoint">
             <div class="sidebar-heading">
                 <div><strong>Endpoint</strong><span data-endpoint-count>0 endpoint</span></div>
+                <button class="sidebar-close" type="button" data-sidebar-close aria-label="Tutup daftar endpoint" title="Tutup daftar endpoint">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
             </div>
             <label class="docs-search">
                 <span aria-hidden="true">&#8981;</span>
@@ -136,6 +129,12 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
         </aside>
 
         <main class="docs-main">
+            <button class="docs-sidebar-toggle" type="button" data-sidebar-toggle aria-expanded="false" aria-controls="docs-sidebar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <span>Daftar endpoint</span>
+                <span class="docs-sidebar-toggle-count" data-endpoint-count>0 endpoint</span>
+            </button>
+            <div class="docs-sidebar-backdrop" data-sidebar-backdrop hidden></div>
             <section class="auth-card" aria-labelledby="auth-title">
                 <div class="auth-card-heading">
                     <div>
@@ -168,6 +167,6 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <?php endif; ?>
 </div>
 
-<?php if ($hasDocs): ?><script src="swagger-init.js?v=20261105-5" defer></script><?php endif; ?>
+<?php if ($hasDocs): ?><script src="swagger-init.js?v=20261106-2" defer></script><?php endif; ?>
 </body>
 </html>

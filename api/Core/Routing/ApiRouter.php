@@ -83,9 +83,16 @@ final class ApiRouter
         $path = '/' . trim($path, '/');
 
         foreach ($this->routes as $route) {
-            if ($route['path'] !== $path || !in_array($method, $route['methods'], true)) {
+            if (!in_array($method, $route['methods'], true)) {
                 continue;
             }
+
+            $routeParams = $this->matchPath($route['path'], $path);
+            if ($routeParams === null) {
+                continue;
+            }
+
+            ApiRequest::setRouteParams($routeParams);
 
             $pipeline = $route['handler'];
             $middlewareStack = array_merge($this->globalMiddleware, $route['middleware']);
@@ -101,5 +108,36 @@ final class ApiRouter
         }
 
         return false;
+    }
+
+    /**
+     * Match an exact route or a route containing {parameter} segments.
+     *
+     * @return array<string, string>|null
+     */
+    private function matchPath(string $routePath, string $requestPath): ?array
+    {
+        if (!str_contains($routePath, '{')) {
+            return $routePath === $requestPath ? [] : null;
+        }
+
+        $pattern = preg_quote($routePath, '#');
+        $pattern = preg_replace(
+            '/\\\\\{([A-Za-z][A-Za-z0-9_]*)\\\\\}/',
+            '(?P<$1>[^/]+)',
+            $pattern
+        );
+        if (!is_string($pattern) || preg_match('#^' . $pattern . '$#', $requestPath, $matches) !== 1) {
+            return null;
+        }
+
+        $params = [];
+        foreach ($matches as $name => $value) {
+            if (is_string($name) && !is_int($name) && is_string($value)) {
+                $params[$name] = $value;
+            }
+        }
+
+        return $params;
     }
 }

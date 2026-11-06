@@ -8,6 +8,9 @@
   const defaultApp = $('meta[name="docs-app-default"]')?.content || group;
   const content = $('[data-docs-content]');
   const nav = $('[data-endpoint-nav]');
+  const sidebar = $('[data-endpoint-sidebar]');
+  const sidebarToggle = $('[data-sidebar-toggle]');
+  const sidebarBackdrop = $('[data-sidebar-backdrop]');
   const search = $('[data-endpoint-search]');
   const serverSelect = $('[data-server-select]');
   const authApp = $('[data-auth-app]');
@@ -19,6 +22,20 @@
   const countTargets = $$('[data-endpoint-count]');
   const methods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'];
   const state = { spec: null, operations: [], visible: [], activeId: null };
+
+  const closeSidebar = () => {
+    sidebar?.classList.remove('is-open');
+    sidebarToggle?.setAttribute('aria-expanded', 'false');
+    if (sidebarBackdrop) sidebarBackdrop.hidden = true;
+    document.body.classList.remove('docs-sidebar-open');
+  };
+
+  const openSidebar = () => {
+    sidebar?.classList.add('is-open');
+    sidebarToggle?.setAttribute('aria-expanded', 'true');
+    if (sidebarBackdrop) sidebarBackdrop.hidden = false;
+    document.body.classList.add('docs-sidebar-open');
+  };
 
   const escapeHtml = (value) => String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -253,10 +270,12 @@
   const collectRequest = (form) => {
     const query = new URLSearchParams();
     const body = {};
+    const path = {};
     $$('[name][data-location]', form).forEach((input) => {
       if (!input.value) return;
       const value = ['id_peg', 'app'].includes(input.name) ? input.value.trim() : input.value;
       if (input.dataset.location === 'query') query.set(input.name, value);
+      if (input.dataset.location === 'path') path[input.name] = value.trim();
       if (input.dataset.location === 'body') {
         if (input.dataset.valueType === 'number' || input.dataset.valueType === 'integer') {
           body[input.name] = Number(value);
@@ -269,15 +288,33 @@
         }
       }
     });
-    return { query, body };
+    return { query, body, path };
   };
 
   const executeRequest = async (form) => {
     const method = form.dataset.method.toUpperCase();
     const path = form.dataset.path;
-    const { query, body } = collectRequest(form);
+    const { query, body, path: pathValues } = collectRequest(form);
+    let missingPathParameter = '';
+    const resolvedPath = path.replace(/\{([A-Za-z][A-Za-z0-9_]*)\}/g, (placeholder, name) => {
+      const value = pathValues[name];
+      if (!value) {
+        missingPathParameter = name;
+        return placeholder;
+      }
+      return encodeURIComponent(value);
+    });
+    if (missingPathParameter) {
+      const card = form.closest('.operation-card');
+      const output = $('[data-response-output]', card);
+      const status = $('[data-response-status]', card);
+      output.textContent = `Parameter path '${missingPathParameter}' wajib diisi.`;
+      status.textContent = '400 Bad Request';
+      status.className = 'response-status is-error';
+      return;
+    }
     const base = String(serverSelect.value || window.location.origin).replace(/\/$/, '');
-    const url = `${base}${path}${query.toString() ? `?${query.toString()}` : ''}`;
+    const url = `${base}${resolvedPath}${query.toString() ? `?${query.toString()}` : ''}`;
     const headers = { Accept: 'application/json' };
     const app = String(authApp?.value || '').trim();
     const token = String(authToken?.value || '').trim();
@@ -325,8 +362,18 @@
       if (target) {
         state.activeId = scrollButton.dataset.scrollTo;
         renderNav();
+        closeSidebar();
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
+      return;
+    }
+    if (event.target.closest('[data-sidebar-toggle]')) {
+      if (sidebar?.classList.contains('is-open')) closeSidebar();
+      else openSidebar();
+      return;
+    }
+    if (event.target.closest('[data-sidebar-close]') || event.target.closest('[data-sidebar-backdrop]')) {
+      closeSidebar();
       return;
     }
     const copyButton = event.target.closest('[data-copy-path]');
@@ -341,6 +388,9 @@
   });
 
   search?.addEventListener('input', () => filterOperations(search.value));
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 680) closeSidebar();
+  });
   [authApp, authToken, authJwt].forEach((input) => input?.addEventListener('input', updateHeaderPreviews));
   saveHeadersButton?.addEventListener('click', saveHeaders);
   clearHeadersButton?.addEventListener('click', clearHeaders);

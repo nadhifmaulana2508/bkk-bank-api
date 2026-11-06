@@ -26,7 +26,7 @@ Halaman control plane:
 /admin/rbac              User SSO dan permission per menu
 /docs/global             Dokumentasi API Global
 /docs/simpeg             Dokumentasi endpoint API Simpeg
-/docs/simontok           Placeholder dokumentasi API Simontok
+/docs/simontok           Dokumentasi endpoint API Simontok
 /docs/monbis             Placeholder dokumentasi API Monbis
 ```
 

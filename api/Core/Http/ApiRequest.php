@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 final class ApiRequest
 {
+    /** @var array<string, string> */
+    private static array $routeParams = [];
+
     public static function method(): string
     {
         return strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
@@ -22,5 +25,20 @@ final class ApiRequest
         }
 
         return '/' . trim($requestPath, '/');
+    }
+
+    /**
+     * @param array<string, string> $params
+     */
+    public static function setRouteParams(array $params): void
+    {
+        self::$routeParams = $params;
+    }
+
+    public static function route(string $name): ?string
+    {
+        $value = self::$routeParams[$name] ?? null;
+
+        return is_string($value) ? rawurldecode($value) : null;
     }
 }

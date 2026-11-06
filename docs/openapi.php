@@ -51,9 +51,15 @@ $activeAppCode = $group === 'global' ? 'monbis' : $group;
 $spec['info']['title'] = ($groupLabels[$group] ?? 'API Global') . ' BKK';
 $spec['info']['description'] = $group === 'global'
     ? 'Dokumentasi endpoint bersama untuk autentikasi, profil, dan reset password.'
-    : 'Dokumentasi endpoint SIMPEG untuk data pegawai dan AO.';
+    : ($group === 'simontok'
+        ? 'Dokumentasi endpoint SIMONTOK untuk pencarian rekening, detail kredit, agunan, dan master cabang.'
+        : 'Dokumentasi endpoint SIMPEG untuk data pegawai dan AO.');
 
-$groupTag = $group === 'simpeg' ? 'SIMPEG' : null;
+$groupTag = match ($group) {
+    'simpeg' => 'SIMPEG',
+    'simontok' => 'SIMONTOK',
+    default => null,
+};
 foreach (array_keys($spec['paths']) as $path) {
     $pathItem = $spec['paths'][$path];
     if (!is_array($pathItem)) {
@@ -73,9 +79,12 @@ foreach (array_keys($spec['paths']) as $path) {
         }
     }
 
-    $isSimpegPath = in_array('SIMPEG', $operationTags, true);
+    $isModulePath = $operationTags !== [] && (
+        in_array('SIMPEG', $operationTags, true)
+        || in_array('SIMONTOK', $operationTags, true)
+    );
     $keepPath = $group === 'global'
-        ? !$isSimpegPath
+        ? !$isModulePath
         : $groupTag !== null && in_array($groupTag, $operationTags, true);
 
     if (!$keepPath) {

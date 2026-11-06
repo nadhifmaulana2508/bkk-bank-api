@@ -1,6 +1,6 @@
 <?php
 
-function sendResponse(int $status, string $message, $data = null): void {
+function sendResponse(int $status, string $message, $data = null, ?array $meta = null): void {
     http_response_code($status);
 
     header('Content-Type: application/json; charset=utf-8');
@@ -13,6 +13,9 @@ function sendResponse(int $status, string $message, $data = null): void {
         'message' => $message,
         'data' => $data,
     ];
+    if ($meta !== null) {
+        $payload['meta'] = $meta;
+    }
 
     $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
     if ($json === false) {

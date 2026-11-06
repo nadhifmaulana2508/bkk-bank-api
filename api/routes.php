@@ -13,6 +13,7 @@ $router->addGlobalMiddleware([RequireAppMiddleware::class, 'handle']);
 $routeFiles = [
     __DIR__ . '/global/routes.php',
     __DIR__ . '/modules/simpeg/routes.php',
+    __DIR__ . '/modules/simontok/routes.php',
 ];
 
 foreach ($routeFiles as $routeFile) {

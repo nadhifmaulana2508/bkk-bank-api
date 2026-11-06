@@ -551,6 +551,275 @@
           }
         }
       }
+    },
+    "/api/v1/simontok/credit-accounts": {
+      "get": {
+        "summary": "Cari rekening berdasarkan nomor rekening atau nama nasabah",
+        "description": "Nomor rekening dikembalikan sebagai string. Pencarian nama dapat menghasilkan beberapa rekening dan tidak memilih nasabah secara otomatis.",
+        "tags": ["SIMONTOK"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": [],
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 100
+            },
+            "description": "Nomor rekening atau nama nasabah. Minimal 3 karakter.",
+            "example": "001135000004"
+          },
+          {
+            "in": "query",
+            "name": "branch_code",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{3}$"
+            },
+            "description": "Kode cabang resmi. User cabang hanya dapat memakai cabangnya sendiri.",
+            "example": "001"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            },
+            "description": "Jumlah maksimum hasil.",
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar rekening ditemukan",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "OK",
+                  "data": [
+                    {
+                      "account_id": "MDAxADAwMTEzNTAwMDAwNA",
+                      "account_number": "001135000004",
+                      "customer_id": "CORE-CUSTOMER-456",
+                      "customer_name": "Nama Nasabah",
+                      "branch": {
+                        "code": "001",
+                        "name": "Kantor Cabang Contoh",
+                        "is_active": true
+                      },
+                      "selectable": true
+                    }
+                  ],
+                  "meta": {
+                    "limit": 20,
+                    "count": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parameter pencarian tidak valid"
+          },
+          "401": {
+            "description": "Token user tidak ada atau tidak valid"
+          },
+          "403": {
+            "description": "User tidak boleh mengakses cabang yang diminta"
+          }
+        }
+      }
+    },
+    "/api/v1/simontok/credit-accounts/{account_id}": {
+      "get": {
+        "summary": "Ambil detail rekening, nasabah, kredit, dan seluruh agunan",
+        "tags": ["SIMONTOK"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": [],
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Identifier stabil yang dikembalikan oleh endpoint pencarian.",
+            "example": "MDAxADAwMTEzNTAwMDAwNA"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail rekening ditemukan",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "OK",
+                  "data": {
+                    "account_id": "MDAxADAwMTEzNTAwMDAwNA",
+                    "account_number": "001135000004",
+                    "customer": {
+                      "customer_id": "CORE-CUSTOMER-456",
+                      "name": "Nama Nasabah"
+                    },
+                    "branch": {
+                      "code": "001",
+                      "name": "Kantor Cabang Contoh",
+                      "is_active": true
+                    },
+                    "credit": {
+                      "loan_amount": "100000000.00",
+                      "realization_date": "2026-11-03"
+                    },
+                    "collaterals": []
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token user tidak ada atau tidak valid"
+          },
+          "404": {
+            "description": "Rekening tidak ditemukan"
+          }
+        }
+      }
+    },
+    "/api/v1/simontok/credit-accounts/{account_id}/collaterals": {
+      "get": {
+        "summary": "Ambil seluruh agunan rekening",
+        "description": "Satu rekening dapat memiliki beberapa agunan. Semua agunan yang terhubung dikembalikan sebagai array.",
+        "tags": ["SIMONTOK"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": [],
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "account_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Identifier rekening dari endpoint pencarian.",
+            "example": "MDAxADAwMTEzNTAwMDAwNA"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar agunan ditemukan",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "OK",
+                  "data": [
+                    {
+                      "collateral_id": "CORE-COLLATERAL-789",
+                      "collateral_code": "AG-000123",
+                      "type_code": "TANAH_BANGUNAN",
+                      "type_name": "Tanah dan Bangunan",
+                      "description": "Deskripsi agunan",
+                      "legal_reference": "SHM-123",
+                      "value": "100000000.00",
+                      "account_id": "MDAxADAwMTEzNTAwMDAwNA"
+                    }
+                  ],
+                  "meta": {
+                    "count": 1
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token user tidak ada atau tidak valid"
+          },
+          "404": {
+            "description": "Rekening tidak ditemukan"
+          }
+        }
+      }
+    },
+    "/api/v1/simontok/branches": {
+      "get": {
+        "summary": "Ambil master cabang aktif",
+        "description": "Master cabang dibaca dari database DPK dan tidak mengekspos nama tabel database kepada SIMONTOK.",
+        "tags": ["SIMONTOK"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "active",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            },
+            "description": "true untuk hanya cabang aktif, false untuk semua cabang.",
+            "example": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Master cabang ditemukan",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "OK",
+                  "data": [
+                    {
+                      "code": "001",
+                      "name": "Kantor Cabang Contoh",
+                      "is_active": true
+                    }
+                  ],
+                  "meta": {
+                    "count": 1
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "App dan X-App-Token wajib diisi"
+          },
+          "403": {
+            "description": "Token aplikasi tidak valid atau tidak aktif"
+          }
+        }
+      }
     }
   },
   "components": {
