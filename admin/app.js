@@ -303,6 +303,33 @@
     if (dialog?.open) dialog.close();
   };
 
+  const requestConfirmation = ({ title, message, confirmLabel = 'Lanjutkan' }) => new Promise((resolve) => {
+    const dialog = $('#confirm-dialog');
+    const form = $('#confirm-form');
+    const action = $('#confirm-action');
+    if (!dialog || !form || !action) {
+      resolve(false);
+      return;
+    }
+
+    let settled = false;
+    const settle = (value) => {
+      if (settled) return;
+      settled = true;
+      dialog.removeEventListener('close', onClose);
+      resolve(value);
+    };
+    const onClose = () => settle(dialog.returnValue === 'confirm');
+
+    $('#confirm-dialog-title').textContent = title;
+    $('#confirm-dialog-message').textContent = message;
+    action.textContent = confirmLabel;
+    dialog.returnValue = 'cancel';
+    dialog.addEventListener('close', onClose);
+    dialog.showModal();
+    window.setTimeout(() => action.focus(), 0);
+  });
+
   const bindDismissibleUi = () => {
     const closeDetailsExcept = (except = null) => {
       document.querySelectorAll('details[open]').forEach((details) => {
@@ -384,7 +411,13 @@
 
   const rotateApplication = async (id) => {
     const application = state.applications.find((item) => Number(item.id) === Number(id));
-    if (!application || !window.confirm(`Rotasi token ${application.app_code}? Token lama langsung tidak berlaku.`)) return;
+    if (!application) return;
+    const confirmed = await requestConfirmation({
+      title: `Rotasi token ${application.app_code}`,
+      message: 'Token lama akan langsung tidak berlaku. Aplikasi pemanggil harus segera memakai token baru.',
+      confirmLabel: 'Rotasi token',
+    });
+    if (!confirmed) return;
 
     try {
       const response = await request('rotate', { method: 'POST', body: JSON.stringify({ id: Number(id) }) });

@@ -124,7 +124,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Control plane internal untuk registry aplikasi dan audit penggunaan SSO BKK">
     <title>SSO Control Plane</title>
-    <link rel="stylesheet" href="styles.css?v=20261102-3">
+    <link rel="stylesheet" href="styles.css?v=20261109-4">
 </head>
 <body class="page-mode-<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>" data-authenticated="<?= $authenticated ? 'true' : 'false' ?>" data-page="<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>" data-can-manage="<?= $can('registry.manage') ? 'true' : 'false' ?>">
 <a class="skip-link" href="#main-content">Lewati ke konten</a>
@@ -132,6 +132,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 <?php if (!$authenticated): ?>
     <main class="auth-layout" id="main-content">
         <section class="auth-card" aria-labelledby="login-title">
+            <div class="auth-brand-mark" aria-hidden="true"><?= $navIcon('bank') ?></div>
             <p class="eyebrow">BKK / SSO control plane</p>
             <h1 id="login-title">Masuk ke SSO Control Plane</h1>
             <p class="lede">Gunakan akun user SSO untuk membuka menu sesuai permission yang diberikan.</p>
@@ -452,6 +453,23 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
         </div>
     </dialog>
 
+    <dialog class="dialog confirm-dialog" id="confirm-dialog" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message">
+        <form method="dialog" class="dialog-card" id="confirm-form">
+            <div class="dialog-heading">
+                <div>
+                    <p class="eyebrow">KONFIRMASI</p>
+                    <h2 id="confirm-dialog-title">Konfirmasi tindakan</h2>
+                </div>
+                <button class="icon-button" value="cancel" type="submit" formnovalidate aria-label="Tutup dialog">×</button>
+            </div>
+            <p class="confirm-dialog-message" id="confirm-dialog-message"></p>
+            <div class="dialog-actions">
+                <button class="button button-ghost" value="cancel" type="submit" formnovalidate>Batal</button>
+                <button class="button button-primary" id="confirm-action" value="confirm" type="submit">Lanjutkan</button>
+            </div>
+        </form>
+    </dialog>
+
     <dialog class="dialog" id="user-dialog" aria-labelledby="user-dialog-title">
         <form method="dialog" class="dialog-card" id="user-form">
             <div class="dialog-heading">
@@ -532,7 +550,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
     </dialog>
 <?php endif; ?>
 
-<script src="app.js" defer></script>
+<script src="app.js?v=20261109-1" defer></script>
 <script src="theme.js" defer></script>
 </body>
 </html>

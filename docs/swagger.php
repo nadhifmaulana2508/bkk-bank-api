@@ -68,7 +68,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="docs-spec-version" content="<?= htmlspecialchars((string) @filemtime(__DIR__ . '/../swagger.json'), ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-app-default" content="<?= htmlspecialchars($group === 'global' ? 'monbis' : $group, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-base" content="<?= htmlspecialchars($docsBaseUrl, ENT_QUOTES, 'UTF-8') ?>">
-    <link rel="stylesheet" href="swagger.css?v=20261106-3">
+    <link rel="stylesheet" href="swagger.css?v=20261109-1">
 </head>
 <body>
 <aside class="docs-control-sidebar" aria-label="Navigasi Control Plane">
