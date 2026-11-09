@@ -1075,3 +1075,95 @@ h2,
   .filter-trigger { flex: 1; min-width: 0; }
   .filter-menu { right: 0; left: 0; }
 }
+
+.theme-toggle,
+.docs-theme-toggle {
+  display: inline-flex;
+  min-width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: #15171a;
+  color: var(--muted-strong);
+  font-size: 16px;
+  cursor: pointer;
+}
+.theme-toggle:hover,
+.docs-theme-toggle:hover { border-color: var(--border-strong); background: #202225; color: var(--foreground); }
+.docs-theme-toggle { min-width: auto; padding: 0 11px; font-size: 12px; }
+
+html[data-theme="light"] {
+  --background: #f6f7f9;
+  --surface: #ffffff;
+  --surface-subtle: #f8fafc;
+  --foreground: #172033;
+  --muted: #667085;
+  --muted-strong: #344054;
+  --border: #e1e7ee;
+  --border-strong: #c8d0db;
+  --primary: #172033;
+  --primary-foreground: #ffffff;
+  --surface-muted: #eef2f6;
+}
+html[data-theme="light"] body { background: #f6f7f9; color: #172033; }
+html[data-theme="light"] .topbar { border-color: #dfe5ec; background: #fff; }
+html[data-theme="light"] .brand-copy strong,
+html[data-theme="light"] h1,
+html[data-theme="light"] .panel-heading h2,
+html[data-theme="light"] .metric-card strong { color: #172033; }
+html[data-theme="light"] .main-nav a:hover,
+html[data-theme="light"] .nav-menu summary:hover,
+html[data-theme="light"] .main-nav .is-active,
+html[data-theme="light"] .profile-trigger:hover,
+html[data-theme="light"] .profile-menu[open] .profile-trigger { border-color: #dfe5ec; background: #eef2f6; color: #172033; }
+html[data-theme="light"] .main-nav a,
+html[data-theme="light"] .nav-menu summary,
+html[data-theme="light"] .profile-trigger { color: #667085; }
+html[data-theme="light"] .panel,
+html[data-theme="light"] .metric-row,
+html[data-theme="light"] .metric-card { background: #fff; border-color: #e1e7ee; }
+html[data-theme="light"] .data-table thead th { background: #f8fafc; color: #667085; }
+html[data-theme="light"] .data-table tbody tr:hover { background: #f8fafc; }
+html[data-theme="light"] .data-table tbody th { color: #172033; }
+html[data-theme="light"] .data-table td,
+html[data-theme="light"] .activity-item strong { color: #344054; }
+html[data-theme="light"] .app-code,
+html[data-theme="light"] .activity-item code,
+html[data-theme="light"] .activity-item time,
+html[data-theme="light"] .daily-date,
+html[data-theme="light"] .daily-error,
+html[data-theme="light"] .metric-card p,
+html[data-theme="light"] .metric-card span,
+html[data-theme="light"] .panel-description,
+html[data-theme="light"] .table-context,
+html[data-theme="light"] .data-source,
+html[data-theme="light"] .field-help { color: #667085; }
+html[data-theme="light"] .daily-value { color: #344054; }
+html[data-theme="light"] .table-action { color: #667085; }
+html[data-theme="light"] .data-table th,
+html[data-theme="light"] .data-table td,
+html[data-theme="light"] .panel-heading,
+html[data-theme="light"] .table-context,
+html[data-theme="light"] .activity-item,
+html[data-theme="light"] .daily-row { border-color: #e1e7ee; }
+html[data-theme="light"] .search-field input,
+html[data-theme="light"] .filter-trigger,
+html[data-theme="light"] .filter-menu { border-color: #dfe5ec; background: #fff; color: #344054; }
+html[data-theme="light"] .filter-menu button { color: #344054; }
+html[data-theme="light"] .filter-menu button:hover,
+html[data-theme="light"] .filter-menu button[aria-selected="true"] { border-color: #dfe5ec; background: #eef2f6; color: #172033; }
+html[data-theme="light"] .button-primary { border-color: #172033; background: #172033; color: #fff; }
+html[data-theme="light"] .button-primary:hover { border-color: #344054; background: #344054; }
+html[data-theme="light"] .button-secondary,
+html[data-theme="light"] .theme-toggle,
+html[data-theme="light"] .docs-theme-toggle { border-color: #dfe5ec; background: #fff; color: #344054; }
+html[data-theme="light"] .button-secondary:hover,
+html[data-theme="light"] .theme-toggle:hover,
+html[data-theme="light"] .docs-theme-toggle:hover { background: #eef2f6; }
+html[data-theme="light"] .dialog-card,
+html[data-theme="light"] .auth-card { border-color: #dfe5ec; background: #fff; }
+html[data-theme="light"] .field input,
+html[data-theme="light"] .stack-form input { border-color: #c8d0db; background: #fff; color: #172033; }

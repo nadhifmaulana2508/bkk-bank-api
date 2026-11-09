@@ -175,6 +175,10 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
             </details><?php endif; ?>
         </nav>
         <div class="topbar-actions">
+            <button class="theme-toggle" type="button" data-theme-toggle aria-label="Ganti tema" title="Ganti tema">
+                <span data-theme-icon aria-hidden="true">☾</span>
+                <span class="visually-hidden" data-theme-label>Mode terang</span>
+            </button>
             <?php $currentAdmin = AdminSession::user(); ?>
             <details class="profile-menu">
                 <summary class="profile-trigger" aria-label="Buka detail akun" data-tooltip="Detail akun">
@@ -529,5 +533,6 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
 <?php endif; ?>
 
 <script src="app.js" defer></script>
+<script src="theme.js" defer></script>
 </body>
 </html>

@@ -71,12 +71,40 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <link rel="stylesheet" href="swagger.css?v=20261106-3">
 </head>
 <body>
+<aside class="docs-control-sidebar" aria-label="Navigasi Control Plane">
+    <a class="docs-brand" href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>">
+        <span class="docs-brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 9 12 4l9 5"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/><path d="m10 14-2 2 2 2M14 14l2 2-2 2"/></svg></span>
+        <span><strong>Bank API BKK</strong><small>SSO Control Plane</small></span>
+    </a>
+    <nav class="docs-control-nav">
+        <p>Workspace</p>
+        <?php if (AdminSession::hasPermission('registry.view')): ?>
+            <a href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>">Overview</a>
+            <a href="<?= htmlspecialchars($adminBaseUrl . '/registry', ENT_QUOTES, 'UTF-8') ?>">Applications</a>
+        <?php endif; ?>
+        <?php if (AdminSession::hasPermission('audit.view')): ?><a href="<?= htmlspecialchars($adminBaseUrl . '/audit', ENT_QUOTES, 'UTF-8') ?>">Audit</a><?php endif; ?>
+        <?php if (AdminSession::hasPermission('recap.view')): ?><a href="<?= htmlspecialchars($adminBaseUrl . '/recap', ENT_QUOTES, 'UTF-8') ?>">Rekap</a><?php endif; ?>
+        <?php if (AdminSession::hasPermission('users.manage')): ?><a href="<?= htmlspecialchars($adminBaseUrl . '/rbac', ENT_QUOTES, 'UTF-8') ?>">RBAC</a><?php endif; ?>
+        <p class="docs-nav-section">Developer</p>
+        <a class="is-active" href="<?= htmlspecialchars($docsBaseUrl . '/' . $group, ENT_QUOTES, 'UTF-8') ?>">API Docs <span aria-hidden="true">›</span></a>
+        <div class="docs-nav-submenu">
+            <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'global' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>">Global</a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>">Simpeg</a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>">Simontok</a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>">Monbis</a><?php endif; ?>
+        </div>
+    </nav>
+</aside>
 <div class="docs-shell">
     <div class="docs-page-controls">
         <a class="docs-back-link" href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>" data-back-link aria-label="Kembali ke Control Plane">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h10"/></svg>
             <span>Kembali ke Control Plane</span>
         </a>
+        <button class="docs-theme-toggle" type="button" data-theme-toggle aria-label="Ganti tema" title="Ganti tema">
+            <span data-theme-icon aria-hidden="true">☾</span>
+            <span data-theme-label>Mode terang</span>
+        </button>
     </div>
 
     <section class="docs-hero <?= $hasDocs ? '' : 'docs-hero-empty' ?>">
@@ -167,6 +195,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <?php endif; ?>
 </div>
 
+<script src="<?= htmlspecialchars($adminBaseUrl . '/theme.js', ENT_QUOTES, 'UTF-8') ?>" defer></script>
 <?php if ($hasDocs): ?><script src="swagger-init.js?v=20261106-2" defer></script><?php endif; ?>
 </body>
 </html>
