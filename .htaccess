@@ -10,8 +10,8 @@ RewriteEngine On
 
 # URL control plane tanpa query string. Parameter lama tetap ditangani oleh
 # file PHP agar link yang sudah tersimpan tidak langsung rusak.
-RewriteRule ^admin/(registry|audit|recap|rbac|users)/?$ admin/index.php [L]
-RewriteRule ^admin/api/(login|logout|dashboard/(?:registry|audit|recap)|users(?:/(?:create|update))?|employee-search(?:/[^/]+)?|applications(?:/(?:update|rotate))?)/?$ admin/api.php [L]
+RewriteRule ^admin/(overview|registry|audit|recap|rbac|users)/?$ admin/index.php [L]
+RewriteRule ^admin/api/(login|logout|dashboard/(?:overview|registry|audit|recap)|users(?:/(?:create|update))?|employee-search(?:/[^/]+)?|applications(?:/(?:update|rotate))?)/?$ admin/api.php [L]
 RewriteRule ^docs/(global|simpeg|simontok|monbis)/?$ docs/index.php [L]
 RewriteRule ^docs/openapi/(global|simpeg|simontok|monbis)/?$ docs/openapi.php [L]
 

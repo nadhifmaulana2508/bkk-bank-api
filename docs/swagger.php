@@ -73,7 +73,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 <body>
 <div class="docs-shell">
     <div class="docs-page-controls">
-        <a class="docs-back-link" href="<?= htmlspecialchars($adminBaseUrl . '/registry', ENT_QUOTES, 'UTF-8') ?>" data-back-link aria-label="Kembali ke Control Plane">
+        <a class="docs-back-link" href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>" data-back-link aria-label="Kembali ke Control Plane">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h10"/></svg>
             <span>Kembali ke Control Plane</span>
         </a>
@@ -81,7 +81,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 
     <section class="docs-hero <?= $hasDocs ? '' : 'docs-hero-empty' ?>">
         <div>
-            <p class="docs-kicker">SSO / <?= strtoupper(htmlspecialchars($group, ENT_QUOTES, 'UTF-8')) ?></p>
+            <p class="docs-kicker">SSO / <?= htmlspecialchars(ucfirst($group), ENT_QUOTES, 'UTF-8') ?></p>
             <h1><?= htmlspecialchars($groupMeta['label'], ENT_QUOTES, 'UTF-8') ?></h1>
             <p class="docs-lede"><?= htmlspecialchars($groupMeta['description'], ENT_QUOTES, 'UTF-8') ?> Dokumentasi ini dibuat khusus untuk testing kontrak endpoint tanpa menampilkan modul TTD.</p>
             <div class="docs-hero-meta">
@@ -96,8 +96,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
             </nav>
         </div>
         <?php if ($group === 'global'): ?><div class="docs-target-card">
-            <span class="docs-card-label">TARGET APLIKASI</span>
-            <strong><?= htmlspecialchars($group === 'global' ? 'Pilih saat testing' : strtoupper($group), ENT_QUOTES, 'UTF-8') ?></strong>
+            <span class="docs-card-label">Target aplikasi</span>
+            <strong><?= htmlspecialchars($group === 'global' ? 'Pilih saat testing' : ucfirst($group), ENT_QUOTES, 'UTF-8') ?></strong>
             <small>Header <code>App</code> mengikuti aplikasi yang dipilih.</small>
         </div><?php endif; ?>
     </section>
@@ -107,9 +107,9 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
         <div class="empty-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 13h5M10 17h5"/></svg>
         </div>
-        <p class="section-kicker">BELUM TERSEDIA</p>
+        <p class="section-kicker">Belum tersedia</p>
         <h2>Dokumentasi <?= htmlspecialchars($groupMeta['label'], ENT_QUOTES, 'UTF-8') ?> belum dibuat</h2>
-        <p>Tab ini sengaja dikosongkan sampai endpoint khusus <?= htmlspecialchars(strtoupper($group), ENT_QUOTES, 'UTF-8') ?> resmi tersedia. API Global tetap dapat dibuka dari tab Global.</p>
+        <p>Tab ini sengaja dikosongkan sampai endpoint khusus <?= htmlspecialchars(ucfirst($group), ENT_QUOTES, 'UTF-8') ?> resmi tersedia. API Global tetap dapat dibuka dari tab Global.</p>
         <a class="empty-link" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>">Buka API Global <span aria-hidden="true">&rarr;</span></a>
     </main>
     <?php else: ?>
@@ -138,7 +138,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
             <section class="auth-card" aria-labelledby="auth-title">
                 <div class="auth-card-heading">
                     <div>
-                        <p class="section-kicker">REQUEST SETUP</p>
+                        <p class="section-kicker">Request setup</p>
                         <h2 id="auth-title">Kredensial testing</h2>
                         <p>Nilai ini otomatis dipakai saat menekan tombol Jalankan pada endpoint.</p>
                     </div>
@@ -155,7 +155,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
             </section>
 
             <div class="docs-toolbar-row">
-                <div><p class="section-kicker">API REFERENCE</p><h2>Endpoint yang tersedia</h2></div>
+                <div><p class="section-kicker">API reference</p><h2>Endpoint yang tersedia</h2></div>
                 <label class="server-picker"><span>Server</span><select data-server-select aria-label="Pilih server API"></select></label>
             </div>
 

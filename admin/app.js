@@ -4,7 +4,7 @@
   const body = document.body;
   const isAuthenticated = body.dataset.authenticated === 'true';
   const page = body.dataset.page || 'registry';
-  const state = { csrf: '', applications: [], dashboard: null, editingId: null, users: [], editingUserId: null, employeeResults: [], selectedEmployee: null };
+  const state = { csrf: '', applications: [], applicationQuery: '', applicationStatus: 'all', dashboard: null, editingId: null, users: [], editingUserId: null, employeeResults: [], selectedEmployee: null };
   const $ = (selector) => document.querySelector(selector);
   const actionIcons = {
     edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-.8 4.8L8 20l11.5-11.5a2.1 2.1 0 0 0-3-3L5 17zM14.5 7.5l2 2"/></svg>',
@@ -104,11 +104,18 @@
   const renderMetrics = (summary) => {
     const target = $('#metrics');
     if (!target || !summary || summary.total_applications === undefined) return;
-    const metrics = [
-      ['Aplikasi terdaftar', summary.total_applications, 'Semua registry yang tersimpan'],
-      ['Aplikasi aktif', summary.active_applications, 'Aktif dan belum kedaluwarsa'],
-      ['Hit hari ini', summary.hits_today, 'Request dengan app token valid'],
-    ];
+    const metrics = page === 'overview'
+      ? [
+        ['Aplikasi terdaftar', summary.total_applications, 'Semua registry yang tersimpan', 'neutral'],
+        ['Aplikasi aktif', summary.active_applications, 'Aktif dan belum kedaluwarsa', 'success'],
+        ['Perlu perhatian', summary.inactive_applications, 'Nonaktif atau kedaluwarsa', 'warning'],
+        ['Hit hari ini', summary.hits_today, 'Request dengan app token valid', 'info'],
+      ]
+      : [
+        ['Aplikasi terdaftar', summary.total_applications, 'Semua registry yang tersimpan', 'neutral'],
+        ['Aplikasi aktif', summary.active_applications, 'Aktif dan belum kedaluwarsa', 'success'],
+        ['Hit hari ini', summary.hits_today, 'Request dengan app token valid', 'info'],
+      ];
     target.innerHTML = metrics.map(([label, value, note]) => `
       <article class="metric-card">
         <p>${escapeHtml(label)}</p>
@@ -124,12 +131,22 @@
     const target = $('#applications-body');
     if (!target) return;
     const canManage = body.dataset.canManage === 'true';
-    if (!applications.length) {
-      target.innerHTML = '<tr><td colspan="6" class="table-state">Belum ada aplikasi. Tambahkan registry pertama untuk mulai memakai SSO.</td></tr>';
+    const query = state.applicationQuery.trim().toLowerCase();
+    const filtered = applications.filter((application) => {
+      const matchesQuery = !query || `${application.app_name} ${application.app_code}`.toLowerCase().includes(query);
+      const matchesStatus = state.applicationStatus === 'all' || application.status === state.applicationStatus;
+      return matchesQuery && matchesStatus;
+    });
+    const resultCount = $('#application-result-count');
+    if (resultCount) resultCount.textContent = `${formatNumber(filtered.length)} dari ${formatNumber(applications.length)} aplikasi`;
+    if (!filtered.length) {
+      target.innerHTML = applications.length
+        ? '<tr><td colspan="6" class="table-state">Tidak ada aplikasi yang cocok dengan filter saat ini.</td></tr>'
+        : '<tr><td colspan="6" class="table-state">Belum ada aplikasi. Tambahkan registry pertama untuk mulai memakai SSO.</td></tr>';
       return;
     }
 
-    target.innerHTML = applications.map((application) => `
+    target.innerHTML = filtered.map((application) => `
       <tr>
         <th scope="row">
           <span class="app-name">${escapeHtml(application.app_name)}</span>
@@ -145,6 +162,49 @@
         ` : '<span class="field-help">Read only</span>'}</td>
       </tr>
     `).join('');
+  };
+
+  const bindApplicationFilter = () => {
+    const wrapper = $('.application-filter');
+    const trigger = $('#application-status-trigger');
+    const menu = $('#application-status-menu');
+    const nativeSelect = $('#application-status-filter');
+    const label = $('#application-status-label');
+    if (!wrapper || !trigger || !menu || !nativeSelect || !label) return;
+
+    const closeMenu = () => {
+      menu.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+    };
+
+    trigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const isOpen = !menu.hidden;
+      menu.hidden = isOpen;
+      trigger.setAttribute('aria-expanded', String(!isOpen));
+    });
+
+    menu.addEventListener('click', (event) => {
+      const option = event.target.closest('button[data-status]');
+      if (!option) return;
+      const value = option.dataset.status || 'all';
+      nativeSelect.value = value;
+      state.applicationStatus = value;
+      label.textContent = option.textContent.trim();
+      menu.querySelectorAll('button[data-status]').forEach((item) => {
+        item.setAttribute('aria-selected', String(item === option));
+      });
+      closeMenu();
+      renderApplications(state.applications);
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!wrapper.contains(event.target)) closeMenu();
+    });
+
+    trigger.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeMenu();
+    });
   };
 
   const renderRecentHits = (hits) => {
@@ -193,13 +253,13 @@
   const loadDashboard = async () => {
     try {
       const payload = await request('dashboard', { query: { page } });
-      state.dashboard = payload.data;
-      state.csrf = payload.data.csrf_token || state.csrf;
-      state.applications = payload.data.applications || [];
-      if (payload.data.summary) renderMetrics(payload.data.summary);
-      if (Array.isArray(payload.data.applications)) renderApplications(state.applications);
-      if (Array.isArray(payload.data.recent_hits)) renderRecentHits(payload.data.recent_hits);
-      if (Array.isArray(payload.data.summary?.daily_hits)) renderDailyHits(payload.data.summary.daily_hits);
+      state.dashboard = payload.data || {};
+      state.csrf = payload.data?.csrf_token || state.csrf;
+      state.applications = payload.data?.applications || [];
+      if (payload.data?.summary) renderMetrics(payload.data.summary);
+      if (Array.isArray(payload.data?.applications)) renderApplications(state.applications);
+      if (Array.isArray(payload.data?.recent_hits)) renderRecentHits(payload.data.recent_hits);
+      if (Array.isArray(payload.data?.summary?.daily_hits)) renderDailyHits(payload.data.summary.daily_hits);
     } catch (error) {
       showMessage(error.message);
       if ($('#applications-body')) $('#applications-body').innerHTML = '<tr><td colspan="6" class="table-state">Data gagal dimuat. Periksa koneksi database lalu coba muat ulang.</td></tr>';
@@ -389,12 +449,26 @@
             password: $('#admin-password').value,
           }),
         });
-        state.csrf = response.data.csrf_token;
+        state.csrf = response.data?.csrf_token || response.csrf_token || '';
         window.location.reload();
       } catch (error) {
         errorTarget.textContent = error.message;
         errorTarget.hidden = false;
       }
+    });
+  };
+
+  const bindPasswordToggle = () => {
+    const password = $('#admin-password');
+    const toggle = $('#password-toggle');
+    if (!password || !toggle) return;
+
+    toggle.addEventListener('click', () => {
+      const isVisible = password.type === 'text';
+      password.type = isVisible ? 'password' : 'text';
+      toggle.setAttribute('aria-pressed', String(!isVisible));
+      toggle.setAttribute('aria-label', isVisible ? 'Tampilkan password' : 'Sembunyikan password');
+      toggle.classList.toggle('is-visible', !isVisible);
     });
   };
 
@@ -572,6 +646,7 @@
   };
 
   if (!isAuthenticated) {
+    bindPasswordToggle();
     login();
     return;
   }
@@ -614,6 +689,15 @@
   }
 
   $('#create-button')?.addEventListener('click', () => openApplicationDialog());
+  bindApplicationFilter();
+  $('#application-search')?.addEventListener('input', (event) => {
+    state.applicationQuery = event.target.value;
+    renderApplications(state.applications);
+  });
+  $('#application-status-filter')?.addEventListener('change', (event) => {
+    state.applicationStatus = event.target.value;
+    renderApplications(state.applications);
+  });
   $('#application-code')?.addEventListener('input', updateApplicationCodeHint);
   $('#save-application').addEventListener('click', saveApplication);
   $('#close-token').addEventListener('click', () => closeDialog($('#token-dialog')));

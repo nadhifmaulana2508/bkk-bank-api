@@ -5,6 +5,19 @@ ini_set('display_errors', '0');
 ini_set('log_errors', '1');
 require_once __DIR__ . '/config/env.php';
 
+// The project root is the API bootstrap, but the browser entry point is the
+// admin control plane. Redirect only the root URL so API routes keep their
+// normal JSON behavior.
+$requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+$scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
+$appBasePath = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+$rootPath = $appBasePath === '' ? '/' : $appBasePath . '/';
+
+if (is_string($requestPath) && ($requestPath === rtrim($rootPath, '/') || $requestPath === $rootPath)) {
+    header('Location: ' . ($appBasePath === '' ? '' : $appBasePath) . '/admin/');
+    exit;
+}
+
 // =========================================
 // 🔥 PENGAMAN CORS (WAJIB DI PALING ATAS)
 // =========================================

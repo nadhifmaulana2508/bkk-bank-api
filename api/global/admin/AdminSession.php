@@ -22,6 +22,11 @@ final class AdminSession
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
         ini_set('session.gc_maxlifetime', (string) self::SESSION_TIMEOUT);
+        // Some local PHP installations leave session.save_path empty. In that
+        // case PHP may issue a session cookie but fail to persist its data.
+        if (trim((string) ini_get('session.save_path')) === '') {
+            ini_set('session.save_path', sys_get_temp_dir());
+        }
         session_name(self::SESSION_NAME);
         session_set_cookie_params([
             'httponly' => true,

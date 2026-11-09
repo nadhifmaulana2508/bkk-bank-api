@@ -8,14 +8,14 @@ require_once dirname(__DIR__) . '/helpers/webPath.php';
 
 AdminSession::start();
 $authenticated = AdminSession::isAuthenticated();
-$allowedPages = ['registry', 'audit', 'recap', 'rbac', 'users', 'docs-global', 'docs-simpeg', 'docs-simontok', 'docs-monbis'];
+$allowedPages = ['overview', 'registry', 'audit', 'recap', 'rbac', 'users', 'docs-global', 'docs-simpeg', 'docs-simontok', 'docs-monbis'];
 $adminBaseUrl = web_script_base();
 $adminRoute = web_route_after($adminBaseUrl);
 if ($adminRoute === 'index.php') {
     $adminRoute = '';
 }
 $cleanPage = strtolower(trim(explode('/', $adminRoute, 2)[0] ?? ''));
-$pageQuery = $_GET['page'] ?? 'registry';
+$pageQuery = $_GET['page'] ?? 'overview';
 $page = $cleanPage !== '' ? $cleanPage : (is_string($pageQuery) ? strtolower(trim($pageQuery)) : 'registry');
 if (!in_array($page, $allowedPages, true)) {
     $page = 'registry';
@@ -27,6 +27,7 @@ if ($page === 'users') {
 $permissions = $authenticated ? AdminSession::permissions() : [];
 $can = static fn(string $permission): bool => in_array($permission, $permissions, true);
 $pagePermissions = [
+    'overview' => 'registry.view',
     'registry' => 'registry.view',
     'audit' => 'audit.view',
     'recap' => 'recap.view',
@@ -42,48 +43,53 @@ if ($authenticated && isset($pagePermissions[$page]) && !$can($pagePermissions[$
     }
 }
 $pageMeta = [
+    'overview' => [
+        'eyebrow' => 'Control plane / Overview',
+        'title' => 'Ringkasan Bank API',
+        'description' => 'Lihat aplikasi yang terdaftar, aktivitas API, dan area yang perlu perhatian.',
+    ],
     'registry' => [
-        'eyebrow' => 'REGISTRY',
+        'eyebrow' => 'Applications / Registry',
         'title' => 'Aplikasi yang memakai SSO',
-        'description' => 'Buat kredensial aplikasi, perpanjang akses, dan kelola token tanpa mengubah endpoint bisnis.',
+        'description' => 'Kelola kredensial aplikasi, status akses, dan rotasi token dari satu tempat.',
     ],
     'audit' => [
-        'eyebrow' => 'AUDIT',
+        'eyebrow' => 'Audit',
         'title' => 'Jejak pemakaian SSO',
         'description' => 'Lihat endpoint yang dipanggil aplikasi, status response, dan waktu request yang tercatat.',
     ],
     'recap' => [
-        'eyebrow' => 'REKAP',
+        'eyebrow' => 'Rekap',
         'title' => 'Rekap penggunaan API',
         'description' => 'Pantau volume hit dan error harian untuk membantu evaluasi integrasi tiap aplikasi.',
     ],
     'rbac' => [
-        'eyebrow' => 'RBAC / ACCESS CONTROL',
+        'eyebrow' => 'RBAC / Access control',
         'title' => 'RBAC user SSO',
         'description' => 'Kelola akun web SSO dan tentukan menu yang boleh dibuka setiap user.',
     ],
     'docs-global' => [
-        'eyebrow' => 'API GLOBAL',
+        'eyebrow' => 'API Global',
         'title' => 'Kontrak API Global',
         'description' => 'Endpoint bersama untuk autentikasi, profil, reset password, direktori pegawai, dan AO.',
     ],
     'docs-simpeg' => [
-        'eyebrow' => 'API SIMPEG',
+        'eyebrow' => 'API Simpeg',
         'title' => 'Dokumentasi API Simpeg',
         'description' => 'Tempat dokumentasi endpoint Simpeg saat modulnya sudah resmi tersedia.',
     ],
     'docs-simontok' => [
-        'eyebrow' => 'API SIMONTOK',
+        'eyebrow' => 'API Simontok',
         'title' => 'Panduan integrasi SIMONTOK',
         'description' => 'Konfigurasi aplikasi SIMONTOK agar dapat memakai autentikasi dan endpoint global SSO.',
     ],
     'docs-monbis' => [
-        'eyebrow' => 'API MONBIS',
+        'eyebrow' => 'API Monbis',
         'title' => 'Panduan integrasi MONBIS',
         'description' => 'Konfigurasi MONBIS dengan app token terdaftar dan JWT pegawai sesuai kebutuhan endpoint.',
     ],
     'forbidden' => [
-        'eyebrow' => 'ACCESS DENIED',
+        'eyebrow' => 'Access denied',
         'title' => 'Menu tidak tersedia',
         'description' => 'Akun ini belum memiliki permission untuk membuka menu tersebut.',
     ],
@@ -126,14 +132,20 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 <?php if (!$authenticated): ?>
     <main class="auth-layout" id="main-content">
         <section class="auth-card" aria-labelledby="login-title">
-            <p class="eyebrow">BKK / SSO CONTROL PLANE</p>
+            <p class="eyebrow">BKK / SSO control plane</p>
             <h1 id="login-title">Masuk ke SSO Control Plane</h1>
             <p class="lede">Gunakan akun user SSO untuk membuka menu sesuai permission yang diberikan.</p>
             <form id="login-form" class="stack-form">
                 <label for="admin-username">Username</label>
                 <input id="admin-username" name="username" autocomplete="username" required>
                 <label for="admin-password">Password</label>
-                <input id="admin-password" name="password" type="password" autocomplete="current-password" required>
+                <div class="password-field">
+                    <input id="admin-password" name="password" type="password" autocomplete="current-password" required>
+                    <button class="password-toggle" id="password-toggle" type="button" aria-label="Tampilkan password" aria-pressed="false">
+                        <svg class="password-icon password-icon-show" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+                        <svg class="password-icon password-icon-hide" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 6.2A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a16.8 16.8 0 0 1-3 3.5M6.2 6.2C3.8 7.7 2.5 12 2.5 12s3.5 6 9.5 6c1.1 0 2.1-.2 3-.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+                    </button>
+                </div>
                 <p class="form-error" id="login-error" role="alert" hidden></p>
                 <button class="button button-primary button-block" type="submit">Masuk</button>
             </form>
@@ -147,12 +159,13 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
             <span class="brand-copy"><strong>Bank API BKK</strong><small>SSO Control Plane</small></span>
         </a>
         <nav class="main-nav" aria-label="Navigasi control plane">
-            <?php if ($can('registry.view')): ?><a class="nav-icon-link <?= $page === 'registry' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($pageUrl('registry'), ENT_QUOTES, 'UTF-8') ?>" aria-label="Registry" data-tooltip="Registry"><?= $navIcon('registry') ?><span class="visually-hidden">Registry</span></a><?php endif; ?>
+            <?php if ($can('registry.view')): ?><a class="nav-icon-link <?= $page === 'overview' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($pageUrl('overview'), ENT_QUOTES, 'UTF-8') ?>" aria-label="Overview" data-tooltip="Overview"><?= $navIcon('registry') ?><span class="visually-hidden">Overview</span></a><?php endif; ?>
+            <?php if ($can('registry.view')): ?><a class="nav-icon-link <?= $page === 'registry' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($pageUrl('registry'), ENT_QUOTES, 'UTF-8') ?>" aria-label="Applications" data-tooltip="Applications"><?= $navIcon('registry') ?><span class="visually-hidden">Applications</span></a><?php endif; ?>
             <?php if ($can('audit.view')): ?><a class="nav-icon-link <?= $page === 'audit' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($pageUrl('audit'), ENT_QUOTES, 'UTF-8') ?>" aria-label="Audit" data-tooltip="Audit"><?= $navIcon('audit') ?><span class="visually-hidden">Audit</span></a><?php endif; ?>
             <?php if ($can('recap.view')): ?><a class="nav-icon-link <?= $page === 'recap' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($pageUrl('recap'), ENT_QUOTES, 'UTF-8') ?>" aria-label="Rekap" data-tooltip="Rekap"><?= $navIcon('recap') ?><span class="visually-hidden">Rekap</span></a><?php endif; ?>
             <?php if ($can('users.manage')): ?><a class="nav-icon-link <?= $page === 'rbac' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($pageUrl('rbac'), ENT_QUOTES, 'UTF-8') ?>" aria-label="RBAC" data-tooltip="RBAC"><?= $navIcon('rbac') ?><span class="visually-hidden">RBAC</span></a><?php endif; ?>
             <?php if ($can('docs.global') || $can('docs.simontok') || $can('docs.monbis')): ?><details class="nav-menu">
-                <summary class="nav-icon-link" aria-label="API Docs" data-tooltip="API Docs"><?= $navIcon('docs') ?><span class="visually-hidden">API Docs</span></summary>
+                <summary class="nav-icon-link" aria-label="API Docs" data-tooltip="API Docs"><?= $navIcon('docs') ?><span class="visually-hidden">API Docs</span><span class="submenu-chevron" aria-hidden="true">›</span></summary>
                 <div class="nav-menu-popover">
                     <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>">API Global</a><?php endif; ?>
                     <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>">API Simpeg</a><?php endif; ?>
@@ -190,6 +203,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
             </div>
             <?php if ($page === 'registry' && $can('registry.manage')): ?>
                 <button class="button button-primary" id="create-button" type="button">Tambah aplikasi</button>
+            <?php elseif ($page === 'overview' && $can('registry.view')): ?>
+                <a class="button button-primary" href="<?= htmlspecialchars($pageUrl('registry'), ENT_QUOTES, 'UTF-8') ?>">Lihat aplikasi <span aria-hidden="true">↗</span></a>
             <?php endif; ?>
         </section>
 
@@ -199,13 +214,39 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 
         <section class="content-grid" id="registry">
             <article class="panel panel-primary">
-                <div class="panel-heading">
+                <div class="panel-heading panel-heading-with-toolbar">
                     <div>
                         <h2>Registry aplikasi</h2>
                         <p class="panel-description">Token tidak pernah ditampilkan ulang setelah dibuat atau dirotasi.</p>
                     </div>
-                    <span class="live-label">Data langsung</span>
+                    <div class="panel-toolbar">
+                        <label class="search-field" for="application-search">
+                            <span class="visually-hidden">Cari aplikasi</span>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
+                            <input id="application-search" type="search" placeholder="Cari aplikasi…" autocomplete="off">
+                        </label>
+                        <div class="filter-field application-filter">
+                            <span class="visually-hidden">Filter status</span>
+                            <select id="application-status-filter" class="visually-hidden-select" tabindex="-1" aria-hidden="true">
+                                <option value="all">Semua status</option>
+                                <option value="active">Aktif</option>
+                                <option value="inactive">Nonaktif</option>
+                                <option value="expired">Kedaluwarsa</option>
+                            </select>
+                            <button class="filter-trigger" id="application-status-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                                <span id="application-status-label">Semua status</span>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5 5 5-5"/></svg>
+                            </button>
+                            <div class="filter-menu" id="application-status-menu" role="listbox" hidden>
+                                <button type="button" role="option" aria-selected="true" data-status="all">Semua status</button>
+                                <button type="button" role="option" aria-selected="false" data-status="active">Aktif</button>
+                                <button type="button" role="option" aria-selected="false" data-status="inactive">Nonaktif</button>
+                                <button type="button" role="option" aria-selected="false" data-status="expired">Kedaluwarsa</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <div class="table-context"><span id="application-result-count">Memuat aplikasi…</span><span class="data-source">Data dari database</span></div>
                 <div class="table-wrap">
                     <table class="data-table">
                         <caption class="visually-hidden">Daftar aplikasi terdaftar dan status token</caption>
@@ -338,7 +379,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
                     <p class="eyebrow">REGISTRY</p>
                     <h2 id="application-dialog-title">Tambah aplikasi</h2>
                 </div>
-                <button class="icon-button" value="cancel" aria-label="Tutup dialog">×</button>
+                <button class="icon-button" type="submit" value="cancel" formnovalidate aria-label="Tutup dialog">×</button>
             </div>
             <input type="hidden" id="application-id">
             <div class="form-grid">
@@ -366,7 +407,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
             </div>
             <p class="form-error" id="application-error" role="alert" hidden></p>
             <div class="dialog-actions">
-                <button class="button button-ghost" value="cancel" type="submit">Batal</button>
+                <button class="button button-ghost" value="cancel" type="submit" formnovalidate>Batal</button>
                 <button class="button button-primary" id="save-application" type="button">Simpan</button>
             </div>
         </form>
@@ -414,7 +455,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
                     <p class="eyebrow">ACCESS CONTROL</p>
                     <h2 id="user-dialog-title">Tambah user</h2>
                 </div>
-                <button class="icon-button" value="cancel" aria-label="Tutup dialog">×</button>
+                <button class="icon-button" type="submit" value="cancel" formnovalidate aria-label="Tutup dialog">×</button>
             </div>
             <input type="hidden" id="user-id">
             <input type="hidden" id="user-employee-id">
@@ -480,7 +521,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
             </fieldset>
             <p class="form-error" id="user-error" role="alert" hidden></p>
             <div class="dialog-actions">
-                <button class="button button-ghost" value="cancel" type="submit">Batal</button>
+                <button class="button button-ghost" value="cancel" type="submit" formnovalidate>Batal</button>
                 <button class="button button-primary" id="save-user" type="button">Simpan user</button>
             </div>
         </form>

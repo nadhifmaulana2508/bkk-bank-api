@@ -20,7 +20,7 @@ if (!in_array($group, ['global', 'simpeg', 'simontok', 'monbis'], true)) {
 $docsPermissionGroup = $group === 'simpeg' ? 'global' : $group;
 
 if (!AdminSession::isAuthenticated()) {
-    header('Location: ' . rtrim(dirname($docsBaseUrl), '/') . '/admin/registry');
+    header('Location: ' . rtrim(dirname($docsBaseUrl), '/') . '/admin/overview');
     exit;
 }
 
