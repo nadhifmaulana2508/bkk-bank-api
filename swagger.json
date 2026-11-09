@@ -22,7 +22,7 @@
   "paths": {
     "/api/auth/login": {
       "post": {
-        "summary": "Login menggunakan id_peg + nomor HP pegawai",
+        "summary": "Login menggunakan id_peg + password",
         "tags": ["Auth"],
         "security": [
           {
@@ -36,17 +36,12 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["id_peg", "telp", "password"],
+                "required": ["id_peg", "password"],
                 "properties": {
                   "id_peg": {
                     "type": "string",
                     "example": "102-119",
                     "description": "ID pegawai"
-                  },
-                  "telp": {
-                    "type": "string",
-                    "example": "087716632356",
-                    "description": "Nomor HP pegawai yang harus sesuai dengan id_peg"
                   },
                   "password": {
                     "type": "string",
@@ -74,10 +69,10 @@
             }
           },
           "401": {
-            "description": "ID pegawai, nomor HP, atau password salah"
+            "description": "ID pegawai atau password salah"
           },
           "400": {
-            "description": "ID pegawai dan nomor HP wajib valid, password minimal 6 karakter"
+            "description": "ID pegawai dan password wajib valid, password minimal 6 karakter"
           },
           "403": {
             "description": "Aplikasi belum terdaftar atau token aplikasi tidak valid"

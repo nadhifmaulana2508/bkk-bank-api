@@ -19,14 +19,10 @@ final class SsoService
 
         $input = jsonRequestBody();
         $idPeg = $input['id_peg'] ?? null;
-        $telp = $input['telp'] ?? null;
         $password = $input['password'] ?? null;
 
         if (is_string($idPeg)) {
             $idPeg = trim($idPeg);
-        }
-        if (is_string($telp)) {
-            $telp = trim($telp);
         }
 
         if (
@@ -34,15 +30,12 @@ final class SsoService
             || $idPeg === ''
             || strlen($idPeg) > 80
             || !preg_match('/^[A-Za-z0-9._-]+$/', $idPeg)
-            ||
-            !is_string($telp)
-            || !preg_match('/^[0-9+()\-\s]{6,20}$/', $telp)
             || !is_string($password)
             || $password === ''
             || strlen($password) < 6
             || strlen($password) > 255
         ) {
-            sendResponse(400, 'ID pegawai dan nomor HP wajib valid, password minimal 6 karakter.');
+            sendResponse(400, 'ID pegawai dan password wajib valid, password minimal 6 karakter.');
         }
 
         $application = AppTokenAuthenticator::current();
@@ -59,18 +52,18 @@ final class SsoService
         $stmt = $pdo->prepare('
             SELECT a.*, p.nama FROM tb_apk a
             JOIN tb_pegawai p ON a.id_peg = p.id_peg
-            WHERE a.id_peg = :id_peg AND p.telp = :telp
+            WHERE a.id_peg = :id_peg
             LIMIT 1
         ');
-        $stmt->execute(['id_peg' => $idPeg, 'telp' => $telp]);
+        $stmt->execute(['id_peg' => $idPeg]);
         $user = $stmt->fetch();
 
         if (!is_array($user)) {
-            sendResponse(401, 'ID pegawai, nomor HP, atau password salah.');
+            sendResponse(401, 'ID pegawai atau password salah.');
         }
 
         if (!is_string($user['pass'] ?? null) || !password_verify($password, $user['pass'])) {
-            sendResponse(401, 'ID pegawai, nomor HP, atau password salah.');
+            sendResponse(401, 'ID pegawai atau password salah.');
         }
 
         $payload = [

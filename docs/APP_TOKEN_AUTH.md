@@ -17,8 +17,8 @@ diaktifkan. Token aplikasi tidak dikirim lewat body karena body pada request
 GET tidak konsisten dan raw token dapat ikut tersimpan di log payload.
 
 Nilai `App` pada header login harus sudah terdaftar di Registry API. Field `app`
-tidak dikirim di body login; login pegawai memakai `id_peg`, `telp`, dan
-`password`. Tidak ada lagi daftar aplikasi yang harus ditambahkan manual ke
+tidak dikirim di body login; login pegawai memakai `id_peg` dan `password`.
+Tidak ada lagi daftar aplikasi yang harus ditambahkan manual ke
 source code. Untuk endpoint yang membutuhkan JWT, aplikasi pada header juga
 harus sama dengan claim `app` di JWT tersebut.
 

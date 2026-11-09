@@ -38,7 +38,7 @@ Pastikan:
 
 - Apache dan MySQL XAMPP aktif;
 - `.env` root tersedia dan koneksi database dapat digunakan;
-- memiliki `id_peg`, nomor HP pegawai, password, dan token aplikasi yang sudah terdaftar;
+- memiliki `id_peg`, password, dan token aplikasi yang sudah terdaftar;
 
 Dokumentasi interaktif:
 
@@ -132,7 +132,7 @@ Checklist deployment keamanan lengkap tersedia di
 Setelah masuk ke halaman dokumentasi:
 
 1. Kirim header `App` dan `X-App-Token` bila `APP_TOKEN_REQUIRED=true`.
-2. Jalankan `POST /api/auth/login` menggunakan `id_peg`, `telp`, dan `password`. Kode aplikasi dibaca dari header `App`.
+2. Jalankan `POST /api/auth/login` menggunakan `id_peg` dan `password`. Kode aplikasi dibaca dari header `App`.
 3. Salin nilai `data.token` dari response login.
 4. Klik `Authorize`, masukkan token JWT, lalu klik `Authorize` kembali.
 5. Jalankan endpoint protected seperti `whoami`, profile, dan AO.
@@ -152,7 +152,6 @@ Content-Type: application/json
 ~~~json
 {
   "id_peg": "<ID_PEGAWAI>",
-  "telp": "<NOMOR_HP_PEGAWAI>",
   "password": "<PASSWORD_PEGAWAI>"
 }
 ~~~
@@ -162,7 +161,7 @@ PowerShell:
 ~~~powershell
 $baseUrl = "http://localhost/rest_api_sso"
 $appHeaders = @{ App = "simpeg"; "X-App-Token" = "<APP_TOKEN>" }
-$login = Invoke-RestMethod -Method Post -Uri "$baseUrl/api/auth/login" -Headers $appHeaders -ContentType "application/json" -Body (@{ id_peg = "<ID_PEGAWAI>"; telp = "<NOMOR_HP_PEGAWAI>"; password = "<PASSWORD_PEGAWAI>" } | ConvertTo-Json)
+$login = Invoke-RestMethod -Method Post -Uri "$baseUrl/api/auth/login" -Headers $appHeaders -ContentType "application/json" -Body (@{ id_peg = "<ID_PEGAWAI>"; password = "<PASSWORD_PEGAWAI>" } | ConvertTo-Json)
 $token = $login.data.token
 $token
 ~~~
@@ -183,8 +182,8 @@ Response sukses yang harus tetap dipertahankan:
 
 | Skenario | Expected |
 | --- | --- |
-| `id_peg`, `telp`, atau password tidak valid | HTTP 400, `ID pegawai dan nomor HP wajib valid, password minimal 6 karakter.` |
-| `id_peg` atau nomor HP tidak cocok dengan password | HTTP 401, `ID pegawai, nomor HP, atau password salah.` |
+| `id_peg` atau password tidak valid | HTTP 400, `ID pegawai dan password wajib valid, password minimal 6 karakter.` |
+| `id_peg` tidak cocok dengan password | HTTP 401, `ID pegawai atau password salah.` |
 | aplikasi belum terdaftar atau token salah | HTTP 403, `Token aplikasi tidak valid atau tidak aktif.` |
 
 ## 5. Test endpoint protected
