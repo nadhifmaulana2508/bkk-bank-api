@@ -424,9 +424,9 @@ body {
 .brand-mark {
   width: 40px;
   height: 40px;
-  border-color: #d7dee8;
+  border-color: #2447d8;
   border-radius: 11px;
-  background: #172033;
+  background: #3154f5;
   color: #fff;
   box-shadow: none;
 }
@@ -1194,6 +1194,7 @@ html[data-theme="light"] {
 }
 
 html[data-theme="light"] .topbar { background: #ffffff; }
+html[data-theme="light"] .brand-mark { border-color: #2447d8; background: #3154f5; color: #ffffff; box-shadow: none; }
 html[data-theme="light"] .main-nav::before,
 html[data-theme="light"] .nav-menu::before { color: #667085; }
 html[data-theme="light"] .nav-menu[open] summary,

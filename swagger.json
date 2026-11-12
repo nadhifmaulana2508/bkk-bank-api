@@ -611,6 +611,9 @@
                       "account_number": "001135000004",
                       "customer_id": "CORE-CUSTOMER-456",
                       "customer_name": "Nama Nasabah",
+                      "marital_status": "married",
+                      "collateral_count": 1,
+                      "plafond": "100000000.00",
                       "branch": {
                         "code": "001",
                         "name": "Kantor Cabang Contoh",
@@ -641,7 +644,7 @@
     },
     "/api/v1/simontok/credit-accounts/{account_id}": {
       "get": {
-        "summary": "Ambil detail rekening, nasabah, kredit, dan seluruh agunan",
+        "summary": "Ambil jumlah dan seluruh agunan rekening",
         "tags": ["SIMONTOK"],
         "security": [
           {
@@ -673,19 +676,7 @@
                   "data": {
                     "account_id": "MDAxADAwMTEzNTAwMDAwNA",
                     "account_number": "001135000004",
-                    "customer": {
-                      "customer_id": "CORE-CUSTOMER-456",
-                      "name": "Nama Nasabah"
-                    },
-                    "branch": {
-                      "code": "001",
-                      "name": "Kantor Cabang Contoh",
-                      "is_active": true
-                    },
-                    "credit": {
-                      "loan_amount": "100000000.00",
-                      "realization_date": "2026-11-03"
-                    },
+                    "collateral_count": 1,
                     "collaterals": []
                   }
                 }

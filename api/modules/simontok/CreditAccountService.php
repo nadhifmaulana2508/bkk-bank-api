@@ -62,7 +62,15 @@ final class CreditAccountService
                 k.kode_cabang,
                 k.no_rekening,
                 k.nasabah_id,
-                k.nama_nasabah
+                k.nama_nasabah,
+                k.status_nikah,
+                k.plafon,
+                COALESCE((
+                    SELECT COUNT(*)
+                    FROM list_agunan a
+                    WHERE a.kode_cabang = k.kode_cabang
+                      AND a.no_rekening = k.no_rekening
+                ), 0) AS collateral_count
             FROM list_kredit k
             WHERE ' . implode(' AND ', $conditions) . '
             ORDER BY k.nama_nasabah ASC, k.no_rekening ASC
@@ -89,11 +97,7 @@ final class CreditAccountService
         $stmt = $pdo->prepare('
             SELECT
                 k.kode_cabang,
-                k.no_rekening,
-                k.nasabah_id,
-                k.nama_nasabah,
-                k.plafon,
-                k.tanggal_realisasi
+                k.no_rekening
             FROM list_kredit k
             WHERE k.kode_cabang = :kode_cabang
               AND k.no_rekening = :no_rekening
@@ -108,28 +112,16 @@ final class CreditAccountService
             return null;
         }
 
-        $branch = self::branchMap([(string) $row['kode_cabang']])[(string) $row['kode_cabang']] ?? [
-            'code' => (string) $row['kode_cabang'],
-            'name' => null,
-            'is_active' => false,
-        ];
+        $collaterals = self::collateralsFor(
+            (string) $row['kode_cabang'],
+            (string) $row['no_rekening']
+        );
 
         return [
             'account_id' => self::encodeAccountId((string) $row['kode_cabang'], (string) $row['no_rekening']),
             'account_number' => (string) $row['no_rekening'],
-            'customer' => [
-                'customer_id' => (string) $row['nasabah_id'],
-                'name' => (string) $row['nama_nasabah'],
-            ],
-            'branch' => $branch,
-            'credit' => [
-                'loan_amount' => $row['plafon'] !== null ? (string) $row['plafon'] : null,
-                'realization_date' => $row['tanggal_realisasi'] !== null ? (string) $row['tanggal_realisasi'] : null,
-            ],
-            'collaterals' => self::collateralsFor(
-                (string) $row['kode_cabang'],
-                (string) $row['no_rekening']
-            ),
+            'collateral_count' => count($collaterals),
+            'collaterals' => $collaterals,
         ];
     }
 
@@ -188,6 +180,9 @@ final class CreditAccountService
                 'account_number' => (string) $row['no_rekening'],
                 'customer_id' => (string) $row['nasabah_id'],
                 'customer_name' => (string) $row['nama_nasabah'],
+                'marital_status' => self::mapMaritalStatus($row['status_nikah'] ?? null),
+                'collateral_count' => (int) $row['collateral_count'],
+                'plafond' => $row['plafon'] !== null ? (string) $row['plafon'] : null,
                 'branch' => $branches[$code] ?? [
                     'code' => $code,
                     'name' => null,
@@ -277,6 +272,24 @@ final class CreditAccountService
                 'account_id' => self::encodeAccountId((string) $row['kode_cabang'], (string) $row['no_rekening']),
             ];
         }, $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    private static function mapMaritalStatus(mixed $value): ?string
+    {
+        $status = trim((string) ($value ?? ''));
+        if ($status === '') {
+            return null;
+        }
+
+        $normalized = strtolower((string) preg_replace('/\\s+/', ' ', $status));
+
+        return match ($normalized) {
+            'menikah', 'married' => 'married',
+            'single', 'belum menikah', 'belum kawin' => 'single',
+            'cerai hidup', 'divorced' => 'divorced',
+            'cerai mati', 'widowed' => 'widowed',
+            default => $status,
+        };
     }
 
     private static function encodeAccountId(string $branchCode, string $accountNumber): string

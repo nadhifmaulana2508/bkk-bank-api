@@ -54,6 +54,9 @@ GET /api/v1/simontok/credit-accounts?query={keyword}&branch_code={kode_cabang}&l
       "account_number": "001234567890",
       "customer_id": "CORE-CUSTOMER-456",
       "customer_name": "Nama Nasabah",
+      "marital_status": "married",
+      "collateral_count": 1,
+      "plafond": "100000000.00",
       "branch": {
         "code": "001",
         "name": "Kantor Cabang Contoh",
@@ -77,7 +80,7 @@ Nomor rekening selalu dikirim sebagai string agar angka nol di depan tetap tersi
 GET /api/v1/simontok/credit-accounts/{account_id}
 ```
 
-`account_id` harus memakai nilai dari response pencarian. Detail berisi nasabah, cabang, plafon, tanggal realisasi, dan seluruh agunan.
+`account_id` harus memakai nilai dari response pencarian. Endpoint ini hanya mengembalikan identitas rekening, jumlah agunan, dan seluruh agunan yang terhubung.
 
 ```json
 {
@@ -86,25 +89,13 @@ GET /api/v1/simontok/credit-accounts/{account_id}
   "data": {
     "account_id": "identifier-dari-api",
     "account_number": "001234567890",
-    "customer": {
-      "customer_id": "CORE-CUSTOMER-456",
-      "name": "Nama Nasabah"
-    },
-    "branch": {
-      "code": "001",
-      "name": "Kantor Cabang Contoh",
-      "is_active": true
-    },
-    "credit": {
-      "loan_amount": "100000000.00",
-      "realization_date": "2026-11-03"
-    },
+    "collateral_count": 1,
     "collaterals": []
   }
 }
 ```
 
-Nilai `credit.loan_amount` berasal dari `list_kredit.plafon` dan dikirim sebagai string untuk menjaga presisi angka keuangan.
+`collateral_count` dihitung dari seluruh baris `list_agunan` dengan pasangan `kode_cabang` dan `no_rekening` yang sama.
 
 ### Daftar agunan
 
