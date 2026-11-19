@@ -124,7 +124,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Control plane internal untuk registry aplikasi dan audit penggunaan SSO BKK">
     <title>SSO Control Plane</title>
-    <link rel="stylesheet" href="styles.css?v=20261109-5">
+    <link rel="stylesheet" href="styles.css?v=20261119-1">
 </head>
 <body class="page-mode-<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>" data-authenticated="<?= $authenticated ? 'true' : 'false' ?>" data-page="<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>" data-can-manage="<?= $can('registry.manage') ? 'true' : 'false' ?>">
 <a class="skip-link" href="#main-content">Lewati ke konten</a>
@@ -222,7 +222,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                 <div class="panel-heading panel-heading-with-toolbar">
                     <div>
                         <h2>Registry aplikasi</h2>
-                        <p class="panel-description">Token tidak pernah ditampilkan ulang setelah dibuat atau dirotasi.</p>
+                        <p class="panel-description">Token hanya bisa disalin saat baru dibuat atau dirotasi. Jika hilang, token lama tidak dapat dipulihkan.</p>
                     </div>
                     <div class="panel-toolbar">
                         <label class="search-field" for="application-search">
@@ -442,7 +442,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
             <pre class="credential-snippet" id="credential-snippet"></pre>
             <div class="token-box">
                 <code id="new-token"></code>
-                <button class="button button-secondary" id="copy-token" type="button">Salin token</button>
+                <button class="button button-secondary" id="copy-token" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg><span id="copy-token-label">Salin token</span></button>
             </div>
             <p class="form-error" id="token-error" role="alert" hidden></p>
             <div class="dialog-actions">
@@ -550,7 +550,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
     </dialog>
 <?php endif; ?>
 
-<script src="app.js?v=20261109-1" defer></script>
+<script src="app.js?v=20261119-1" defer></script>
 <script src="theme.js" defer></script>
 </body>
 </html>

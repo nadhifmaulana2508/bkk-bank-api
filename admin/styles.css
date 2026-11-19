@@ -182,6 +182,7 @@ h2 { margin-bottom: 4px; font-size: 16px; letter-spacing: -0.02em; }
 .button-secondary:hover, .button-ghost:hover { background: var(--surface-subtle); }
 .button-ghost { border-color: transparent; background: transparent; color: var(--muted-strong); }
 .button-block { width: 100%; }
+#copy-token svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 
 .notice {
   margin: -12px 0 24px;

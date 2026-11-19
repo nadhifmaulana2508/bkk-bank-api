@@ -5,6 +5,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/../helpers/response.php';
 require_once __DIR__ . '/env.php';
 
+date_default_timezone_set('Asia/Jakarta');
+
 /** Ambil env: prioritaskan environment variable sistem, lalu file environment. */
 $ENV = static function (string $key, $default = null) {
   return app_env_value($key, $default);
@@ -30,6 +32,7 @@ try {
     PDO::ATTR_EMULATE_PREPARES   => false,
   ];
   $pdo = new PDO($dsn, $DB_USER, $DB_PASS, $options);
+  $pdo->exec("SET time_zone = '+07:00'");
   // sukses: $pdo siap dipakai
 } catch (PDOException $e) {
   error_log('[API] Database connection failed: ' . $e->getMessage());

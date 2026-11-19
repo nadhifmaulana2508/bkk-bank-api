@@ -9,7 +9,7 @@ require_once __DIR__ . '/AdminRbac.php';
 final class AdminSession
 {
     private const SESSION_NAME = 'BKKAPIADMINSESSID';
-    private const SESSION_TIMEOUT = 1800;
+    private const SESSION_TIMEOUT = 43200;
     private const LOGIN_WINDOW = 900;
     private const LOGIN_LIMIT = 5;
 
@@ -22,13 +22,27 @@ final class AdminSession
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
         ini_set('session.gc_maxlifetime', (string) self::SESSION_TIMEOUT);
-        // Some local PHP installations leave session.save_path empty. In that
-        // case PHP may issue a session cookie but fail to persist its data.
-        if (trim((string) ini_get('session.save_path')) === '') {
-            ini_set('session.save_path', sys_get_temp_dir());
+        $sessionPaths = [
+            sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'bank-api-admin-sessions',
+            dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'admin-sessions',
+        ];
+        $sessionPathSet = false;
+        foreach ($sessionPaths as $sessionPath) {
+            if (!is_dir($sessionPath) && !@mkdir($sessionPath, 0700, true) && !is_dir($sessionPath)) {
+                continue;
+            }
+            if (is_dir($sessionPath) && is_writable($sessionPath)) {
+                session_save_path($sessionPath);
+                $sessionPathSet = true;
+                break;
+            }
+        }
+        if (!$sessionPathSet) {
+            error_log('[API] Admin session storage is not writable.');
         }
         session_name(self::SESSION_NAME);
         session_set_cookie_params([
+            'lifetime' => self::SESSION_TIMEOUT,
             'httponly' => true,
             'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
             'samesite' => 'Strict',
@@ -52,6 +66,7 @@ final class AdminSession
         }
 
         $_SESSION['admin_last_activity'] = time();
+        self::refreshCookie();
         return true;
     }
 
@@ -254,6 +269,23 @@ final class AdminSession
             throw new RuntimeException('Koneksi database tidak tersedia.');
         }
         return $pdo;
+    }
+
+    private static function refreshCookie(): void
+    {
+        if (!ini_get('session.use_cookies') || headers_sent()) {
+            return;
+        }
+
+        $params = session_get_cookie_params();
+        setcookie(session_name(), session_id(), [
+            'expires' => time() + self::SESSION_TIMEOUT,
+            'path' => (string) ($params['path'] ?: '/'),
+            'domain' => (string) $params['domain'],
+            'secure' => (bool) $params['secure'],
+            'httponly' => (bool) $params['httponly'],
+            'samesite' => (string) ($params['samesite'] ?? 'Strict'),
+        ]);
     }
 
     private static function clientIp(): string

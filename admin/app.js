@@ -20,20 +20,32 @@
 
   const formatNumber = (value) => new Intl.NumberFormat('id-ID').format(Number(value || 0));
 
+  const parseWibDate = (value) => {
+    const normalized = String(value).trim().replace(' ', 'T');
+    return new Date(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalized) ? normalized : `${normalized}+07:00`);
+  };
+  const wibDateTimeFormat = new Intl.DateTimeFormat('id-ID', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Jakarta',
+  });
+  const wibDayFormat = new Intl.DateTimeFormat('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    timeZone: 'Asia/Jakarta',
+  });
+
   const formatDate = (value, fallback = 'Belum ada hit') => {
     if (!value) return fallback;
-    const date = new Date(String(value).replace(' ', 'T'));
+    const date = parseWibDate(value);
     if (Number.isNaN(date.getTime())) return String(value);
-    return new Intl.DateTimeFormat('id-ID', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(date);
+    return `${wibDateTimeFormat.format(date)} WIB`;
   };
 
   const formatDay = (value) => {
-    const date = new Date(`${value}T00:00:00`);
+    const date = parseWibDate(`${value}T00:00:00`);
     if (Number.isNaN(date.getTime())) return value;
-    return new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short' }).format(date);
+    return wibDayFormat.format(date);
   };
 
   const showMessage = (message, tone = 'error') => {
@@ -433,8 +445,8 @@
     const token = $('#new-token').textContent;
     try {
       await copyText(token);
-      $('#copy-token').textContent = 'Tersalin';
-      window.setTimeout(() => { $('#copy-token').textContent = 'Salin token'; }, 1800);
+      $('#copy-token-label').textContent = 'Tersalin';
+      window.setTimeout(() => { $('#copy-token-label').textContent = 'Salin token'; }, 1800);
     } catch (error) {
       $('#token-error').textContent = 'Clipboard tidak tersedia. Blok token lalu salin manual.';
       $('#token-error').hidden = false;
