@@ -172,6 +172,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                     <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>">API Simpeg</a><?php endif; ?>
                     <?php if ($can('docs.simontok')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>">API Simontok</a><?php endif; ?>
                     <?php if ($can('docs.monbis')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>">API Monbis</a><?php endif; ?>
+                    <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/export.php', ENT_QUOTES, 'UTF-8') ?>">Unduh semua dokumentasi (.md)</a><?php endif; ?>
                 </div>
             </details><?php endif; ?>
         </nav>

@@ -31,6 +31,8 @@ Halaman control plane:
 ```
 
 Menu API Docs pada navbar membuka dokumentasi interaktif terproteksi untuk testing endpoint.
+Pilih **Unduh semua dokumentasi (.md)** pada menu yang sama untuk mengunduh satu
+file Markdown gabungan dari dokumen di folder `docs`, `api`, dan `admin`.
 
 Login memakai tabel `user_sso`. Password disimpan sebagai hash dan permission
 menu dapat dicentang per user dari menu **RBAC**.
@@ -49,6 +51,7 @@ menu dapat dicentang per user dari menu **RBAC**.
 - mendeteksi `app_code` yang sudah terdaftar saat mengetik dan tetap memvalidasinya
   di backend untuk mencegah duplikasi karena request bersamaan;
 - membuka dokumentasi API Global, Simontok, dan Monbis memakai session admin yang sama.
+- mengunduh semua dokumen Markdown repository dalam satu file untuk implementasi dan referensi.
 
 Token baru hanya dikirim pada response create/rotate dan hanya ditampilkan pada
 dialog one-time. Simpan di secret manager; dashboard tidak dapat mengambil token
