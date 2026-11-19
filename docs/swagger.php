@@ -68,7 +68,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="docs-spec-version" content="<?= htmlspecialchars((string) @filemtime(__DIR__ . '/../swagger.json'), ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-app-default" content="<?= htmlspecialchars($group === 'global' ? 'monbis' : $group, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-base" content="<?= htmlspecialchars($docsBaseUrl, ENT_QUOTES, 'UTF-8') ?>">
-    <link rel="stylesheet" href="swagger.css?v=20261109-1">
+    <link rel="stylesheet" href="swagger.css?v=20261119-2">
 </head>
 <body>
 <aside class="docs-control-sidebar" aria-label="Navigasi Control Plane">
@@ -101,10 +101,18 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h10"/></svg>
             <span>Kembali ke Control Plane</span>
         </a>
-        <button class="docs-theme-toggle" type="button" data-theme-toggle aria-label="Ganti tema" title="Ganti tema">
+        <div class="docs-page-actions">
+            <?php if (AdminSession::hasPermission('docs.global')): ?>
+                <a class="docs-back-link docs-export-link" href="<?= htmlspecialchars($docsBaseUrl . '/export.php', ENT_QUOTES, 'UTF-8') ?>" aria-label="Unduh semua dokumentasi Markdown">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
+                    <span>Unduh semua Markdown</span>
+                </a>
+            <?php endif; ?>
+            <button class="docs-theme-toggle" type="button" data-theme-toggle aria-label="Ganti tema" title="Ganti tema">
             <span data-theme-icon aria-hidden="true">☾</span>
             <span data-theme-label>Mode terang</span>
-        </button>
+            </button>
+        </div>
     </div>
 
     <section class="docs-hero <?= $hasDocs ? '' : 'docs-hero-empty' ?>">

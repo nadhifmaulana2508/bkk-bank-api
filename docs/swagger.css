@@ -413,6 +413,8 @@ body {
 }
 
 .docs-page-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.docs-page-actions { display: flex; align-items: center; gap: 8px; }
+.docs-export-link svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 .docs-theme-toggle {
   display: inline-flex;
   min-height: 34px;
@@ -508,6 +510,7 @@ html[data-theme="light"] .response-output { border-color: #e1e7ee; background: #
   .docs-nav-submenu { display: flex; margin: 0; padding: 0; border-left: 0; }
   .docs-shell { width: min(100% - 24px, 1380px); margin-left: auto; }
   .docs-page-controls { align-items: stretch; flex-direction: column; }
+  .docs-page-actions { flex-wrap: wrap; }
   .docs-theme-toggle { justify-content: center; }
 }
 
