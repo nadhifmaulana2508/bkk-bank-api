@@ -14,13 +14,13 @@ di dokumentasi atau repository.
 Base URL lokal:
 
 ```text
-http://localhost/rest_api_sso
+http://localhost/bank-api
 ```
 
 Dokumentasi API tersedia pada:
 
 ```text
-http://localhost/rest_api_sso/docs/
+http://localhost/bank-api/docs/
 ```
 
 ## Cek status TTD
@@ -67,7 +67,7 @@ Field dokumen opsional:
 Contoh `curl`:
 
 ```bash
-curl -X POST "http://localhost/rest_api_sso/api/ttd/sign" \
+curl -X POST "http://localhost/bank-api/api/ttd/sign" \
   -H "Content-Type: application/json" \
   -d '{
     "id_peg": "102-119",

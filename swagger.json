@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost/rest_api_sso",
+      "url": "http://localhost/bank-api",
       "description": "Local Dev"
     },
     {

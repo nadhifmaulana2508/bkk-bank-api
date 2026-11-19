@@ -31,7 +31,7 @@ Contoh SSO:
 Base URL lokal:
 
 ~~~text
-http://localhost/rest_api_sso
+http://localhost/bank-api
 ~~~
 
 Pastikan:
@@ -43,10 +43,10 @@ Pastikan:
 Dokumentasi interaktif:
 
 ~~~text
-http://localhost/rest_api_sso/docs/
-http://localhost/rest_api_sso/docs/global
-http://localhost/rest_api_sso/docs/simpeg
-http://localhost/rest_api_sso/docs/simontok
+http://localhost/bank-api/docs/
+http://localhost/bank-api/docs/global
+http://localhost/bank-api/docs/simpeg
+http://localhost/bank-api/docs/simontok
 ~~~
 
 Development server:
@@ -75,7 +75,7 @@ hanya memindahkan implementasi internal dan tidak mengubah URL endpoint.
 Tersedia runner yang tidak menyimpan token atau password ke source code:
 
 ~~~powershell
-cd C:\xampp\htdocs\rest_api_sso
+cd C:\xampp\htdocs\bank-api
 Set-ExecutionPolicy -Scope Process Bypass
 .\tools\test_api.ps1 -BaseUrl "https://devsso.bkkjateng.co.id" -AppCode "monbis"
 ~~~
@@ -159,7 +159,7 @@ Content-Type: application/json
 PowerShell:
 
 ~~~powershell
-$baseUrl = "http://localhost/rest_api_sso"
+$baseUrl = "http://localhost/bank-api"
 $appHeaders = @{ App = "simpeg"; "X-App-Token" = "<APP_TOKEN>" }
 $login = Invoke-RestMethod -Method Post -Uri "$baseUrl/api/auth/login" -Headers $appHeaders -ContentType "application/json" -Body (@{ id_peg = "<ID_PEGAWAI>"; password = "<PASSWORD_PEGAWAI>" } | ConvertTo-Json)
 $token = $login.data.token

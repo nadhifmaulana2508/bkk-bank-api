@@ -5,7 +5,7 @@ Dashboard internal untuk mengelola registry aplikasi dan membaca audit hit SSO.
 ## URL lokal
 
 ```text
-http://localhost/rest_api_sso/admin/registry
+http://localhost/bank-api/admin/registry
 ```
 
 URL development:

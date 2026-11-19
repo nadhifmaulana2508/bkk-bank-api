@@ -5,7 +5,7 @@ Dokumentasi ini menjelaskan endpoint untuk mencari rekening debitur, membaca det
 ## URL dokumentasi
 
 ```text
-http://localhost/rest_api_sso/docs/simontok
+http://localhost/bank-api/docs/simontok
 https://devsso.bkkjateng.co.id/docs/simontok
 ```
 
@@ -145,7 +145,7 @@ Endpoint ini hanya membutuhkan token aplikasi. Nilai `code` berasal dari `dpk.ko
 ## Contoh testing PowerShell
 
 ```powershell
-$baseUrl = "http://localhost/rest_api_sso"
+$baseUrl = "http://localhost/bank-api"
 $headers = @{
   App = "simontok"
   "X-App-Token" = "<TOKEN_APLIKASI_SIMONTOK>"
