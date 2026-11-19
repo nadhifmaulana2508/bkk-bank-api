@@ -23,6 +23,10 @@ class MailHelper {
             $env[$key] = $value;
         }
 
+        if (!filter_var($env['SMTP_USER'], FILTER_VALIDATE_EMAIL)) {
+            throw new \RuntimeException('Konfigurasi SMTP_USER harus berupa alamat email pengirim yang valid.');
+        }
+
         $host = trim((string) $env['SMTP_HOST']);
         $port = filter_var($env['SMTP_PORT'], FILTER_VALIDATE_INT, [
             'options' => ['min_range' => 1, 'max_range' => 65535],
