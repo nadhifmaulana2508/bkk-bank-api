@@ -172,7 +172,7 @@
         <td>${escapeHtml(formatDate(application.last_used_at))}</td>
         <td class="row-actions">${canManage ? `
           <button class="table-action" data-action="edit" data-id="${escapeHtml(application.id)}" type="button" title="Edit aplikasi" aria-label="Edit aplikasi">${actionIcons.edit}</button>
-          <button class="table-action" data-action="copy-token" data-id="${escapeHtml(application.id)}" type="button" title="${application.token_copy_available ? 'Salin token' : 'Token lama tersedia setelah aplikasi mengirim request valid'}" aria-label="Salin token">${actionIcons.copy}</button>
+          <button class="table-action" data-action="copy-token" data-id="${escapeHtml(application.id)}" type="button" title="${application.token_copy_available ? 'Salin token' : 'Token belum tersimpan; klik untuk membuat token baru'}" aria-label="${application.token_copy_available ? 'Salin token' : 'Buat token baru untuk disalin'}">${actionIcons.copy}</button>
           <button class="table-action" data-action="rotate" data-id="${escapeHtml(application.id)}" type="button" title="Rotasi token" aria-label="Rotasi token">${actionIcons.rotate}</button>
         ` : '<span class="field-help">Read only</span>'}</td>
       </tr>
@@ -378,6 +378,7 @@
     $('#token-app-code').textContent = '';
     $('#credential-snippet').textContent = '';
     $('#new-token').textContent = '';
+    $('#token-storage-note').textContent = '';
   };
 
   const showToken = (data) => {
@@ -390,6 +391,9 @@
     $('#token-app-code').textContent = appCode;
     $('#credential-snippet').textContent = credentialSnippet;
     $('#new-token').textContent = token;
+    $('#token-storage-note').textContent = data?.token_saved === false
+      ? 'Vault belum siap. Salin token dari dialog ini sekarang; token tidak bisa diambil ulang setelah dialog ditutup.'
+      : 'Token tersimpan di vault dan dapat disalin kembali dari tabel Registry.';
     $('#token-error').hidden = true;
     $('#token-dialog').showModal();
     window.setTimeout(() => $('#done-token').focus(), 0);
@@ -416,7 +420,12 @@
       const response = await request(action, { method: 'POST', body: JSON.stringify(payload) });
       closeDialog($('#application-dialog'));
       if (response.data?.token) showToken(response.data);
-      showMessage(response.message, 'success');
+      showMessage(
+        response.data?.token_saved === false
+          ? 'Token dibuat. Salin dari dialog sekarang; vault belum siap untuk penyalinan ulang.'
+          : response.message,
+        'success',
+      );
       await loadDashboard();
     } catch (error) {
       errorTarget.textContent = error.message;
@@ -437,7 +446,12 @@
     try {
       const response = await request('rotate', { method: 'POST', body: JSON.stringify({ id: Number(id) }) });
       showToken(response.data);
-      showMessage(response.message, 'success');
+      showMessage(
+        response.data?.token_saved === false
+          ? 'Token baru aktif. Vault belum siap; perbarui aplikasi pemanggil dengan token dari dialog sekarang.'
+          : response.message,
+        'success',
+      );
       await loadDashboard();
     } catch (error) {
       showMessage(error.message);
@@ -447,6 +461,10 @@
   const copyApplicationToken = async (id) => {
     const application = state.applications.find((item) => Number(item.id) === Number(id));
     if (!application) return;
+    if (!application.token_copy_available) {
+      await rotateApplication(id);
+      return;
+    }
 
     try {
       const response = await request('reveal', {

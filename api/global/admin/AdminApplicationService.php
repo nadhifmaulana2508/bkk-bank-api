@@ -54,7 +54,7 @@ final class AdminApplicationService
                 'expires_at' => $expiresAt,
             ]);
             $id = (int) $pdo->lastInsertId();
-            AppTokenVault::store($id, $appCode, $rawToken);
+            $tokenSaved = self::storeTokenForCopy($id, $appCode, $rawToken);
             AdminAuditLogger::record($pdo, 'application.created', $id, ['app_code' => $appCode]);
             $pdo->commit();
         } catch (PDOException $exception) {
@@ -75,6 +75,7 @@ final class AdminApplicationService
         return [
             'application' => self::find($id),
             'token' => $rawToken,
+            'token_saved' => $tokenSaved,
         ];
     }
 
@@ -134,7 +135,7 @@ final class AdminApplicationService
                 'token_hash' => hash('sha256', $rawToken),
                 'id' => $id,
             ]);
-            AppTokenVault::store($id, (string) $current['app_code'], $rawToken);
+            $tokenSaved = self::storeTokenForCopy($id, (string) $current['app_code'], $rawToken);
             AdminAuditLogger::record($pdo, 'application.token_rotated', $id, [
                 'app_code' => $current['app_code'],
             ]);
@@ -149,6 +150,7 @@ final class AdminApplicationService
         return [
             'application' => self::find($id),
             'token' => $rawToken,
+            'token_saved' => $tokenSaved,
         ];
     }
 
@@ -362,6 +364,17 @@ final class AdminApplicationService
         }
 
         return $pdo;
+    }
+
+    private static function storeTokenForCopy(int $id, string $appCode, string $rawToken): bool
+    {
+        try {
+            AppTokenVault::store($id, $appCode, $rawToken);
+            return true;
+        } catch (Throwable $exception) {
+            error_log('[API] App-token vault unavailable; token will be shown once: ' . $exception->getMessage());
+            return false;
+        }
     }
 
     private static function id($value): int

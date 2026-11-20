@@ -428,7 +428,8 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
                 </div>
                 <button class="icon-button" id="close-token" type="button" aria-label="Tutup dialog">×</button>
             </div>
-            <p class="lede">Satu token ini dipakai untuk seluruh endpoint yang diizinkan bagi aplikasi ini. Admin registry dapat menyalinnya kembali dari tabel aplikasi.</p>
+            <p class="lede">Satu token ini dipakai untuk seluruh endpoint yang diizinkan bagi aplikasi ini. Salin dan simpan di secret manager aplikasi pemanggil.</p>
+            <p class="field-help" id="token-storage-note" role="status"></p>
             <div class="credential-meta">
                 <div>
                     <span>Aplikasi</span>
