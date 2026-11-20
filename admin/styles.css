@@ -219,7 +219,7 @@ h2 { margin-bottom: 4px; font-size: 16px; letter-spacing: -0.02em; }
 .status-active { border-color: #86efac; background: var(--success-bg); color: var(--success); }
 .status-inactive { border-color: #fca5a5; background: var(--danger-bg); color: var(--danger); }
 .status-expired { border-color: #fde047; background: var(--warning-bg); color: var(--warning); }
-.row-actions { min-width: 92px; text-align: right; white-space: nowrap; }
+.row-actions { min-width: 132px; text-align: right; white-space: nowrap; }
 .table-action { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; margin-left: 3px; padding: 0; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: #1d4ed8; }
 .table-action:hover, .table-action:focus-visible { border-color: var(--border); background: var(--surface-subtle); }
 .table-action svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }

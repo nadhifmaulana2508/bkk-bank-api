@@ -36,6 +36,13 @@ final class AdminController
         self::respond(static fn(): array => AdminApplicationService::rotateToken((int) $id), 'Token aplikasi berhasil dirotasi. Simpan token yang ditampilkan sekarang.');
     }
 
+    public static function revealToken(): void
+    {
+        $payload = jsonRequestBody();
+        $id = $payload['id'] ?? null;
+        self::respond(static fn(): array => AdminApplicationService::revealToken((int) $id), 'Token aplikasi siap disalin.');
+    }
+
     public static function users(): void
     {
         self::respond(static fn(): array => AdminUserService::dashboard());
@@ -78,6 +85,10 @@ final class AdminController
             sendResponse(200, $successMessage, $operation());
         } catch (InvalidArgumentException $exception) {
             sendResponse(422, $exception->getMessage());
+        } catch (AppTokenVaultConfigurationException $exception) {
+            sendResponse(503, 'Atur APP_TOKEN_ENCRYPTION_KEY di konfigurasi server sebelum membuat atau merotasi token.');
+        } catch (AppTokenVaultUnavailableException $exception) {
+            sendResponse(503, 'Database vault di db_bank_api tidak tersedia. Periksa koneksi dan migration 007.');
         } catch (PDOException $exception) {
             error_log('[API] Admin database error: ' . $exception->getMessage());
             sendResponse(503, 'Layanan admin sedang tidak tersedia.');

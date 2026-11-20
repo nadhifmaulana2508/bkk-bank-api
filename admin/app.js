@@ -8,6 +8,7 @@
   const $ = (selector) => document.querySelector(selector);
   const actionIcons = {
     edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-.8 4.8L8 20l11.5-11.5a2.1 2.1 0 0 0-3-3L5 17zM14.5 7.5l2 2"/></svg>',
+    copy: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>',
     rotate: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.8-3L3 11M3 5v6h6M4 13a8 8 0 0 0 14.8 3L21 13m0 6v-6h-6"/></svg>',
   };
 
@@ -90,6 +91,7 @@
       if (action === 'create') return 'api/applications';
       if (action === 'update') return 'api/applications/update';
       if (action === 'rotate') return 'api/applications/rotate';
+      if (action === 'reveal') return 'api/applications/reveal';
       if (action === 'user-create') return 'api/users/create';
       if (action === 'user-update') return 'api/users/update';
       return `api/${encodeURIComponent(action)}`;
@@ -170,6 +172,7 @@
         <td>${escapeHtml(formatDate(application.last_used_at))}</td>
         <td class="row-actions">${canManage ? `
           <button class="table-action" data-action="edit" data-id="${escapeHtml(application.id)}" type="button" title="Edit aplikasi" aria-label="Edit aplikasi">${actionIcons.edit}</button>
+          <button class="table-action" data-action="copy-token" data-id="${escapeHtml(application.id)}" type="button" title="${application.token_copy_available ? 'Salin token' : 'Token lama tersedia setelah aplikasi mengirim request valid'}" aria-label="Salin token">${actionIcons.copy}</button>
           <button class="table-action" data-action="rotate" data-id="${escapeHtml(application.id)}" type="button" title="Rotasi token" aria-label="Rotasi token">${actionIcons.rotate}</button>
         ` : '<span class="field-help">Read only</span>'}</td>
       </tr>
@@ -438,6 +441,24 @@
       await loadDashboard();
     } catch (error) {
       showMessage(error.message);
+    }
+  };
+
+  const copyApplicationToken = async (id) => {
+    const application = state.applications.find((item) => Number(item.id) === Number(id));
+    if (!application) return;
+
+    try {
+      const response = await request('reveal', {
+        method: 'POST',
+        body: JSON.stringify({ id: Number(id) }),
+      });
+      const token = String(response.data?.token || '');
+      if (!token) throw new Error('Server tidak mengembalikan token.');
+      await copyText(token);
+      showMessage(`Token ${application.app_code} tersalin.`, 'success');
+    } catch (error) {
+      showMessage(error.message || 'Token tidak dapat disalin.');
     }
   };
 
@@ -756,6 +777,7 @@
     if (!button) return;
     const application = state.applications.find((item) => Number(item.id) === Number(button.dataset.id));
     if (button.dataset.action === 'edit') openApplicationDialog(application);
+    if (button.dataset.action === 'copy-token') copyApplicationToken(button.dataset.id);
     if (button.dataset.action === 'rotate') rotateApplication(button.dataset.id);
   });
 

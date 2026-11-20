@@ -7,6 +7,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require_once dirname(__DIR__) . '/config/db.php';
+require_once dirname(__DIR__) . '/api/global/auth/AppTokenVault.php';
 
 $arguments = [];
 foreach (array_slice($argv, 1) as $argument) {
@@ -35,6 +36,7 @@ $tokenHash = hash('sha256', $rawToken);
 
 try {
     /** @var PDO $pdo */
+    $pdo->beginTransaction();
     $statement = $pdo->prepare(
         'INSERT INTO api_applications (app_code, app_name, token_hash)
          VALUES (:app_code, :app_name, :token_hash)'
@@ -44,11 +46,16 @@ try {
         'app_name' => $appName,
         'token_hash' => $tokenHash,
     ]);
+    AppTokenVault::store((int) $pdo->lastInsertId(), $appCode, $rawToken);
+    $pdo->commit();
 } catch (Throwable $exception) {
+    if ($pdo instanceof PDO && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     fwrite(STDERR, "Gagal mendaftarkan aplikasi: {$exception->getMessage()}\n");
     exit(1);
 }
 
-fwrite(STDOUT, "Aplikasi berhasil didaftarkan. Simpan token ini sekarang; token tidak ditampilkan ulang.\n");
+fwrite(STDOUT, "Aplikasi berhasil didaftarkan. Token juga dapat disalin dari Registry admin.\n");
 fwrite(STDOUT, "App: {$appCode}\n");
 fwrite(STDOUT, "X-App-Token: {$rawToken}\n");

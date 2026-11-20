@@ -124,7 +124,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Control plane internal untuk registry aplikasi dan audit penggunaan SSO BKK">
     <title>SSO Control Plane</title>
-    <link rel="stylesheet" href="styles.css?v=20261119-1">
+    <link rel="stylesheet" href="styles.css?v=20261120-1">
 </head>
 <body class="page-mode-<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>" data-authenticated="<?= $authenticated ? 'true' : 'false' ?>" data-page="<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>" data-can-manage="<?= $can('registry.manage') ? 'true' : 'false' ?>">
 <a class="skip-link" href="#main-content">Lewati ke konten</a>
@@ -223,7 +223,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                 <div class="panel-heading panel-heading-with-toolbar">
                     <div>
                         <h2>Registry aplikasi</h2>
-                        <p class="panel-description">Token hanya bisa disalin saat baru dibuat atau dirotasi. Jika hilang, token lama tidak dapat dipulihkan.</p>
+                        <p class="panel-description">Salin token dari ikon tiap aplikasi. Token lama masuk vault otomatis setelah APP_TOKEN_ENCRYPTION_KEY disetel dan aplikasi mengirim request valid.</p>
                     </div>
                     <div class="panel-toolbar">
                         <label class="search-field" for="application-search">
@@ -428,7 +428,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
                 </div>
                 <button class="icon-button" id="close-token" type="button" aria-label="Tutup dialog">×</button>
             </div>
-            <p class="lede">Satu token ini dipakai untuk seluruh endpoint yang diizinkan bagi aplikasi ini. Token mentah tidak akan bisa dilihat lagi setelah dialog ditutup.</p>
+            <p class="lede">Satu token ini dipakai untuk seluruh endpoint yang diizinkan bagi aplikasi ini. Admin registry dapat menyalinnya kembali dari tabel aplikasi.</p>
             <div class="credential-meta">
                 <div>
                     <span>Aplikasi</span>
@@ -551,7 +551,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
     </dialog>
 <?php endif; ?>
 
-<script src="app.js?v=20261119-1" defer></script>
+<script src="app.js?v=20261120-1" defer></script>
 <script src="theme.js" defer></script>
 </body>
 </html>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__, 3) . '/config/env.php';
 require_once dirname(__DIR__, 3) . '/helpers/response.php';
 require_once dirname(__DIR__) . '/audit/AppRequestLogger.php';
+require_once __DIR__ . '/AppTokenVault.php';
 
 final class AppTokenAuthenticator
 {
@@ -24,14 +25,20 @@ final class AppTokenAuthenticator
     /**
      * Validate the calling application and return its public context.
      *
-     * The raw token is never stored. Only a SHA-256 digest is compared with
-     * the digest stored in api_applications.
+     * A SHA-256 digest is used for validation. A separate encrypted copy can
+     * be stored in the token vault for authorized registry copy actions.
      *
      * @return array<string, mixed>|null
      */
     public static function application(): ?array
     {
-        if (!self::isRequired()) {
+        $required = self::isRequired();
+        if (!$required) {
+            $appCode = self::header('App') ?? self::header('X-App-Name');
+            $rawToken = self::header('X-App-Token');
+            if ($appCode !== null && $rawToken !== null) {
+                self::tryStoreOptionalToken($appCode, $rawToken);
+            }
             return null;
         }
 
@@ -86,6 +93,18 @@ final class AppTokenAuthenticator
                 sendResponse(403, 'Token aplikasi tidak valid atau tidak aktif.');
             }
 
+            if (AppTokenVault::isConfigured()) {
+                try {
+                    AppTokenVault::storeIfMissing(
+                        (int) $application['id'],
+                        (string) $application['app_code'],
+                        $rawToken
+                    );
+                } catch (Throwable $exception) {
+                    error_log('[API] App-token vault enrollment failed: ' . $exception->getMessage());
+                }
+            }
+
             $update = $pdo->prepare(
                 'UPDATE api_applications SET last_used_at = NOW() WHERE id = :id'
             );
@@ -130,6 +149,53 @@ final class AppTokenAuthenticator
         $timestamp = strtotime((string) $expiresAt);
 
         return $timestamp === false || $timestamp <= time();
+    }
+
+    private static function tryStoreOptionalToken(string $appCode, string $rawToken): void
+    {
+        $appCode = strtolower(trim($appCode));
+        $rawToken = trim($rawToken);
+        if (
+            !AppTokenVault::isConfigured()
+            || !preg_match('/^[a-z0-9][a-z0-9._-]{0,49}$/', $appCode)
+            || strlen($rawToken) < 8
+            || strlen($rawToken) > 255
+        ) {
+            return;
+        }
+
+        try {
+            global $pdo;
+            require_once dirname(__DIR__, 3) . '/config/db.php';
+            if (!$pdo instanceof PDO) {
+                return;
+            }
+
+            $statement = $pdo->prepare(
+                'SELECT id, token_hash, is_active, expires_at
+                 FROM api_applications
+                 WHERE app_code = :app_code
+                 LIMIT 1'
+            );
+            $statement->execute(['app_code' => $appCode]);
+            $application = $statement->fetch();
+            if (
+                !is_array($application)
+                || (int) ($application['is_active'] ?? 0) !== 1
+                || !hash_equals((string) ($application['token_hash'] ?? ''), hash('sha256', $rawToken))
+                || self::isExpired($application['expires_at'] ?? null)
+            ) {
+                return;
+            }
+
+            AppTokenVault::storeIfMissing(
+                (int) $application['id'],
+                (string) $application['app_code'],
+                $rawToken
+            );
+        } catch (Throwable $exception) {
+            error_log('[API] Optional app-token vault enrollment failed: ' . $exception->getMessage());
+        }
     }
 
     private static function header(string $name): ?string

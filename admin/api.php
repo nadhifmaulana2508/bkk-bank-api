@@ -120,6 +120,10 @@ switch ($action) {
         AdminSession::requirePermission('registry.manage');
         AdminController::rotate();
         break;
+    case 'reveal':
+        AdminSession::requirePermission('registry.manage');
+        AdminController::revealToken();
+        break;
     case 'user-create':
         AdminSession::requirePermission('users.manage');
         AdminController::createUser();

@@ -41,10 +41,11 @@ menu dapat dicentang per user dari menu **RBAC**.
 
 - melihat aplikasi terdaftar, status, masa berlaku, hit 7 hari, dan hit terakhir;
 - membuat aplikasi baru dengan token random 256-bit;
+- menyalin token aplikasi dari registry tanpa rotasi;
 - memperpanjang atau mengubah status tanpa menghapus riwayat hit;
 - merotasi token sehingga token lama langsung tidak berlaku;
 - melihat hit terbaru dan rekap hit 14 hari terakhir;
-- mencatat aksi admin create, update, dan rotate tanpa menyimpan token mentah.
+- mencatat aksi admin create, update, rotate, dan reveal tanpa menyimpan token mentah di audit log.
 - membuat atau menonaktifkan user web serta mengatur permission per menu;
 - memilih pegawai internal dari pencarian direktori berdasarkan nama atau `id_peg`,
   atau membuat user eksternal dengan form manual;
@@ -53,9 +54,14 @@ menu dapat dicentang per user dari menu **RBAC**.
 - membuka dokumentasi API Global, Simontok, dan Monbis memakai session admin yang sama.
 - mengunduh semua dokumen Markdown repository dalam satu file untuk implementasi dan referensi.
 
-Token baru hanya dikirim pada response create/rotate dan hanya ditampilkan pada
-dialog one-time. Simpan di secret manager; dashboard tidak dapat mengambil token
-itu kembali.
+Token divalidasi memakai hash SHA-256. Salinan terenkripsi di tabel
+`api_application_token_vault` dapat dibuka oleh admin berizin. Token aplikasi
+lama masuk ke vault otomatis setelah aplikasi mengirim request valid pertama
+sesudah migration dan `APP_TOKEN_ENCRYPTION_KEY` disiapkan. Proses ini tidak
+merotasi token.
+
+Generate key dengan PHP CLI lalu simpan hasilnya sebagai `APP_TOKEN_ENCRYPTION_KEY`
+di secret environment server. Jangan simpan key di repository atau database.
 
 ## Migration
 
@@ -68,7 +74,13 @@ database/migrations/003_create_api_admin_audit_logs.sql
 database/migrations/004_create_user_sso_rbac.sql
 database/migrations/005_add_admin_actor_to_audit_logs.sql
 database/migrations/006_add_employee_id_to_user_sso.sql
+database/migrations/007_create_api_application_token_vault.sql
 ```
+
+Jalankan migration `001`–`006` pada database registry SSO. Jalankan migration
+`007` pada database Bank API yang ditunjuk `BANK_API_DB_NAME` (default:
+`db_bank_api`). Vault memakai `APP_ENV` dan `DB_NAME` sebagai namespace agar
+token development dan production tidak tertukar jika database Bank API sama.
 
 Buat user pertama melalui PHP CLI:
 

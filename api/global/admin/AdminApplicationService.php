@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 3) . '/config/db.php';
 require_once __DIR__ . '/AdminAuditLogger.php';
+require_once dirname(__DIR__) . '/auth/AppTokenVault.php';
 
 final class AdminApplicationService
 {
@@ -38,6 +39,7 @@ final class AdminApplicationService
         $expiresAt = self::expiry($payload['expires_at'] ?? null);
         $rawToken = 'app_' . bin2hex(random_bytes(32));
 
+        $pdo->beginTransaction();
         try {
             $statement = $pdo->prepare(
                 'INSERT INTO api_applications
@@ -51,15 +53,24 @@ final class AdminApplicationService
                 'token_hash' => hash('sha256', $rawToken),
                 'expires_at' => $expiresAt,
             ]);
+            $id = (int) $pdo->lastInsertId();
+            AppTokenVault::store($id, $appCode, $rawToken);
+            AdminAuditLogger::record($pdo, 'application.created', $id, ['app_code' => $appCode]);
+            $pdo->commit();
         } catch (PDOException $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             if ((string) ($exception->errorInfo[1] ?? '') === '1062') {
                 throw new InvalidArgumentException('Kode aplikasi sudah terdaftar.');
             }
             throw $exception;
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $exception;
         }
-
-        $id = (int) $pdo->lastInsertId();
-        AdminAuditLogger::record($pdo, 'application.created', $id, ['app_code' => $appCode]);
 
         return [
             'application' => self::find($id),
@@ -114,22 +125,55 @@ final class AdminApplicationService
         $current = self::find($id);
         $rawToken = 'app_' . bin2hex(random_bytes(32));
 
-        $statement = $pdo->prepare(
-            'UPDATE api_applications SET token_hash = :token_hash, is_active = 1 WHERE id = :id'
-        );
-        $statement->execute([
-            'token_hash' => hash('sha256', $rawToken),
-            'id' => $id,
-        ]);
-
-        AdminAuditLogger::record($pdo, 'application.token_rotated', $id, [
-            'app_code' => $current['app_code'],
-        ]);
+        $pdo->beginTransaction();
+        try {
+            $statement = $pdo->prepare(
+                'UPDATE api_applications SET token_hash = :token_hash, is_active = 1 WHERE id = :id'
+            );
+            $statement->execute([
+                'token_hash' => hash('sha256', $rawToken),
+                'id' => $id,
+            ]);
+            AppTokenVault::store($id, (string) $current['app_code'], $rawToken);
+            AdminAuditLogger::record($pdo, 'application.token_rotated', $id, [
+                'app_code' => $current['app_code'],
+            ]);
+            $pdo->commit();
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $exception;
+        }
 
         return [
             'application' => self::find($id),
             'token' => $rawToken,
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function revealToken(int $id): array
+    {
+        $pdo = self::pdo();
+        $application = self::find($id);
+        $hashStatement = $pdo->prepare('SELECT token_hash FROM api_applications WHERE id = :id LIMIT 1');
+        $hashStatement->execute(['id' => $id]);
+        $expectedHash = (string) $hashStatement->fetchColumn();
+        $token = AppTokenVault::reveal($id, (string) $application['app_code'], $expectedHash);
+        if ($token === null) {
+            throw new InvalidArgumentException(
+                'Token belum tersimpan di vault. Pastikan APP_TOKEN_ENCRYPTION_KEY sudah diatur dan aplikasi mengirim satu request valid; tidak perlu rotasi.'
+            );
+        }
+
+        AdminAuditLogger::record($pdo, 'application.token_revealed', $id, [
+            'app_code' => $application['app_code'],
+        ]);
+
+        return ['application' => $application, 'token' => $token];
     }
 
     /**
@@ -204,8 +248,16 @@ final class AdminApplicationService
              ORDER BY a.app_code ASC'
         );
 
+        try {
+            $vaultIds = AppTokenVault::availableApplicationIds();
+        } catch (Throwable $exception) {
+            error_log('[API] Token vault status unavailable: ' . $exception->getMessage());
+            $vaultIds = [];
+        }
+
         $applications = [];
         foreach ($statement as $row) {
+            $row['token_copy_available'] = isset($vaultIds[(int) $row['id']]);
             $applications[] = self::serialize($row);
         }
 
@@ -266,6 +318,13 @@ final class AdminApplicationService
             throw new InvalidArgumentException('Aplikasi tidak ditemukan.');
         }
 
+        try {
+            $row['token_copy_available'] = AppTokenVault::has((int) $row['id'], (string) $row['app_code']);
+        } catch (Throwable $exception) {
+            error_log('[API] Token vault status unavailable: ' . $exception->getMessage());
+            $row['token_copy_available'] = false;
+        }
+
         return self::serialize($row);
     }
 
@@ -288,6 +347,7 @@ final class AdminApplicationService
             'expires_at' => $expiresAt,
             'last_used_at' => $row['last_used_at'] !== null ? (string) $row['last_used_at'] : null,
             'created_at' => (string) $row['created_at'],
+            'token_copy_available' => (bool) ($row['token_copy_available'] ?? false),
             'total_hits' => (int) ($row['total_hits'] ?? 0),
             'hits_7d' => (int) ($row['hits_7d'] ?? 0),
         ];

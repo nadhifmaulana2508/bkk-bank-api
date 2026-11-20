@@ -24,14 +24,18 @@ harus sama dengan claim `app` di JWT tersebut.
 
 ## Menyiapkan tabel
 
-Jalankan migration berikut pada database API:
+Jalankan migration registry pada database SSO, lalu migration vault pada
+database Bank API (`BANK_API_DB_NAME`, default `db_bank_api`):
 
 ```text
 database/migrations/001_create_api_applications.sql
+database/migrations/007_create_api_application_token_vault.sql
 ```
 
-Migration ini hanya membuat tabel registry aplikasi. Token mentah tidak pernah
-disimpan; database hanya menyimpan hash SHA-256.
+Migration registry menyimpan hash SHA-256 untuk validasi. Migration vault
+menambahkan salinan token terenkripsi agar admin berizin dapat menyalinnya
+kembali. Token aplikasi lama otomatis dimasukkan ke vault setelah request valid
+berikutnya, jika `APP_TOKEN_ENCRYPTION_KEY` sudah dikonfigurasi.
 
 Token manual minimal 8 karakter dapat dipakai untuk kompatibilitas development,
 tetapi token hasil generator lebih aman karena memiliki entropy yang lebih tinggi.
@@ -48,8 +52,9 @@ login admin:
 Klik **Tambah aplikasi**, isi kode `monbis` dan nama `MONBIS`, lalu simpan.
 Dialog setelah penyimpanan menyediakan tiga opsi salin. Pilih **Salin untuk
 developer** untuk menyalin konfigurasi `.env` dan header request sekaligus.
-Token mentah hanya tampil pada dialog create atau rotate; setelah dialog
-ditutup, token tidak dapat dibaca ulang dari database.
+Token mentah tersedia pada dialog create/rotate dan dapat disalin kapan saja
+dari ikon salin di tabel Registry. Token disimpan di vault dalam bentuk
+terenkripsi; audit log tidak menyimpan nilainya.
 
 Dari root project, jalankan melalui PHP CLI:
 

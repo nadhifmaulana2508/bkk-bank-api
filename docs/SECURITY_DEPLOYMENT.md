@@ -12,9 +12,17 @@ APP_ENV_FILE=C:/secure/rest_api_sso.env
 SSO_JWT_SECRET=isi-random-minimal-32-karakter
 CORS_ALLOWED_ORIGINS=https://aplikasi-resmi.example
 APP_TOKEN_REQUIRED=true
+APP_TOKEN_ENCRYPTION_KEY=<base64-key-32-byte-acak>
 ```
 
 `SSO_JWT_SECRET` wajib berbeda dari secret development. Jika secret JWT tidak ada, server production akan menolak proses autentikasi. File `.env` lokal tetap diblokir Apache, tetapi praktik yang lebih aman adalah tidak menyimpannya di folder publik.
+
+`APP_TOKEN_ENCRYPTION_KEY` dipakai untuk mengenkripsi token registry di database
+Bank API (`BANK_API_DB_NAME`, default `db_bank_api`) agar admin berizin dapat
+menyalinnya. Generate dengan `php -r "echo base64_encode(random_bytes(32)), PHP_EOL;"`,
+simpan hanya di environment/secret manager server, dan simpan backup secara
+aman. Jangan mengganti atau menghilangkan key tersebut; hash token tetap dapat
+memvalidasi request, tetapi salinan di vault tidak dapat dibuka tanpa key yang sama.
 
 ## Proteksi yang aktif
 
@@ -24,7 +32,7 @@ APP_TOKEN_REQUIRED=true
 - PDO memakai prepared statement dan emulated prepares dimatikan.
 - Error database dan SMTP dicatat ke log server, bukan dikirim bersama detail internal ke client.
 - JWT memvalidasi signature HS256, format Base64URL, expiry, `nbf`, dan tipe token akses. Token OTP/reset tidak dapat dipakai sebagai Bearer token.
-- App token global divalidasi terhadap registry `api_applications`; database hanya menyimpan hash token.
+- App token global divalidasi memakai hash di `api_applications`; vault menyimpan salinan terenkripsi yang hanya dapat dibuka admin berizin.
 - Control plane memakai akun `user_sso`, permission per menu, cookie HttpOnly/SameSite, timeout, CSRF token, serta pembatasan percobaan login berbasis IP di database.
 - Audit hit tidak merekam query string, request body, JWT, atau token aplikasi.
 - Dokumentasi interaktif dan `swagger.json` hanya disajikan melalui session admin yang memiliki permission docs terkait.
@@ -70,7 +78,7 @@ rewrite ^/admin/api/users/?$ /admin/api.php?action=users last;
 rewrite ^/admin/api/users/(create|update)/?$ /admin/api.php?action=user-$1 last;
 rewrite ^/admin/api/employee-search/(.+)/?$ /admin/api.php?action=employee-search&q=$1 last;
 rewrite ^/admin/api/applications/?$ /admin/api.php?action=create last;
-rewrite ^/admin/api/applications/(update|rotate)/?$ /admin/api.php?action=$1 last;
+rewrite ^/admin/api/applications/(update|rotate|reveal)/?$ /admin/api.php?action=$1 last;
 rewrite ^/docs/(global|simpeg|simontok|monbis)/?$ /docs/index.php?group=$1 last;
 rewrite ^/docs/openapi/(global|simpeg|simontok|monbis)/?$ /docs/openapi.php?group=$1 last;
 ```
