@@ -552,7 +552,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
     </dialog>
 <?php endif; ?>
 
-<script src="app.js?v=20261120-1" defer></script>
+<script src="app.js?v=20261120-2" defer></script>
 <script src="theme.js" defer></script>
 </body>
 </html>
