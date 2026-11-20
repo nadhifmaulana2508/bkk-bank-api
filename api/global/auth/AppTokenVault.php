@@ -16,6 +16,8 @@ final class AppTokenVault
     private const CIPHER = 'aes-256-gcm';
     private const NONCE_BYTES = 12;
     private const TAG_BYTES = 16;
+    private const KEY_BYTES = 32;
+    private const KEY_CONTEXT = 'bank-api-app-token-vault-v1';
 
     public static function isConfigured(): bool
     {
@@ -176,14 +178,96 @@ final class AppTokenVault
     private static function encryptionKey(): string
     {
         $encodedKey = trim((string) app_env_value('APP_TOKEN_ENCRYPTION_KEY', ''));
-        $key = $encodedKey !== '' ? base64_decode($encodedKey, true) : false;
-        if (!is_string($key) || strlen($key) !== 32) {
+        if ($encodedKey !== '') {
+            $key = base64_decode($encodedKey, true);
+            if (is_string($key) && strlen($key) === self::KEY_BYTES) {
+                return $key;
+            }
+
             throw new AppTokenVaultConfigurationException(
                 'APP_TOKEN_ENCRYPTION_KEY harus berupa Base64 dari 32 byte acak.'
             );
         }
 
-        return $key;
+        $environment = strtolower(trim((string) app_env_value('APP_ENV', 'local')));
+        $localKeyPath = dirname(__DIR__, 3) . '/storage/app-token-encryption.key';
+        if (in_array($environment, ['local', 'development'], true) && is_file($localKeyPath)) {
+            return self::localDevelopmentKey();
+        }
+
+        $rootSecret = trim((string) app_env_value('SSO_JWT_SECRET', ''));
+        $lowerRootSecret = strtolower($rootSecret);
+        if (
+            strlen($rootSecret) >= self::KEY_BYTES
+            && $rootSecret !== 'SSO_BKK_SECRET_2026'
+            && !str_contains($lowerRootSecret, 'ganti-dengan')
+            && !str_contains($lowerRootSecret, 'isi-random')
+        ) {
+            return hash_hkdf('sha256', $rootSecret, self::KEY_BYTES, self::KEY_CONTEXT, 'bkk-sso');
+        }
+
+        if (in_array($environment, ['local', 'development'], true)) {
+            return self::localDevelopmentKey();
+        }
+
+        throw new AppTokenVaultConfigurationException(
+            'Atur APP_TOKEN_ENCRYPTION_KEY atau SSO_JWT_SECRET acak minimal 32 karakter.'
+        );
+    }
+
+    private static function localDevelopmentKey(): string
+    {
+        $storage = dirname(__DIR__, 3) . '/storage';
+        if (!is_dir($storage) && !@mkdir($storage, 0700, true) && !is_dir($storage)) {
+            throw new AppTokenVaultConfigurationException('Folder storage lokal tidak dapat dibuat untuk key vault.');
+        }
+
+        $keyPath = $storage . '/app-token-encryption.key';
+        $lock = @fopen($keyPath . '.lock', 'c+b');
+        if (!is_resource($lock)) {
+            throw new AppTokenVaultConfigurationException('Key vault lokal tidak dapat dikunci untuk dibuat.');
+        }
+        if (!flock($lock, LOCK_EX)) {
+            fclose($lock);
+            throw new AppTokenVaultConfigurationException('Key vault lokal tidak dapat dikunci untuk dibuat.');
+        }
+
+        try {
+            if (is_file($keyPath)) {
+                $encodedKey = trim((string) @file_get_contents($keyPath));
+                $key = base64_decode($encodedKey, true);
+                if (is_string($key) && strlen($key) === self::KEY_BYTES) {
+                    return $key;
+                }
+
+                throw new AppTokenVaultConfigurationException('File key vault lokal rusak atau tidak valid.');
+            }
+
+            $encodedKey = base64_encode(random_bytes(self::KEY_BYTES));
+            $keyFile = @fopen($keyPath, 'xb');
+            if (!is_resource($keyFile)) {
+                throw new AppTokenVaultConfigurationException('File key vault lokal tidak dapat dibuat.');
+            }
+            try {
+                if (fwrite($keyFile, $encodedKey) !== strlen($encodedKey) || !fflush($keyFile)) {
+                    @unlink($keyPath);
+                    throw new AppTokenVaultConfigurationException('File key vault lokal gagal disimpan.');
+                }
+            } finally {
+                fclose($keyFile);
+            }
+            @chmod($keyPath, 0600);
+
+            $key = base64_decode($encodedKey, true);
+            if (!is_string($key) || strlen($key) !== self::KEY_BYTES) {
+                throw new AppTokenVaultConfigurationException('Key vault lokal gagal diverifikasi.');
+            }
+
+            return $key;
+        } finally {
+            flock($lock, LOCK_UN);
+            fclose($lock);
+        }
     }
 
     private static function associatedData(int $applicationId, string $appCode): string

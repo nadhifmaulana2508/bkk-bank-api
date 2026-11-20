@@ -67,8 +67,14 @@ vault tetap hanya mencoba menyalin dan menampilkan alasan jika salinan belum
 tersedia. Rotasi selalu dilakukan lewat aksi rotasi terpisah setelah konfirmasi;
 token lama langsung tidak berlaku setelah rotasi berhasil.
 
-Generate key dengan PHP CLI lalu simpan hasilnya sebagai `APP_TOKEN_ENCRYPTION_KEY`
-di secret environment server. Jangan simpan key di repository atau database.
+`APP_TOKEN_ENCRYPTION_KEY` dapat diisi dengan Base64 32-byte key untuk memakai
+kunci khusus. Jika kosong, vault menurunkan kunci terpisah memakai HKDF dari
+`SSO_JWT_SECRET` yang acak dan minimal 32 karakter. Pada `APP_ENV=local` atau
+`development`, bila secret kuat belum tersedia, aplikasi membuat key lokal di
+`storage/app-token-encryption.key`; pertahankan file itu agar vault lokal tetap
+bisa dibuka. Jangan simpan key di repository atau database. Jika memakai HKDF
+fallback, perubahan `SSO_JWT_SECRET` memerlukan re-enkripsi vault sebelum key
+diganti.
 
 ## Migration
 

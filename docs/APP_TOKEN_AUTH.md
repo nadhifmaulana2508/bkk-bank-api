@@ -35,7 +35,9 @@ database/migrations/007_create_api_application_token_vault.sql
 Migration registry menyimpan hash SHA-256 untuk validasi. Migration vault
 menambahkan salinan token terenkripsi agar admin berizin dapat menyalinnya
 kembali. Token aplikasi lama otomatis dimasukkan ke vault setelah request valid
-berikutnya, jika `APP_TOKEN_ENCRYPTION_KEY` sudah dikonfigurasi.
+berikutnya, jika `APP_TOKEN_ENCRYPTION_KEY` atau `SSO_JWT_SECRET` acak minimal
+32 karakter tersedia. Pada development lokal tanpa keduanya, key disimpan di
+`storage/app-token-encryption.key` dan harus dipertahankan.
 
 Token manual minimal 8 karakter dapat dipakai untuk kompatibilitas development,
 tetapi token hasil generator lebih aman karena memiliki entropy yang lebih tinggi.

@@ -86,7 +86,7 @@ final class AdminController
         } catch (InvalidArgumentException $exception) {
             sendResponse(422, $exception->getMessage());
         } catch (AppTokenVaultConfigurationException $exception) {
-            sendResponse(503, 'Atur APP_TOKEN_ENCRYPTION_KEY di konfigurasi server sebelum membuat atau merotasi token.');
+            sendResponse(503, 'Atur APP_TOKEN_ENCRYPTION_KEY atau SSO_JWT_SECRET yang kuat pada konfigurasi server sebelum membuat atau merotasi token.');
         } catch (AppTokenVaultUnavailableException $exception) {
             sendResponse(503, 'Database vault di db_bank_api tidak tersedia. Periksa koneksi dan migration 007.');
         } catch (PDOException $exception) {
