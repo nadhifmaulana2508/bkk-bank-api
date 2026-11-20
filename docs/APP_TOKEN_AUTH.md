@@ -53,10 +53,10 @@ Klik **Tambah aplikasi**, isi kode `monbis` dan nama `MONBIS`, lalu simpan.
 Dialog setelah penyimpanan menyediakan tiga opsi salin. Pilih **Salin untuk
 developer** untuk menyalin konfigurasi `.env` dan header request sekaligus.
 Token mentah tersedia pada dialog create/rotate. Jika salinan terenkripsi ada
-di vault, ikon Registry dapat menyalinnya tanpa rotasi. Jika belum ada, ikon
-tersebut meminta konfirmasi rotasi lalu menampilkan token baru satu kali; salin
-sebelum dialog ditutup dan perbarui aplikasi pemanggil. Audit log tidak
-menyimpan nilai token.
+di vault, ikon Registry menyalinnya tanpa rotasi. Jika belum ada, ikon tetap
+hanya mencoba menyalin dan menampilkan alasan token belum tersedia. Rotasi
+dilakukan lewat ikon rotasi terpisah setelah konfirmasi; token baru tampil satu
+kali jika vault belum siap. Audit log tidak menyimpan nilai token.
 
 Dari root project, jalankan melalui PHP CLI:
 

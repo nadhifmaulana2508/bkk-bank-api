@@ -42,7 +42,6 @@ menu dapat dicentang per user dari menu **RBAC**.
 - melihat aplikasi terdaftar, status, masa berlaku, hit 7 hari, dan hit terakhir;
 - membuat aplikasi baru dengan token random 256-bit;
 - menyalin token aplikasi dari registry tanpa rotasi jika salinan vault tersedia;
-- membuat token pengganti dari ikon salin setelah konfirmasi jika token lama belum tersimpan;
 - memperpanjang atau mengubah status tanpa menghapus riwayat hit;
 - merotasi token sehingga token lama langsung tidak berlaku;
 - melihat hit terbaru dan rekap hit 14 hari terakhir;
@@ -64,8 +63,9 @@ merotasi token.
 Jika vault belum siap saat aplikasi dibuat atau token dirotasi, registry tetap
 berhasil menyimpan hash dan dialog menampilkan token mentah satu kali. Salin
 token sebelum dialog ditutup. Ikon salin pada aplikasi yang belum punya salinan
-vault meminta konfirmasi rotasi; token lama langsung tidak berlaku setelah
-rotasi berhasil.
+vault tetap hanya mencoba menyalin dan menampilkan alasan jika salinan belum
+tersedia. Rotasi selalu dilakukan lewat aksi rotasi terpisah setelah konfirmasi;
+token lama langsung tidak berlaku setelah rotasi berhasil.
 
 Generate key dengan PHP CLI lalu simpan hasilnya sebagai `APP_TOKEN_ENCRYPTION_KEY`
 di secret environment server. Jangan simpan key di repository atau database.

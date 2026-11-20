@@ -172,7 +172,7 @@
         <td>${escapeHtml(formatDate(application.last_used_at))}</td>
         <td class="row-actions">${canManage ? `
           <button class="table-action" data-action="edit" data-id="${escapeHtml(application.id)}" type="button" title="Edit aplikasi" aria-label="Edit aplikasi">${actionIcons.edit}</button>
-          <button class="table-action" data-action="copy-token" data-id="${escapeHtml(application.id)}" type="button" title="${application.token_copy_available ? 'Salin token' : 'Token belum tersimpan; klik untuk membuat token baru'}" aria-label="${application.token_copy_available ? 'Salin token' : 'Buat token baru untuk disalin'}">${actionIcons.copy}</button>
+          <button class="table-action" data-action="copy-token" data-id="${escapeHtml(application.id)}" type="button" title="${application.token_copy_available ? 'Salin token' : 'Token belum tersedia di vault'}" aria-label="Salin token">${actionIcons.copy}</button>
           <button class="table-action" data-action="rotate" data-id="${escapeHtml(application.id)}" type="button" title="Rotasi token" aria-label="Rotasi token">${actionIcons.rotate}</button>
         ` : '<span class="field-help">Read only</span>'}</td>
       </tr>
@@ -461,10 +461,6 @@
   const copyApplicationToken = async (id) => {
     const application = state.applications.find((item) => Number(item.id) === Number(id));
     if (!application) return;
-    if (!application.token_copy_available) {
-      await rotateApplication(id);
-      return;
-    }
 
     try {
       const response = await request('reveal', {
