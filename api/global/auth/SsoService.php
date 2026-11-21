@@ -66,6 +66,12 @@ final class SsoService
             sendResponse(401, 'ID pegawai atau password salah.');
         }
 
+        if (SsoAuthenticator::isLoginBlockedStatus($user['status'] ?? null)) {
+            $employeeName = trim((string) ($user['nama'] ?? ''));
+            $subject = $employeeName !== '' ? 'Pegawai ' . $employeeName : 'Akun pegawai';
+            sendResponse(403, $subject . ' berstatus nonaktif atau non job dan tidak dapat login ke aplikasi yang menggunakan SSO.');
+        }
+
         $payload = [
             'id_peg' => $user['id_peg'],
             'nama' => $user['nama'],

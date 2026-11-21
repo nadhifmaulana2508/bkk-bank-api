@@ -35,6 +35,26 @@ Isi salah satu parameter `id_peg` atau `nama`. Hasil selalu berupa array
 dengan field `employee_id`, `full_name`, `kode`, dan `job_position`, maksimal
 50 data. Nama field mengikuti response `whoami` agar client konsisten.
 
+## Mengubah status login SSO
+
+```text
+POST /api/simpeg/pegawai/status
+```
+
+Kirim header `App` dan `X-App-Token` milik aplikasi `simpeg` atau `sso`, lalu
+body JSON berikut:
+
+```json
+{
+  "id_peg": "102-119",
+  "status": "non job"
+}
+```
+
+Nilai `"0"` atau `"non job"` memblokir login dan request dengan JWT yang sudah
+terbit. Nilai `"1"` mengaktifkan login kembali. Response menyertakan `nama`
+pegawai dari `tb_pegawai` serta `can_login`.
+
 ## Endpoint AO
 
 AO termasuk data SIMPEG. URL lama tetap dipertahankan dan membutuhkan Bearer

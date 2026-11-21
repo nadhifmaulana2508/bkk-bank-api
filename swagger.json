@@ -80,6 +80,71 @@
         }
       }
     },
+    "/api/simpeg/pegawai/status": {
+      "post": {
+        "summary": "Ubah status login pegawai",
+        "description": "Mengubah status login SSO dan mengembalikan nama pegawai. Hanya App: simpeg atau App: sso yang diizinkan; gunakan token aplikasi yang sesuai.",
+        "tags": ["SIMPEG"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id_peg", "status"],
+                "properties": {
+                  "id_peg": {
+                    "type": "string",
+                    "maxLength": 12,
+                    "example": "102-119"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["0", "1", "non job"],
+                    "example": "non job",
+                    "description": "0 atau non job memblokir login; 1 mengaktifkan kembali."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status berhasil diubah",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "Status login pegawai berhasil diperbarui.",
+                  "data": {
+                    "id_peg": "102-119",
+                    "nama": "Nama Pegawai",
+                    "status": "non job",
+                    "can_login": false
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "App dan X-App-Token wajib valid"
+          },
+          "403": {
+            "description": "Hanya aplikasi SIMPEG atau SSO Control Plane yang boleh mengubah status"
+          },
+          "422": {
+            "description": "ID akun tidak ditemukan atau status tidak valid"
+          }
+        }
+      }
+    },
     "/api/auth/whoami": {
       "get": {
         "summary": "Ambil data user dari token (Bearer)",

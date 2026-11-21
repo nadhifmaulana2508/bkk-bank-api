@@ -30,9 +30,9 @@ final class AppTokenAuthenticator
      *
      * @return array<string, mixed>|null
      */
-    public static function application(): ?array
+    public static function application(bool $forceRequired = false): ?array
     {
-        $required = self::isRequired();
+        $required = self::isRequired() || $forceRequired;
         if (!$required) {
             $appCode = self::header('App') ?? self::header('X-App-Name');
             $rawToken = self::header('X-App-Token');

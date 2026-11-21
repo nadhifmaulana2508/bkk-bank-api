@@ -2,11 +2,20 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/SsoConfig.php';
+require_once dirname(__DIR__, 3) . '/config/db.php';
 require_once dirname(__DIR__, 3) . '/helpers/response.php';
 require_once dirname(__DIR__, 3) . '/helpers/jwt.php';
 
 final class SsoAuthenticator
 {
+    /** @param mixed $status */
+    public static function isLoginBlockedStatus($status): bool
+    {
+        $status = strtolower(trim((string) ($status ?? '')));
+
+        return in_array($status, ['0', 'non job'], true);
+    }
+
     public static function bearerToken(): ?string
     {
         $headers = function_exists('getallheaders') ? getallheaders() : [];
@@ -44,6 +53,17 @@ final class SsoAuthenticator
             || (int) $decoded['exp'] <= time()
         ) {
             sendResponse(401, 'Invalid token');
+        }
+
+        global $pdo;
+        $statement = $pdo->prepare('SELECT status FROM tb_apk WHERE id_peg = :id_peg LIMIT 1');
+        $statement->execute(['id_peg' => $decoded['id_peg']]);
+        $status = $statement->fetchColumn();
+        if ($status === false) {
+            sendResponse(401, 'Invalid token');
+        }
+        if (self::isLoginBlockedStatus($status)) {
+            sendResponse(403, 'Akun pegawai berstatus nonaktif atau non job.');
         }
 
         return $decoded;

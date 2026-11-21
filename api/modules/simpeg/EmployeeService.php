@@ -96,4 +96,52 @@ final class EmployeeService
 
         return $results[0] ?? false;
     }
+
+    /** @param mixed $idPeg @param mixed $status @return array<string, mixed> */
+    public static function updateLoginStatus($idPeg, $status): array
+    {
+        global $pdo;
+
+        if (!is_string($idPeg)) {
+            throw new InvalidArgumentException('ID pegawai tidak valid.');
+        }
+        $idPeg = trim($idPeg);
+        if ($idPeg === '' || strlen($idPeg) > 12 || !preg_match('/^[A-Za-z0-9._-]+$/', $idPeg)) {
+            throw new InvalidArgumentException('ID pegawai tidak valid.');
+        }
+
+        if (is_int($status)) {
+            $status = (string) $status;
+        }
+        if (!is_string($status)) {
+            throw new InvalidArgumentException("Status harus '0', '1', atau 'non job'.");
+        }
+        $status = strtolower(trim($status));
+        if (!in_array($status, ['0', '1', 'non job'], true)) {
+            throw new InvalidArgumentException("Status harus '0', '1', atau 'non job'.");
+        }
+
+        $accountQuery = $pdo->prepare(
+            'SELECT a.id_peg, p.nama
+             FROM tb_apk a
+             LEFT JOIN tb_pegawai p ON p.id_peg = a.id_peg
+             WHERE a.id_peg = :id_peg
+             LIMIT 1'
+        );
+        $accountQuery->execute(['id_peg' => $idPeg]);
+        $account = $accountQuery->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($account)) {
+            throw new InvalidArgumentException('Akun login pegawai tidak ditemukan.');
+        }
+
+        $update = $pdo->prepare('UPDATE tb_apk SET status = :status WHERE id_peg = :id_peg');
+        $update->execute(['status' => $status, 'id_peg' => $idPeg]);
+
+        return [
+            'id_peg' => $idPeg,
+            'nama' => (string) ($account['nama'] ?? ''),
+            'status' => $status,
+            'can_login' => !in_array($status, ['0', 'non job'], true),
+        ];
+    }
 }
