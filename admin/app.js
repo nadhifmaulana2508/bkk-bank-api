@@ -60,8 +60,12 @@
 
   const copyText = async (text) => {
     if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text);
-      return;
+      try {
+        await navigator.clipboard.writeText(text);
+        return;
+      } catch {
+        // Fall back when browser clipboard permissions reject the async API.
+      }
     }
 
     const textarea = document.createElement('textarea');
@@ -469,7 +473,14 @@
       });
       const token = String(response.data?.token || '');
       if (!token) throw new Error('Server tidak mengembalikan token.');
-      await copyText(token);
+      try {
+        await copyText(token);
+      } catch {
+        showToken({ ...response.data, token_saved: true });
+        $('#token-error').textContent = 'Salin otomatis ditolak browser. Token tetap tersedia di dialog ini; klik Salin token atau pilih teks lalu salin manual.';
+        $('#token-error').hidden = false;
+        return;
+      }
       showMessage(`Token ${application.app_code} tersalin.`, 'success');
     } catch (error) {
       showMessage(error.message || 'Token tidak dapat disalin.');
