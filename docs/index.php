@@ -7,9 +7,26 @@ require_once dirname(__DIR__) . '/api/global/admin/AdminSession.php';
 require_once dirname(__DIR__) . '/helpers/webPath.php';
 
 AdminSession::start();
-$docsBaseUrl = web_script_base();
-$docsRoute = web_route_after($docsBaseUrl);
-$routeGroup = strtolower(trim(explode('/', $docsRoute, 2)[0] ?? ''));
+$requestPath = web_request_path();
+$adminDocsMatch = [];
+$isAdminDocsRoute = preg_match(
+    '#^(.*)/admin/docs/(global|simpeg|simontok|monbis)/?$#',
+    $requestPath,
+    $adminDocsMatch
+) === 1;
+if ($isAdminDocsRoute) {
+    $projectBase = rtrim((string) ($adminDocsMatch[1] ?? ''), '/');
+    $adminBaseUrl = $projectBase . '/admin';
+    $docsBaseUrl = $adminBaseUrl . '/docs';
+    $docsAssetBaseUrl = $projectBase . '/docs';
+    $routeGroup = strtolower($adminDocsMatch[2]);
+} else {
+    $docsBaseUrl = web_script_base();
+    $docsAssetBaseUrl = $docsBaseUrl;
+    $adminBaseUrl = rtrim(dirname($docsBaseUrl), '/') . '/admin';
+    $docsRoute = web_route_after($docsBaseUrl);
+    $routeGroup = strtolower(trim(explode('/', $docsRoute, 2)[0] ?? ''));
+}
 $groupQuery = $_GET['group'] ?? 'global';
 $group = in_array($routeGroup, ['global', 'simpeg', 'simontok', 'monbis'], true)
     ? $routeGroup
@@ -20,7 +37,7 @@ if (!in_array($group, ['global', 'simpeg', 'simontok', 'monbis'], true)) {
 $docsPermissionGroup = $group === 'simpeg' ? 'global' : $group;
 
 if (!AdminSession::isAuthenticated()) {
-    header('Location: ' . rtrim(dirname($docsBaseUrl), '/') . '/admin/overview');
+    header('Location: ' . $adminBaseUrl . '/overview');
     exit;
 }
 
@@ -32,4 +49,8 @@ if (!AdminSession::hasPermission('docs.' . $docsPermissionGroup)) {
 }
 
 $_SESSION['docs_group'] = $group;
+if (!$isAdminDocsRoute) {
+    header('Location: ' . $adminBaseUrl . '/docs/' . rawurlencode($group), true, 302);
+    exit;
+}
 require __DIR__ . '/swagger.php';

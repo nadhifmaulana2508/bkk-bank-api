@@ -7,8 +7,9 @@ require_once dirname(__DIR__) . '/api/global/admin/AdminSession.php';
 require_once dirname(__DIR__) . '/helpers/webPath.php';
 AdminSession::start();
 
-$docsBaseUrl = web_script_base();
-$adminBaseUrl = rtrim(dirname($docsBaseUrl), '/') . '/admin';
+$docsBaseUrl = $docsBaseUrl ?? web_script_base();
+$docsAssetBaseUrl = $docsAssetBaseUrl ?? web_script_base();
+$adminBaseUrl = $adminBaseUrl ?? (rtrim(dirname($docsBaseUrl), '/') . '/admin');
 $docsRoute = web_route_after($docsBaseUrl);
 $routeGroup = strtolower(trim(explode('/', $docsRoute, 2)[0] ?? ''));
 $groupQuery = $_GET['group'] ?? $_SESSION['docs_group'] ?? 'global';
@@ -68,15 +69,20 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="docs-spec-version" content="<?= htmlspecialchars((string) @filemtime(__DIR__ . '/../swagger.json'), ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-app-default" content="<?= htmlspecialchars($group === 'global' ? 'monbis' : $group, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-base" content="<?= htmlspecialchars($docsBaseUrl, ENT_QUOTES, 'UTF-8') ?>">
-    <link rel="stylesheet" href="swagger.css?v=20261119-2">
+    <link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger.css?v=20261122-7', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
-<aside class="docs-control-sidebar" aria-label="Navigasi Control Plane">
-    <a class="docs-brand" href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>">
-        <span class="docs-brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 9 12 4l9 5"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/><path d="m10 14-2 2 2 2M14 14l2 2-2 2"/></svg></span>
-        <span><strong>Bank API BKK</strong><small>SSO Control Plane</small></span>
-    </a>
-    <nav class="docs-control-nav">
+<aside class="docs-control-sidebar" id="docs-control-sidebar" data-control-sidebar aria-label="Navigasi Control Plane" aria-hidden="true" inert>
+    <div class="docs-control-heading">
+        <a class="docs-brand" href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>">
+            <span class="docs-brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 9 12 4l9 5"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/><path d="m10 14-2 2 2 2M14 14l2 2-2 2"/></svg></span>
+            <span><strong>Bank API BKK</strong><small>SSO Control Plane</small></span>
+        </a>
+        <button class="docs-control-close" type="button" data-control-nav-close aria-label="Tutup menu" title="Tutup menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+    </div>
+    <nav class="docs-control-nav" aria-label="Menu Control Plane">
         <p>Workspace</p>
         <?php if (AdminSession::hasPermission('registry.view')): ?>
             <a href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>">Overview</a>
@@ -88,22 +94,30 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
         <p class="docs-nav-section">Developer</p>
         <a class="is-active" href="<?= htmlspecialchars($docsBaseUrl . '/' . $group, ENT_QUOTES, 'UTF-8') ?>">API Docs <span aria-hidden="true">›</span></a>
         <div class="docs-nav-submenu">
-            <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'global' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>">Global</a><?php endif; ?>
-            <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>">Simpeg</a><?php endif; ?>
-            <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>">Simontok</a><?php endif; ?>
-            <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>">Monbis</a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'global' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'global' ? 'aria-current="page"' : '' ?>>Global</a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simpeg' ? 'aria-current="page"' : '' ?>>Simpeg</a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simontok' ? 'aria-current="page"' : '' ?>>Simontok</a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'monbis' ? 'aria-current="page"' : '' ?>>Monbis</a><?php endif; ?>
         </div>
     </nav>
 </aside>
+<button class="docs-control-edge" type="button" data-control-nav-edge aria-label="Buka navigasi Control Plane" title="Buka menu"></button>
+<button class="docs-control-backdrop" type="button" data-control-nav-backdrop aria-label="Tutup menu" hidden></button>
 <div class="docs-shell">
     <div class="docs-page-controls">
-        <a class="docs-back-link" href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>" data-back-link aria-label="Kembali ke Control Plane">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h10"/></svg>
-            <span>Kembali ke Control Plane</span>
-        </a>
+        <div class="docs-page-start">
+            <button class="docs-menu-toggle" type="button" data-control-nav-toggle aria-expanded="false" aria-controls="docs-control-sidebar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <span>Menu</span>
+            </button>
+            <a class="docs-back-link" href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>" aria-label="Kembali ke Control Plane">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h10"/></svg>
+                <span>Kembali ke Control Plane</span>
+            </a>
+        </div>
         <div class="docs-page-actions">
             <?php if (AdminSession::hasPermission('docs.global')): ?>
-                <a class="docs-back-link docs-export-link" href="<?= htmlspecialchars($docsBaseUrl . '/export.php', ENT_QUOTES, 'UTF-8') ?>" aria-label="Unduh semua dokumentasi Markdown">
+                <a class="docs-back-link docs-export-link" href="<?= htmlspecialchars($docsBaseUrl . '/export', ENT_QUOTES, 'UTF-8') ?>" aria-label="Unduh semua dokumentasi Markdown">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
                     <span>Unduh semua Markdown</span>
                 </a>
@@ -184,9 +198,9 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                     </div>
                 </div>
                 <div class="auth-grid">
-                    <label><span>App</span><input name="app" data-auth-app value="<?= htmlspecialchars($group === 'global' ? 'monbis' : $group, ENT_QUOTES, 'UTF-8') ?>" autocomplete="off"><small>Kode aplikasi terdaftar.</small></label>
-                    <label><span>X-App-Token</span><input name="app_token" type="password" data-auth-token placeholder="Masukkan token aplikasi" autocomplete="off"><small>Tidak disimpan kecuali tombol simpan dipilih.</small></label>
-                    <label class="auth-wide"><span>Bearer JWT <em>opsional</em></span><input name="jwt" type="password" data-auth-jwt placeholder="Token hasil /api/auth/login" autocomplete="off"><small>Dipakai untuk endpoint yang membutuhkan login pegawai.</small></label>
+                    <div class="auth-field"><label for="auth-app">App</label><input id="auth-app" name="app" data-auth-app value="<?= htmlspecialchars($group === 'global' ? 'monbis' : $group, ENT_QUOTES, 'UTF-8') ?>" autocomplete="off"><small>Kode aplikasi terdaftar.</small></div>
+                    <div class="auth-field"><label for="auth-app-token">X-App-Token</label><div class="secret-control"><input id="auth-app-token" name="app_token" type="password" data-auth-token placeholder="Masukkan token aplikasi" autocomplete="off"><button class="secret-toggle" type="button" data-secret-toggle data-secret-label="X-App-Token" aria-controls="auth-app-token" aria-label="Tampilkan X-App-Token" title="Tampilkan X-App-Token" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div><small>Tidak disimpan kecuali tombol simpan dipilih.</small></div>
+                    <div class="auth-field auth-wide"><label for="auth-jwt">Bearer JWT <em>opsional</em></label><div class="secret-control"><input id="auth-jwt" name="jwt" type="password" data-auth-jwt placeholder="Token hasil /api/auth/login" autocomplete="off"><button class="secret-toggle" type="button" data-secret-toggle data-secret-label="Bearer JWT" aria-controls="auth-jwt" aria-label="Tampilkan Bearer JWT" title="Tampilkan Bearer JWT" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div><small>Dipakai untuk endpoint yang membutuhkan login pegawai.</small></div>
                 </div>
             </section>
 
@@ -204,6 +218,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 </div>
 
 <script src="<?= htmlspecialchars($adminBaseUrl . '/theme.js', ENT_QUOTES, 'UTF-8') ?>" defer></script>
-<?php if ($hasDocs): ?><script src="swagger-init.js?v=20261106-2" defer></script><?php endif; ?>
+<script src="<?= htmlspecialchars($docsAssetBaseUrl . '/control-sidebar.js?v=20261122-4', ENT_QUOTES, 'UTF-8') ?>" defer></script>
+<?php if ($hasDocs): ?><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger-init.js?v=20261122-4', ENT_QUOTES, 'UTF-8') ?>" defer></script><?php endif; ?>
 </body>
 </html>

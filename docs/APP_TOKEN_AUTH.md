@@ -86,7 +86,7 @@ X-App-Token: app_<token-rahasia>
 ```
 
 Endpoint publik dan response bisnis lama tetap memakai URL yang sama. URL
-bersih seperti `/admin/registry` dan `/docs/global` hanya dipakai untuk
+bersih seperti `/admin/registry` dan `/admin/docs/global` hanya dipakai untuk
 Control Plane dan dokumentasi.
 
 ## Mengaktifkan proteksi

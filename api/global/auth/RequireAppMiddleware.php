@@ -11,11 +11,10 @@ final class RequireAppMiddleware
         $next();
     }
 
-    public static function handleStatusManager(callable $next): void
+    public static function handleRegisteredApplication(callable $next): void
     {
-        $application = AppTokenAuthenticator::current() ?? AppTokenAuthenticator::application(true);
-        if (!in_array($application['app_code'] ?? '', ['simpeg', 'sso'], true)) {
-            sendResponse(403, 'Endpoint perubahan status hanya dapat dipanggil oleh aplikasi SIMPEG atau SSO Control Plane.');
+        if (AppTokenAuthenticator::current() === null) {
+            AppTokenAuthenticator::application(true);
         }
 
         $next();

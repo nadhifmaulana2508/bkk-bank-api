@@ -43,28 +43,27 @@ Pastikan:
 Dokumentasi interaktif:
 
 ~~~text
-http://localhost/bank-api/docs/
-http://localhost/bank-api/docs/global
-http://localhost/bank-api/docs/simpeg
-http://localhost/bank-api/docs/simontok
+http://localhost/bank-api/admin/docs/global
+http://localhost/bank-api/admin/docs/simpeg
+http://localhost/bank-api/admin/docs/simontok
 ~~~
 
 Development server:
 
 ~~~text
 https://devsso.bkkjateng.co.id
-https://devsso.bkkjateng.co.id/docs/global
-https://devsso.bkkjateng.co.id/docs/simpeg
-https://devsso.bkkjateng.co.id/docs/simontok
+https://devsso.bkkjateng.co.id/admin/docs/global
+https://devsso.bkkjateng.co.id/admin/docs/simpeg
+https://devsso.bkkjateng.co.id/admin/docs/simontok
 ~~~
 
 Production server setelah seluruh pengujian selesai:
 
 ~~~text
 https://apisso.bkkjateng.co.id
-https://apisso.bkkjateng.co.id/docs/global
-https://apisso.bkkjateng.co.id/docs/simpeg
-https://apisso.bkkjateng.co.id/docs/simontok
+https://apisso.bkkjateng.co.id/admin/docs/global
+https://apisso.bkkjateng.co.id/admin/docs/simpeg
+https://apisso.bkkjateng.co.id/admin/docs/simontok
 ~~~
 
 Untuk testing branch ini, tetap gunakan endpoint publik `/api/...`. Migrasi

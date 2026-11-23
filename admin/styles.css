@@ -101,7 +101,7 @@ input:focus-visible {
 
 .brand { justify-self: start; }
 .brand-mark { display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; border: 1px solid #e4e4e7; border-radius: 12px; background: linear-gradient(145deg, #ffffff 0%, #f4f4f5 58%, #e4e4e7 100%); color: #27272a; box-shadow: inset 0 1px 0 rgb(255 255 255 / 90%); }
-.brand-mark svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.brand-symbol { display: block; flex: 0 0 auto; width: 19px; height: 19px; background: currentColor; -webkit-mask: url("bkk-mark.svg") center / contain no-repeat; mask: url("bkk-mark.svg") center / contain no-repeat; }
 .brand-copy { display: none; gap: 1px; }
 .brand-copy strong { font-size: 13px; letter-spacing: -0.02em; }
 .brand-copy small { color: var(--muted); font-size: 10px; letter-spacing: .02em; }
@@ -613,14 +613,9 @@ h1 {
   color: #ffffff;
 }
 
-.auth-brand-mark svg {
+.auth-brand-mark .brand-symbol {
   width: 22px;
   height: 22px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.7;
 }
 
 .auth-card::before {
@@ -721,7 +716,7 @@ body { color: var(--foreground); font-family: Inter, ui-sans-serif, system-ui, -
   color: #fff;
 }
 
-.brand-mark svg { width: 16px; height: 16px; }
+.brand-mark .brand-symbol { width: 16px; height: 16px; }
 .brand-copy { display: grid; }
 .brand-copy strong { color: #f7f8fa; font-size: 14px; font-weight: 650; }
 .brand-copy small { color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }

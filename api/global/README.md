@@ -9,6 +9,8 @@ sementara karena database dan UI TTD belum menjadi dependency backend.
 
 ```text
 POST /api/auth/login
+POST /api/auth/login-dummy       (local, atau development dengan IP allowlist)
+GET|POST /api/auth/auth-dummy    (local, atau development dengan IP allowlist)
 GET  /api/auth/whoami
 POST /api/auth/whoami
 POST /api/auth/change-password

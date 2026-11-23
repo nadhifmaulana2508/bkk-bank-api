@@ -5,8 +5,8 @@ Dokumentasi ini menjelaskan endpoint untuk mencari rekening debitur, membaca det
 ## URL dokumentasi
 
 ```text
-http://localhost/bank-api/docs/simontok
-https://devsso.bkkjateng.co.id/docs/simontok
+http://localhost/bank-api/admin/docs/simontok
+https://devsso.bkkjateng.co.id/admin/docs/simontok
 ```
 
 Halaman dokumentasi memakai session Control Plane yang sama. User harus memiliki permission `docs.simontok`.

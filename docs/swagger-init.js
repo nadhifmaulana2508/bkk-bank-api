@@ -50,6 +50,8 @@
   const operationDescription = (operation) => operation.description || '';
   const securityNames = (operation) => [...new Set((operation.security || []).flatMap((item) => Object.keys(item || {})))];
   const headerDefinitions = { appCode: 'App', appTokenAuth: 'X-App-Token', bearerAuth: 'Authorization' };
+  const eyeIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>';
+  const eyeOffIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"/><path d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6.1 0 9.5 6 9.5 6a16 16 0 0 1-3.1 3.8"/><path d="M6.6 6.6C4 8.2 2.5 12 2.5 12s3.5 6 9.5 6a10.6 10.6 0 0 0 3-.4"/></svg>';
 
   const maskedValue = (value) => {
     const text = String(value || '').trim();
@@ -75,6 +77,14 @@
       if (stored.token && authToken) authToken.value = stored.token;
       if (stored.jwt && authJwt) authJwt.value = stored.jwt;
     } catch (_) { /* session storage is optional */ }
+    try {
+      const pending = JSON.parse(sessionStorage.getItem('bkk_api_docs_prefill') || 'null');
+      if (pending && typeof pending.app === 'string' && typeof pending.token === 'string') {
+        if (authApp) authApp.value = pending.app;
+        if (authToken) authToken.value = pending.token;
+      }
+      sessionStorage.removeItem('bkk_api_docs_prefill');
+    } catch (_) { /* one-time credential transfer is optional */ }
   };
 
   const saveHeaders = () => {
@@ -189,20 +199,27 @@
     return fields;
   };
 
-  const renderField = (field) => {
+  const renderField = (field, cardId) => {
+    const isSecret = /password|token|secret/i.test(field.name);
     const isLong = /token|secret/i.test(field.name) || String(field.example || '').length > 80;
-    const inputType = /password|token|secret/i.test(field.name) ? 'password' : field.schema.type === 'number' || field.schema.type === 'integer' ? 'number' : 'text';
+    const fieldId = `field-${cardId}-${field.location}-${field.name}`;
+    const inputType = field.schema.type === 'number' || field.schema.type === 'integer' ? 'number' : 'text';
     const valueType = escapeHtml(field.schema.type || 'string');
     const value = typeof field.example === 'object' ? JSON.stringify(field.example) : String(field.example ?? '');
+    const safeName = escapeHtml(field.name);
+    const safeId = escapeHtml(fieldId);
+    const attrs = `id="${safeId}" name="${safeName}" data-location="${escapeHtml(field.location)}" data-value-type="${valueType}"`;
     const enumOptions = Array.isArray(field.schema.enum) ? field.schema.enum : [];
     const minLength = Number.isInteger(field.schema.minLength) ? ` minlength="${field.schema.minLength}"` : '';
     const maxLength = Number.isInteger(field.schema.maxLength) ? ` maxlength="${field.schema.maxLength}"` : '';
     const control = enumOptions.length
-      ? `<select name="${escapeHtml(field.name)}" data-location="${escapeHtml(field.location)}" data-value-type="${valueType}" ${field.required ? 'required' : ''}>${enumOptions.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('')}</select>`
-      : isLong
-        ? `<textarea name="${escapeHtml(field.name)}" data-location="${escapeHtml(field.location)}" data-value-type="${valueType}" placeholder="${escapeHtml(value)}"${minLength}${maxLength} ${field.required ? 'required' : ''}></textarea>`
-        : `<input type="${inputType}" name="${escapeHtml(field.name)}" data-location="${escapeHtml(field.location)}" data-value-type="${valueType}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.example ? '' : field.name)}"${minLength}${maxLength} ${field.required ? 'required' : ''}>`;
-    return `<div class="field ${field.location === 'body' && isLong ? 'field-full' : ''}"><label><span>${escapeHtml(field.name)}${field.required ? ' *' : ''}<small>${escapeHtml(field.location)}</small></span>${control}${field.description ? `<small>${escapeHtml(field.description)}</small>` : ''}</label></div>`;
+      ? `<select ${attrs} ${field.required ? 'required' : ''}>${enumOptions.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('')}</select>`
+      : isSecret
+        ? `<div class="secret-control"><input ${attrs} type="password" value="${/token|secret/i.test(field.name) ? '' : escapeHtml(value)}" placeholder="${escapeHtml(/token|secret/i.test(field.name) ? value : field.example ? '' : field.name)}" autocomplete="off"${minLength}${maxLength} ${field.required ? 'required' : ''}><button class="secret-toggle" type="button" data-secret-toggle data-secret-label="${safeName}" aria-controls="${safeId}" aria-label="Tampilkan ${safeName}" title="Tampilkan ${safeName}" aria-pressed="false">${eyeIcon}</button></div>`
+        : isLong
+          ? `<textarea ${attrs} placeholder="${escapeHtml(value)}"${minLength}${maxLength} ${field.required ? 'required' : ''}></textarea>`
+          : `<input ${attrs} type="${inputType}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.example ? '' : field.name)}"${minLength}${maxLength} ${field.required ? 'required' : ''}>`;
+    return `<div class="field ${field.location === 'body' && isLong ? 'field-full' : ''}"><label for="${safeId}"><span>${safeName}${field.required ? ' *' : ''}<small>${escapeHtml(field.location)}</small></span></label>${control}${field.description ? `<small>${escapeHtml(field.description)}</small>` : ''}</div>`;
   };
 
   const renderSecurity = (operation) => {
@@ -227,7 +244,7 @@
   const renderOperation = (item) => {
     const fields = schemaFields(item);
     const hasBody = fields.some((field) => field.location === 'body');
-    const formFields = fields.length ? `<div class="field-grid">${fields.map(renderField).join('')}</div>` : '<p class="operation-description">Endpoint ini tidak memerlukan parameter tambahan.</p>';
+    const formFields = fields.length ? `<div class="field-grid">${fields.map((field) => renderField(field, item.id)).join('')}</div>` : '<p class="operation-description">Endpoint ini tidak memerlukan parameter tambahan.</p>';
     return `
       <article class="operation-card" id="${escapeHtml(item.id)}" data-operation-card="${escapeHtml(item.id)}">
         <header class="operation-header">
@@ -356,6 +373,20 @@
   };
 
   document.addEventListener('click', (event) => {
+    const secretToggle = event.target.closest('[data-secret-toggle]');
+    if (secretToggle) {
+      const input = document.getElementById(secretToggle.getAttribute('aria-controls'));
+      if (input) {
+        const reveal = input.type === 'password';
+        const label = secretToggle.dataset.secretLabel || 'nilai sensitif';
+        input.type = reveal ? 'text' : 'password';
+        secretToggle.innerHTML = reveal ? eyeOffIcon : eyeIcon;
+        secretToggle.setAttribute('aria-label', `${reveal ? 'Sembunyikan' : 'Tampilkan'} ${label}`);
+        secretToggle.title = `${reveal ? 'Sembunyikan' : 'Tampilkan'} ${label}`;
+        secretToggle.setAttribute('aria-pressed', String(reveal));
+      }
+      return;
+    }
     const scrollButton = event.target.closest('[data-scroll-to]');
     if (scrollButton) {
       const target = document.getElementById(scrollButton.dataset.scrollTo);
@@ -394,14 +425,6 @@
   [authApp, authToken, authJwt].forEach((input) => input?.addEventListener('input', updateHeaderPreviews));
   saveHeadersButton?.addEventListener('click', saveHeaders);
   clearHeadersButton?.addEventListener('click', clearHeaders);
-
-  const backLink = $('[data-back-link]');
-  if (backLink && document.referrer) {
-    try {
-      const previousUrl = new URL(document.referrer);
-      if (previousUrl.origin === window.location.origin && previousUrl.pathname.includes('/admin/')) backLink.href = previousUrl.href;
-    } catch (_) { /* safe fallback remains */ }
-  }
 
   const loadSpec = async () => {
     try {

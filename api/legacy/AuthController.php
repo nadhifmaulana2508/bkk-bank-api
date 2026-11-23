@@ -15,6 +15,21 @@ final class AuthController
         SsoService::login();
     }
 
+    public static function loginDummy(): void
+    {
+        SsoService::loginDummy();
+    }
+
+    public static function authDummy(): void
+    {
+        SsoService::authDummy();
+    }
+
+    public static function adminResetPassword(): void
+    {
+        SsoService::adminResetPassword();
+    }
+
     public static function whoami(): void
     {
         SsoService::whoami();

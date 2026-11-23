@@ -24,13 +24,16 @@ Halaman control plane:
 /admin/audit             Hit endpoint terbaru
 /admin/recap             Rekap hit harian
 /admin/rbac              User SSO dan permission per menu
-/docs/global             Dokumentasi API Global
-/docs/simpeg             Dokumentasi endpoint API Simpeg
-/docs/simontok           Dokumentasi endpoint API Simontok
-/docs/monbis             Placeholder dokumentasi API Monbis
+/admin/docs/global       Dokumentasi API Global
+/admin/docs/simpeg       Dokumentasi endpoint API Simpeg
+/admin/docs/simontok     Dokumentasi endpoint API Simontok
+/admin/docs/monbis       Placeholder dokumentasi API Monbis
 ```
 
-Menu API Docs pada navbar membuka dokumentasi interaktif terproteksi untuk testing endpoint.
+Menu API Docs membuka dokumentasi di bawah route `/admin/docs`. Halaman docs
+memakai daftar endpoint sendiri tanpa sidebar Control Plane, sedangkan halaman
+admin lain tetap menampilkan sidebar tersebut. Sesi dan permission admin tetap
+sama. URL lama `/docs/global` dan kelompok dokumentasi lain mengarah ke route baru.
 Pilih **Unduh semua dokumentasi (.md)** pada menu yang sama untuk mengunduh satu
 file Markdown gabungan dari dokumen di folder `docs`, `api`, dan `admin`.
 

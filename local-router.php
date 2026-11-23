@@ -17,6 +17,23 @@ if (preg_match('#^/admin/(overview|registry|audit|recap|rbac|users)$#', $path, $
     return true;
 }
 
+if (preg_match('#^/admin/docs/(global|simpeg|simontok|monbis)$#', $path, $m)) {
+    $_GET['group'] = $m[1];
+    require __DIR__ . '/docs/index.php';
+    return true;
+}
+
+if (preg_match('#^/admin/docs/openapi/(global|simpeg|simontok|monbis)$#', $path, $m)) {
+    $_GET['group'] = $m[1];
+    require __DIR__ . '/docs/openapi.php';
+    return true;
+}
+
+if ($path === '/admin/docs/export') {
+    require __DIR__ . '/docs/export.php';
+    return true;
+}
+
 if (preg_match('#^/admin/api/(login|logout)$#', $path, $m)) {
     $_GET['action'] = $m[1];
     require __DIR__ . '/admin/api.php';

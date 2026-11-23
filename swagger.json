@@ -80,10 +80,160 @@
         }
       }
     },
+    "/api/auth/login-dummy": {
+      "post": {
+        "summary": "Login dummy untuk pengujian local/development",
+        "description": "Tersedia pada APP_ENV=local dari localhost atau APP_ENV=development dengan SSO_DUMMY_AUTH_ENABLED=true, SSO_DUMMY_PASSWORD, dan SSO_DUMMY_ALLOWED_IPS berisi IP penguji. Production selalu menolak endpoint ini. Gunakan akun pegawai dengan status login dan jabatan aktif; password akun tb_apk tidak diubah. Wajib memakai App dan X-App-Token aplikasi aktif yang terdaftar.",
+        "tags": ["Auth"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id_peg", "password"],
+                "properties": {
+                  "id_peg": {
+                    "type": "string",
+                    "maxLength": 12,
+                    "example": "102-119"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "<SSO_DUMMY_PASSWORD>"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login dummy berhasil",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "Login berhasil",
+                  "data": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID pegawai atau password dummy tidak valid"
+          },
+          "401": {
+            "description": "Kredensial dummy salah atau akun tidak memenuhi syarat"
+          },
+          "403": {
+            "description": "App dan X-App-Token tidak valid atau tidak aktif"
+          },
+          "404": {
+            "description": "Endpoint dinonaktifkan, bukan environment yang diizinkan, atau IP tidak di-allowlist"
+          },
+          "503": {
+            "description": "Password dummy belum dikonfigurasi di environment development"
+          }
+        }
+      }
+    },
+    "/api/auth/auth-dummy": {
+      "get": {
+        "summary": "Ambil profil dari token dummy (Bearer)",
+        "description": "Mengembalikan profil dan jabatan aktif untuk token login-dummy. Hanya aktif di local dari localhost atau di development dengan IP allowlist; production menolak endpoint ini.",
+        "tags": ["Auth"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": [],
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data pegawai",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "OK",
+                  "data": {
+                    "employee_id": "102-119",
+                    "full_name": "Nama Pegawai",
+                    "branch_name": "Kantor Cabang",
+                    "job_position": "Staff"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token dummy tidak valid atau kedaluwarsa"
+          },
+          "403": {
+            "description": "Token tidak sesuai aplikasi atau akun tidak aktif"
+          },
+          "404": {
+            "description": "Endpoint dinonaktifkan, bukan environment yang diizinkan, atau IP tidak di-allowlist"
+          }
+        }
+      },
+      "post": {
+        "summary": "Ambil profil dari token dummy (Body JSON)",
+        "description": "Alternatif POST mengirim token pada body JSON, mengikuti format POST /api/auth/whoami. Hanya aktif di local dari localhost atau di development dengan IP allowlist; production menolak endpoint ini.",
+        "tags": ["Auth"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["token"],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "JWT yang didapat dari /api/auth/login-dummy"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Data pegawai"
+          },
+          "401": {
+            "description": "Token dummy tidak valid atau kedaluwarsa"
+          },
+          "403": {
+            "description": "Token tidak sesuai aplikasi atau akun tidak aktif"
+          },
+          "404": {
+            "description": "Endpoint dinonaktifkan, bukan environment yang diizinkan, atau IP tidak di-allowlist"
+          }
+        }
+      }
+    },
     "/api/simpeg/pegawai/status": {
       "post": {
         "summary": "Ubah status login pegawai",
-        "description": "Mengubah status login SSO dan mengembalikan nama pegawai. Hanya App: simpeg atau App: sso yang diizinkan; gunakan token aplikasi yang sesuai.",
+        "description": "Mengubah status login SSO dan mengembalikan nama pegawai. Dapat dipanggil oleh aplikasi aktif mana pun yang sudah terdaftar menggunakan App dan X-App-Token yang cocok.",
         "tags": ["SIMPEG"],
         "security": [
           {
@@ -137,7 +287,7 @@
             "description": "App dan X-App-Token wajib valid"
           },
           "403": {
-            "description": "Hanya aplikasi SIMPEG atau SSO Control Plane yang boleh mengubah status"
+            "description": "Aplikasi tidak terdaftar, token tidak valid, atau aplikasi tidak aktif"
           },
           "422": {
             "description": "ID akun tidak ditemukan atau status tidak valid"
@@ -485,6 +635,74 @@
           },
           "401": {
             "description": "Sesi reset password tidak valid atau sudah kadaluarsa (lebih dari 15 menit)"
+          }
+        }
+      }
+    },
+    "/api/auth/admin-reset-password": {
+      "post": {
+        "summary": "Reset Password oleh Admin (Tanggal Lahir)",
+        "description": "Admin mengirim id_peg. Password sementara diatur ke tgl_lahir dengan format ddmmyy. Gunakan App dan X-App-Token yang cocok dari aplikasi aktif mana pun yang sudah terdaftar di Registry.",
+        "tags": ["Reset Password"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id_peg"],
+                "properties": {
+                  "id_peg": {
+                    "type": "string",
+                    "maxLength": 12,
+                    "pattern": "^[A-Za-z0-9._-]+$",
+                    "example": "102-119",
+                    "description": "ID pegawai yang password akunnya akan direset."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password sementara berhasil diatur",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "Password sementara pegawai Nama Pegawai berhasil direset ke tanggal lahir format ddmmyy.",
+                  "data": {
+                    "id_peg": "102-119",
+                    "nama": "Nama Pegawai",
+                    "temporary_password": "010180",
+                    "password_format": "ddmmyy",
+                    "can_login": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID pegawai tidak valid"
+          },
+          "403": {
+            "description": "Aplikasi tidak terdaftar, token tidak valid, atau aplikasi tidak aktif"
+          },
+          "404": {
+            "description": "Akun login atau data pegawai tidak ditemukan"
+          },
+          "422": {
+            "description": "Tanggal lahir pegawai belum tersedia atau tidak valid"
+          },
+          "500": {
+            "description": "Password sementara tidak dapat diproses"
           }
         }
       }

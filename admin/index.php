@@ -95,9 +95,9 @@ $pageMeta = [
     ],
 ][$page];
 $pageUrl = static fn(string $target): string => $adminBaseUrl . '/' . rawurlencode($target === 'users' ? 'rbac' : $target);
-$docsBaseUrl = rtrim(dirname($adminBaseUrl), '/') . '/docs';
+$docsBaseUrl = rtrim($adminBaseUrl, '/') . '/docs';
 $navIcon = static fn(string $name): string => match ($name) {
-    'bank' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9 12 4l9 5"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/><path d="M12 10v8"/></svg>',
+    'bank' => '<span class="brand-symbol" aria-hidden="true"></span>',
     'registry' => '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
     'audit' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h12M6 12h12M6 19h8"/><circle cx="4" cy="5" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="19" r="1"/></svg>',
     'recap' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>',
@@ -107,7 +107,7 @@ $navIcon = static fn(string $name): string => match ($name) {
 };
 if (str_starts_with($page, 'docs-')) {
     $docsGroup = substr($page, 5);
-    header('Location: ' . $docsBaseUrl . '/' . rawurlencode($docsGroup));
+    header('Location: ' . $docsBaseUrl . '/' . rawurlencode($docsGroup), true, 302);
     exit;
 }
 header('X-Content-Type-Options: nosniff');
@@ -124,7 +124,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Control plane internal untuk registry aplikasi dan audit penggunaan SSO BKK">
     <title>SSO Control Plane</title>
-    <link rel="stylesheet" href="styles.css?v=20261120-1">
+    <link rel="icon" type="image/svg+xml" href="<?= htmlspecialchars($adminBaseUrl . '/bkk-mark.svg', ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="styles.css?v=20261123-1">
 </head>
 <body class="page-mode-<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>" data-authenticated="<?= $authenticated ? 'true' : 'false' ?>" data-page="<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>" data-can-manage="<?= $can('registry.manage') ? 'true' : 'false' ?>">
 <a class="skip-link" href="#main-content">Lewati ke konten</a>
@@ -172,7 +173,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                     <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>">API Simpeg</a><?php endif; ?>
                     <?php if ($can('docs.simontok')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>">API Simontok</a><?php endif; ?>
                     <?php if ($can('docs.monbis')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>">API Monbis</a><?php endif; ?>
-                    <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/export.php', ENT_QUOTES, 'UTF-8') ?>">Unduh semua dokumentasi (.md)</a><?php endif; ?>
+                    <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/export', ENT_QUOTES, 'UTF-8') ?>">Unduh semua dokumentasi (.md)</a><?php endif; ?>
                 </div>
             </details><?php endif; ?>
         </nav>
@@ -552,7 +553,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
     </dialog>
 <?php endif; ?>
 
-<script src="app.js?v=20261121-1" defer></script>
+<script src="app.js?v=20261122-1" defer></script>
 <script src="theme.js" defer></script>
 </body>
 </html>

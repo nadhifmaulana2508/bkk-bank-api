@@ -16,6 +16,6 @@ return static function (ApiRouter $router): void {
     $router->post(
         '/api/simpeg/pegawai/status',
         [EmployeeController::class, 'updateLoginStatus'],
-        [[RequireAppMiddleware::class, 'handleStatusManager']]
+        [[RequireAppMiddleware::class, 'handleRegisteredApplication']]
     );
 };

@@ -84,6 +84,23 @@
     }
   };
 
+  const stageDocsCredentials = (appCode, token) => {
+    const app = String(appCode || '').trim();
+    const value = String(token || '').trim();
+    if (!app || !value) return false;
+    try {
+      sessionStorage.setItem('bkk_api_docs_prefill', JSON.stringify({ app, token: value }));
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const stageCurrentTokenForDocs = () => stageDocsCredentials(
+    $('#token-app-code')?.textContent,
+    $('#new-token')?.textContent,
+  );
+
   const request = async (action, options = {}) => {
     const { query, ...fetchOptions } = options;
     const route = (() => {
@@ -473,6 +490,7 @@
       });
       const token = String(response.data?.token || '');
       if (!token) throw new Error('Server tidak mengembalikan token.');
+      const docsPrefilled = stageDocsCredentials(application.app_code, token);
       try {
         await copyText(token);
       } catch {
@@ -481,7 +499,12 @@
         $('#token-error').hidden = false;
         return;
       }
-      showMessage(`Token ${application.app_code} tersalin.`, 'success');
+      showMessage(
+        docsPrefilled
+          ? `Token ${application.app_code} tersalin; App dan token siap dipakai di docs.`
+          : `Token ${application.app_code} tersalin, tetapi sesi browser tidak bisa menyiapkan docs otomatis.`,
+        'success',
+      );
     } catch (error) {
       showMessage(error.message || 'Token tidak dapat disalin.');
     }
@@ -489,6 +512,7 @@
 
   const copyToken = async () => {
     const token = $('#new-token').textContent;
+    stageCurrentTokenForDocs();
     try {
       await copyText(token);
       $('#copy-token-label').textContent = 'Tersalin';
@@ -501,6 +525,7 @@
 
   const copyCredentials = async () => {
     const credentials = $('#credential-snippet').textContent;
+    stageCurrentTokenForDocs();
     try {
       await copyText(credentials);
       $('#copy-credentials').textContent = 'Header tersalin';
@@ -514,6 +539,7 @@
   const copyDeveloperCredentials = async () => {
     const appCode = $('#token-app-code').textContent.trim();
     const token = $('#new-token').textContent.trim();
+    stageDocsCredentials(appCode, token);
     const credentials = `# Bank API BKK - simpan di secret environment aplikasi\nSSO_APP=${appCode}\nSSO_APP_TOKEN=${token}\n\n# Header setiap request\nApp: ${appCode}\nX-App-Token: ${token}`;
     try {
       await copyText(credentials);

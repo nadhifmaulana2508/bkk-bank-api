@@ -41,8 +41,8 @@ dengan field `employee_id`, `full_name`, `kode`, dan `job_position`, maksimal
 POST /api/simpeg/pegawai/status
 ```
 
-Kirim header `App` dan `X-App-Token` milik aplikasi `simpeg` atau `sso`, lalu
-body JSON berikut:
+Kirim header `App` dan `X-App-Token` dari aplikasi aktif mana pun yang sudah
+terdaftar di Registry, lalu body JSON berikut:
 
 ```json
 {
