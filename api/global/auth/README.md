@@ -39,7 +39,7 @@ arahkan aplikasi kembali ke `/api/auth/login` dan `/api/auth/whoami`.
 
 ## Reset password oleh admin
 
-`POST /api/auth/admin-reset-password` menerima `id_peg`, mengambil `tgl_lahir`
+`POST /api/auth/admin-reset-password` menerima `id_peg`, mengambil `tgl_lhr`
 dari `tb_pegawai`, lalu menetapkan password sementara dengan format `ddmmyy`.
 Endpoint ini menerima token dari aplikasi aktif mana pun yang sudah terdaftar
 di Registry. Response mengembalikan password sementara; sampaikan secara

@@ -431,7 +431,7 @@ final class SsoService
         }
 
         $statement = $pdo->prepare(
-            'SELECT a.id_peg, a.status, p.nama, p.tgl_lahir
+            'SELECT a.id_peg, a.status, p.nama, p.tgl_lhr AS tgl_lahir
              FROM tb_apk a
              INNER JOIN tb_pegawai p ON p.id_peg = a.id_peg
              WHERE a.id_peg = :id_peg

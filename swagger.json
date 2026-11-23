@@ -642,7 +642,7 @@
     "/api/auth/admin-reset-password": {
       "post": {
         "summary": "Reset Password oleh Admin (Tanggal Lahir)",
-        "description": "Admin mengirim id_peg. Password sementara diatur ke tgl_lahir dengan format ddmmyy. Gunakan App dan X-App-Token yang cocok dari aplikasi aktif mana pun yang sudah terdaftar di Registry.",
+        "description": "Admin mengirim id_peg. Password sementara diatur dari kolom tgl_lhr di tb_pegawai dengan format ddmmyy. Gunakan App dan X-App-Token yang cocok dari aplikasi aktif mana pun yang sudah terdaftar di Registry.",
         "tags": ["Reset Password"],
         "security": [
           {
