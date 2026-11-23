@@ -51,6 +51,19 @@ $groupMeta = [
     ],
 ][$group];
 $hasDocs = in_array($group, ['global', 'simpeg', 'simontok'], true);
+$docsNavIcon = static fn(string $name): string => match ($name) {
+    'overview' => '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
+    'applications' => '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="1"/><rect x="4" y="14" width="16" height="6" rx="1"/></svg>',
+    'audit' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h12M8 12h12M8 19h12M3 5h.01M3 12h.01M3 19h.01"/></svg>',
+    'recap' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>',
+    'rbac' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 11a3 3 0 1 0 0-6M16 14a5 5 0 0 1 4.5 5"/></svg>',
+    'docs' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/></svg>',
+    'global' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>',
+    'simpeg' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>',
+    'simontok' => '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>',
+    'monbis' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M2 20h20M9 10v2M15 10v2M9 15v2M15 15v2"/></svg>',
+    default => '',
+};
 
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
@@ -69,13 +82,14 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="docs-spec-version" content="<?= htmlspecialchars((string) @filemtime(__DIR__ . '/../swagger.json'), ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-app-default" content="<?= htmlspecialchars($group === 'global' ? 'monbis' : $group, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-base" content="<?= htmlspecialchars($docsBaseUrl, ENT_QUOTES, 'UTF-8') ?>">
-    <link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger.css?v=20261122-7', ENT_QUOTES, 'UTF-8') ?>">
+    <?php if ($hasDocs): ?><link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/vendor/lenis/lenis.css?v=1.3.27', ENT_QUOTES, 'UTF-8') ?>"><?php endif; ?>
+    <link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger.css?v=20261123-2', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
 <aside class="docs-control-sidebar" id="docs-control-sidebar" data-control-sidebar aria-label="Navigasi Control Plane" aria-hidden="true" inert>
     <div class="docs-control-heading">
-        <a class="docs-brand" href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>">
-            <span class="docs-brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 9 12 4l9 5"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/><path d="m10 14-2 2 2 2M14 14l2 2-2 2"/></svg></span>
+        <a class="docs-brand" href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>" aria-label="Bank API BKK, Overview" title="Bank API BKK">
+            <span class="docs-brand-mark" aria-hidden="true" title="Bank API BKK"><svg viewBox="0 0 24 24"><path d="M3 9 12 4l9 5"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/><path d="m10 14-2 2 2 2M14 14l2 2-2 2"/></svg></span>
             <span><strong>Bank API BKK</strong><small>SSO Control Plane</small></span>
         </a>
         <button class="docs-control-close" type="button" data-control-nav-close aria-label="Tutup menu" title="Tutup menu">
@@ -85,19 +99,19 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <nav class="docs-control-nav" aria-label="Menu Control Plane">
         <p>Workspace</p>
         <?php if (AdminSession::hasPermission('registry.view')): ?>
-            <a href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>">Overview</a>
-            <a href="<?= htmlspecialchars($adminBaseUrl . '/registry', ENT_QUOTES, 'UTF-8') ?>">Applications</a>
+            <a href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>" aria-label="Overview" title="Overview"><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('overview') ?></span><span class="docs-nav-label">Overview</span></a>
+            <a href="<?= htmlspecialchars($adminBaseUrl . '/registry', ENT_QUOTES, 'UTF-8') ?>" aria-label="Applications" title="Applications"><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('applications') ?></span><span class="docs-nav-label">Applications</span></a>
         <?php endif; ?>
-        <?php if (AdminSession::hasPermission('audit.view')): ?><a href="<?= htmlspecialchars($adminBaseUrl . '/audit', ENT_QUOTES, 'UTF-8') ?>">Audit</a><?php endif; ?>
-        <?php if (AdminSession::hasPermission('recap.view')): ?><a href="<?= htmlspecialchars($adminBaseUrl . '/recap', ENT_QUOTES, 'UTF-8') ?>">Rekap</a><?php endif; ?>
-        <?php if (AdminSession::hasPermission('users.manage')): ?><a href="<?= htmlspecialchars($adminBaseUrl . '/rbac', ENT_QUOTES, 'UTF-8') ?>">RBAC</a><?php endif; ?>
+        <?php if (AdminSession::hasPermission('audit.view')): ?><a href="<?= htmlspecialchars($adminBaseUrl . '/audit', ENT_QUOTES, 'UTF-8') ?>" aria-label="Audit" title="Audit"><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('audit') ?></span><span class="docs-nav-label">Audit</span></a><?php endif; ?>
+        <?php if (AdminSession::hasPermission('recap.view')): ?><a href="<?= htmlspecialchars($adminBaseUrl . '/recap', ENT_QUOTES, 'UTF-8') ?>" aria-label="Rekap" title="Rekap"><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('recap') ?></span><span class="docs-nav-label">Rekap</span></a><?php endif; ?>
+        <?php if (AdminSession::hasPermission('users.manage')): ?><a href="<?= htmlspecialchars($adminBaseUrl . '/rbac', ENT_QUOTES, 'UTF-8') ?>" aria-label="RBAC" title="RBAC"><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('rbac') ?></span><span class="docs-nav-label">RBAC</span></a><?php endif; ?>
         <p class="docs-nav-section">Developer</p>
-        <a class="is-active" href="<?= htmlspecialchars($docsBaseUrl . '/' . $group, ENT_QUOTES, 'UTF-8') ?>">API Docs <span aria-hidden="true">›</span></a>
+        <a class="is-active" aria-label="API Docs" title="API Docs" href="<?= htmlspecialchars($docsBaseUrl . '/' . $group, ENT_QUOTES, 'UTF-8') ?>"><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('docs') ?></span><span class="docs-nav-label">API Docs</span><span class="docs-nav-arrow" aria-hidden="true">›</span></a>
         <div class="docs-nav-submenu">
-            <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'global' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'global' ? 'aria-current="page"' : '' ?>>Global</a><?php endif; ?>
-            <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simpeg' ? 'aria-current="page"' : '' ?>>Simpeg</a><?php endif; ?>
-            <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simontok' ? 'aria-current="page"' : '' ?>>Simontok</a><?php endif; ?>
-            <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-current' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'monbis' ? 'aria-current="page"' : '' ?>>Monbis</a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'global' ? 'is-current' : '' ?>" aria-label="Global" title="Global" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'global' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('global') ?></span><span class="docs-nav-label">Global</span></a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-current' : '' ?>" aria-label="Simpeg" title="Simpeg" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simpeg' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('simpeg') ?></span><span class="docs-nav-label">Simpeg</span></a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-current' : '' ?>" aria-label="Simontok" title="Simontok" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simontok' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('simontok') ?></span><span class="docs-nav-label">Simontok</span></a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-current' : '' ?>" aria-label="Monbis" title="Monbis" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'monbis' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('monbis') ?></span><span class="docs-nav-label">Monbis</span></a><?php endif; ?>
         </div>
     </nav>
 </aside>
@@ -219,6 +233,6 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 
 <script src="<?= htmlspecialchars($adminBaseUrl . '/theme.js', ENT_QUOTES, 'UTF-8') ?>" defer></script>
 <script src="<?= htmlspecialchars($docsAssetBaseUrl . '/control-sidebar.js?v=20261122-4', ENT_QUOTES, 'UTF-8') ?>" defer></script>
-<?php if ($hasDocs): ?><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger-init.js?v=20261122-4', ENT_QUOTES, 'UTF-8') ?>" defer></script><?php endif; ?>
+<?php if ($hasDocs): ?><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/vendor/lenis/lenis.min.js?v=1.3.27', ENT_QUOTES, 'UTF-8') ?>" defer></script><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger-init.js?v=20261123-2', ENT_QUOTES, 'UTF-8') ?>" defer></script><?php endif; ?>
 </body>
 </html>

@@ -22,6 +22,23 @@
   const countTargets = $$('[data-endpoint-count]');
   const methods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head'];
   const state = { spec: null, operations: [], visible: [], activeId: null };
+  const lenis = typeof window.Lenis === 'function'
+    ? new window.Lenis({ autoRaf: true, anchors: true, allowNestedScroll: true, stopInertiaOnNavigate: true })
+    : null;
+
+  if (lenis) {
+    const syncScrollLock = () => {
+      const locked = document.body.classList.contains('docs-sidebar-open')
+        || document.body.classList.contains('docs-control-nav-open');
+      if (locked) lenis.stop();
+      else lenis.start();
+    };
+    new MutationObserver(syncScrollLock).observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    syncScrollLock();
+  }
 
   const closeSidebar = () => {
     sidebar?.classList.remove('is-open');
@@ -394,7 +411,13 @@
         state.activeId = scrollButton.dataset.scrollTo;
         renderNav();
         closeSidebar();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.requestAnimationFrame(() => {
+          if (lenis) lenis.scrollTo(target);
+          else target.scrollIntoView({
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+            block: 'start',
+          });
+        });
       }
       return;
     }
