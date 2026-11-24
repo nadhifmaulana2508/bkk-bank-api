@@ -10,7 +10,7 @@ AdminSession::start();
 $requestPath = web_request_path();
 $adminDocsMatch = [];
 $isAdminDocsRoute = preg_match(
-    '#^(.*)/admin/docs/(global|simpeg|simontok|monbis|dummy)/?$#',
+    '#^(.*)/admin/docs/(global|simpeg|nora|simontok|monbis|dummy)/?$#',
     $requestPath,
     $adminDocsMatch
 ) === 1;
@@ -28,13 +28,16 @@ if ($isAdminDocsRoute) {
     $routeGroup = strtolower(trim(explode('/', $docsRoute, 2)[0] ?? ''));
 }
 $groupQuery = $_GET['group'] ?? 'global';
-$group = in_array($routeGroup, ['global', 'simpeg', 'simontok', 'monbis', 'dummy'], true)
+$group = in_array($routeGroup, ['global', 'simpeg', 'nora', 'simontok', 'monbis', 'dummy'], true)
     ? $routeGroup
     : (is_string($groupQuery) ? strtolower(trim($groupQuery)) : 'global');
-if (!in_array($group, ['global', 'simpeg', 'simontok', 'monbis', 'dummy'], true)) {
+if (!in_array($group, ['global', 'simpeg', 'nora', 'simontok', 'monbis', 'dummy'], true)) {
     $group = 'global';
 }
-$docsPermissionGroup = in_array($group, ['simpeg', 'dummy'], true) ? 'global' : $group;
+if ($group === 'simontok') {
+    $group = 'nora';
+}
+$docsPermissionGroup = in_array($group, ['simpeg', 'dummy'], true) ? 'global' : ($group === 'nora' ? 'simontok' : $group);
 
 if (!AdminSession::isAuthenticated()) {
     header('Location: ' . $adminBaseUrl . '/overview');

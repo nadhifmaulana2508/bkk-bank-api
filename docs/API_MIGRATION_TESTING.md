@@ -45,7 +45,7 @@ Dokumentasi interaktif:
 ~~~text
 http://localhost/bank-api/admin/docs/global
 http://localhost/bank-api/admin/docs/simpeg
-http://localhost/bank-api/admin/docs/simontok
+http://localhost/bank-api/admin/docs/nora
 http://localhost/bank-api/admin/docs/dummy
 ~~~
 
@@ -55,7 +55,7 @@ Development server:
 https://devsso.bkkjateng.co.id
 https://devsso.bkkjateng.co.id/admin/docs/global
 https://devsso.bkkjateng.co.id/admin/docs/simpeg
-https://devsso.bkkjateng.co.id/admin/docs/simontok
+https://devsso.bkkjateng.co.id/admin/docs/nora
 https://devsso.bkkjateng.co.id/admin/docs/dummy
 ~~~
 
@@ -65,7 +65,7 @@ Production server setelah seluruh pengujian selesai:
 https://apisso.bkkjateng.co.id
 https://apisso.bkkjateng.co.id/admin/docs/global
 https://apisso.bkkjateng.co.id/admin/docs/simpeg
-https://apisso.bkkjateng.co.id/admin/docs/simontok
+https://apisso.bkkjateng.co.id/admin/docs/nora
 https://apisso.bkkjateng.co.id/admin/docs/dummy
 ~~~
 

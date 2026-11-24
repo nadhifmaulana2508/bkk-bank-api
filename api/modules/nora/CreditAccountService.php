@@ -65,6 +65,10 @@ final class CreditAccountService
                 k.nama_nasabah,
                 k.status_nikah,
                 k.plafon,
+                k.status_kredit,
+                k.tanggal_realisasi,
+                k.tanggal_jatuh_tempo,
+                k.kolektibilitas,
                 COALESCE((
                     SELECT COUNT(*)
                     FROM list_agunan a
@@ -183,6 +187,10 @@ final class CreditAccountService
                 'marital_status' => self::mapMaritalStatus($row['status_nikah'] ?? null),
                 'collateral_count' => (int) $row['collateral_count'],
                 'plafond' => $row['plafon'] !== null ? (string) $row['plafon'] : null,
+                'status_kredit' => $row['status_kredit'] !== null ? (string) $row['status_kredit'] : null,
+                'tgl_realisasi' => $row['tanggal_realisasi'] !== null ? (string) $row['tanggal_realisasi'] : null,
+                'tgl_jatuh_tempo' => $row['tanggal_jatuh_tempo'] !== null ? (string) $row['tanggal_jatuh_tempo'] : null,
+                'kolek' => $row['kolektibilitas'] !== null ? (string) $row['kolektibilitas'] : null,
                 'branch' => $branches[$code] ?? [
                     'code' => $code,
                     'name' => null,

@@ -6,22 +6,22 @@ require_once dirname(__DIR__, 2) . '/global/auth/RequireUserMiddleware.php';
 
 return static function (ApiRouter $router): void {
     $router->get(
-        '/api/v1/simontok/credit-accounts',
+        '/api/v1/nora/credit-accounts',
         [CreditAccountController::class, 'search'],
         [[RequireUserMiddleware::class, 'handle']]
     );
     $router->get(
-        '/api/v1/simontok/credit-accounts/{account_id}',
+        '/api/v1/nora/credit-accounts/{account_id}',
         [CreditAccountController::class, 'detail'],
         [[RequireUserMiddleware::class, 'handle']]
     );
     $router->get(
-        '/api/v1/simontok/credit-accounts/{account_id}/collaterals',
+        '/api/v1/nora/credit-accounts/{account_id}/collaterals',
         [CreditAccountController::class, 'collaterals'],
         [[RequireUserMiddleware::class, 'handle']]
     );
     $router->get(
-        '/api/v1/simontok/branches',
+        '/api/v1/nora/branches',
         [CreditAccountController::class, 'branches']
     );
 };

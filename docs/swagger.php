@@ -13,13 +13,16 @@ $adminBaseUrl = $adminBaseUrl ?? (rtrim(dirname($docsBaseUrl), '/') . '/admin');
 $docsRoute = web_route_after($docsBaseUrl);
 $routeGroup = strtolower(trim(explode('/', $docsRoute, 2)[0] ?? ''));
 $groupQuery = $_GET['group'] ?? $_SESSION['docs_group'] ?? 'global';
-$group = in_array($routeGroup, ['global', 'simpeg', 'simontok', 'monbis', 'dummy'], true)
+$group = in_array($routeGroup, ['global', 'simpeg', 'nora', 'simontok', 'monbis', 'dummy'], true)
     ? $routeGroup
     : (is_string($groupQuery) ? strtolower(trim($groupQuery)) : 'global');
-if (!in_array($group, ['global', 'simpeg', 'simontok', 'monbis', 'dummy'], true)) {
+if (!in_array($group, ['global', 'simpeg', 'nora', 'simontok', 'monbis', 'dummy'], true)) {
     $group = 'global';
 }
-$docsPermissionGroup = in_array($group, ['simpeg', 'dummy'], true) ? 'global' : $group;
+if ($group === 'simontok') {
+    $group = 'nora';
+}
+$docsPermissionGroup = in_array($group, ['simpeg', 'dummy'], true) ? 'global' : ($group === 'nora' ? 'simontok' : $group);
 
 if (!AdminSession::isAuthenticated()) {
     header('Location: ' . $adminBaseUrl . '/registry');
@@ -41,9 +44,9 @@ $groupMeta = [
         'label' => 'API Simpeg',
         'description' => 'Endpoint SIMPEG untuk pencarian pegawai dan daftar AO.',
     ],
-    'simontok' => [
-        'label' => 'API Simontok',
-        'description' => 'Endpoint SIMONTOK untuk pencarian rekening, detail kredit, agunan, dan master cabang.',
+    'nora' => [
+        'label' => 'API NORA',
+        'description' => 'Endpoint NORA untuk pencarian rekening, detail kredit, agunan, dan master cabang.',
     ],
     'monbis' => [
         'label' => 'API Monbis',
@@ -54,7 +57,7 @@ $groupMeta = [
         'description' => 'Endpoint login dan profil dummy untuk pengujian jabatan di local/development.',
     ],
 ][$group];
-$hasDocs = in_array($group, ['global', 'simpeg', 'simontok', 'dummy'], true);
+$hasDocs = in_array($group, ['global', 'simpeg', 'nora', 'dummy'], true);
 $docsDefaultApp = in_array($group, ['global', 'dummy'], true) ? 'monbis' : $group;
 $docsNavIcon = static fn(string $name): string => match ($name) {
     'overview' => '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
@@ -65,7 +68,7 @@ $docsNavIcon = static fn(string $name): string => match ($name) {
     'docs' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/></svg>',
     'global' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>',
     'simpeg' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>',
-    'simontok' => '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>',
+    'nora' => '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>',
     'monbis' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M2 20h20M9 10v2M15 10v2M9 15v2M15 15v2"/></svg>',
     'dummy' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5.5 9.2A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.8L14 9V3M8 15h8"/></svg>',
     default => '',
@@ -116,7 +119,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
         <div class="docs-nav-submenu">
             <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'global' ? 'is-current' : '' ?>" aria-label="Global" title="Global" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'global' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('global') ?></span><span class="docs-nav-label">Global</span></a><?php endif; ?>
             <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-current' : '' ?>" aria-label="Simpeg" title="Simpeg" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simpeg' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('simpeg') ?></span><span class="docs-nav-label">Simpeg</span></a><?php endif; ?>
-            <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-current' : '' ?>" aria-label="Simontok" title="Simontok" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simontok' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('simontok') ?></span><span class="docs-nav-label">Simontok</span></a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'nora' ? 'is-current' : '' ?>" aria-label="NORA" title="NORA" href="<?= htmlspecialchars($docsBaseUrl . '/nora', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'nora' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('nora') ?></span><span class="docs-nav-label">NORA</span></a><?php endif; ?>
             <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-current' : '' ?>" aria-label="Monbis" title="Monbis" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'monbis' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('monbis') ?></span><span class="docs-nav-label">Monbis</span></a><?php endif; ?>
             <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'dummy' ? 'is-current' : '' ?>" aria-label="Dummy" title="Dummy" href="<?= htmlspecialchars($docsBaseUrl . '/dummy', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'dummy' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('dummy') ?></span><span class="docs-nav-label">Dummy</span></a><?php endif; ?>
         </div>
@@ -162,7 +165,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
             <nav class="docs-group-tabs" aria-label="Kelompok dokumentasi">
                 <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'global' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'global' ? 'aria-current="page"' : '' ?>>Global</a><?php endif; ?>
                 <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simpeg' ? 'aria-current="page"' : '' ?>>Simpeg</a><?php endif; ?>
-                <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simontok' ? 'aria-current="page"' : '' ?>>Simontok</a><?php endif; ?>
+                <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'nora' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/nora', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'nora' ? 'aria-current="page"' : '' ?>>NORA</a><?php endif; ?>
                 <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'monbis' ? 'aria-current="page"' : '' ?>>Monbis</a><?php endif; ?>
                 <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'dummy' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/dummy', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'dummy' ? 'aria-current="page"' : '' ?>>Dummy</a><?php endif; ?>
             </nav>

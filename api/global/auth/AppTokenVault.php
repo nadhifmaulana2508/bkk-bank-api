@@ -11,6 +11,10 @@ final class AppTokenVaultUnavailableException extends RuntimeException
 {
 }
 
+final class AppTokenVaultDecryptionException extends RuntimeException
+{
+}
+
 final class AppTokenVault
 {
     private const CIPHER = 'aes-256-gcm';
@@ -147,7 +151,7 @@ final class AppTokenVault
             self::associatedData($applicationId, $appCode)
         );
         if (!is_string($token) || $token === '' || !hash_equals($expectedHash, hash('sha256', $token))) {
-            throw new RuntimeException('Token aplikasi tidak dapat didekripsi. Periksa kunci vault di server.');
+            throw new AppTokenVaultDecryptionException('Token aplikasi tidak dapat dibuka dengan kunci vault yang aktif.');
         }
 
         return $token;

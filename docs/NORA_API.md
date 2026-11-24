@@ -1,15 +1,15 @@
-# Dokumentasi API Simontok
+# Dokumentasi API NORA
 
 Dokumentasi ini menjelaskan endpoint untuk mencari rekening debitur, membaca detail kredit, dan mengambil seluruh agunan rekening.
 
 ## URL dokumentasi
 
 ```text
-http://localhost/bank-api/admin/docs/simontok
-https://devsso.bkkjateng.co.id/admin/docs/simontok
+http://localhost/bank-api/admin/docs/nora
+https://devsso.bkkjateng.co.id/admin/docs/nora
 ```
 
-Halaman dokumentasi memakai session Control Plane yang sama. User harus memiliki permission `docs.simontok`.
+Halaman dokumentasi memakai session Control Plane yang sama. User harus memiliki permission `docs.simontok` (permission tersimpan lama agar hak akses yang ada tetap berlaku).
 
 ## Sumber data
 
@@ -22,8 +22,8 @@ Halaman dokumentasi memakai session Control Plane yang sama. User harus memiliki
 Semua endpoint membutuhkan kredensial aplikasi jika `APP_TOKEN_REQUIRED=true`:
 
 ```http
-App: simontok
-X-App-Token: <TOKEN_APLIKASI_SIMONTOK>
+App: nora
+X-App-Token: <TOKEN_APLIKASI_NORA>
 ```
 
 Endpoint rekening juga membutuhkan JWT pegawai:
@@ -39,7 +39,7 @@ Kode aplikasi pada JWT harus sama dengan nilai header `App`.
 ### Cari rekening
 
 ```http
-GET /api/v1/simontok/credit-accounts?query={keyword}&branch_code={kode_cabang}&limit=20
+GET /api/v1/nora/credit-accounts?query={keyword}&branch_code={kode_cabang}&limit=20
 ```
 
 `query` dapat berisi nomor rekening atau nama nasabah dan minimal 3 karakter. `limit` bernilai 20 secara default dan dibatasi maksimal 50.
@@ -57,6 +57,10 @@ GET /api/v1/simontok/credit-accounts?query={keyword}&branch_code={kode_cabang}&l
       "marital_status": "married",
       "collateral_count": 1,
       "plafond": "100000000.00",
+      "status_kredit": "KREDIT AKTIF",
+      "tgl_realisasi": "2026-01-15",
+      "tgl_jatuh_tempo": "2029-01-15",
+      "kolek": "L",
       "branch": {
         "code": "001",
         "name": "Kantor Cabang Contoh",
@@ -77,7 +81,7 @@ Nomor rekening selalu dikirim sebagai string agar angka nol di depan tetap tersi
 ### Detail rekening
 
 ```http
-GET /api/v1/simontok/credit-accounts/{account_id}
+GET /api/v1/nora/credit-accounts/{account_id}
 ```
 
 `account_id` harus memakai nilai dari response pencarian. Endpoint ini hanya mengembalikan identitas rekening, jumlah agunan, dan seluruh agunan yang terhubung.
@@ -100,7 +104,7 @@ GET /api/v1/simontok/credit-accounts/{account_id}
 ### Daftar agunan
 
 ```http
-GET /api/v1/simontok/credit-accounts/{account_id}/collaterals
+GET /api/v1/nora/credit-accounts/{account_id}/collaterals
 ```
 
 Endpoint ini mengembalikan seluruh agunan rekening. Jika satu rekening memiliki lima agunan, array `data` berisi lima objek agunan.
@@ -130,7 +134,7 @@ Endpoint ini mengembalikan seluruh agunan rekening. Jika satu rekening memiliki 
 ### Master cabang
 
 ```http
-GET /api/v1/simontok/branches?active=true
+GET /api/v1/nora/branches?active=true
 ```
 
 Endpoint ini hanya membutuhkan token aplikasi. Nilai `code` berasal dari `dpk.kode_kantor`.
@@ -147,14 +151,14 @@ Endpoint ini hanya membutuhkan token aplikasi. Nilai `code` berasal dari `dpk.ko
 ```powershell
 $baseUrl = "http://localhost/bank-api"
 $headers = @{
-  App = "simontok"
-  "X-App-Token" = "<TOKEN_APLIKASI_SIMONTOK>"
+  App = "nora"
+  "X-App-Token" = "<TOKEN_APLIKASI_NORA>"
   Authorization = "Bearer <JWT_HASIL_LOGIN>"
 }
 
 Invoke-RestMethod `
   -Method Get `
-  -Uri "$baseUrl/api/v1/simontok/credit-accounts?query=001&limit=20" `
+  -Uri "$baseUrl/api/v1/nora/credit-accounts?query=001&limit=20" `
   -Headers $headers
 ```
 

@@ -26,7 +26,7 @@ Halaman control plane:
 /admin/rbac              User SSO dan permission per menu
 /admin/docs/global       Dokumentasi API Global
 /admin/docs/simpeg       Dokumentasi endpoint API Simpeg
-/admin/docs/simontok     Dokumentasi endpoint API Simontok
+/admin/docs/nora         Dokumentasi endpoint API NORA
 /admin/docs/monbis       Placeholder dokumentasi API Monbis
 /admin/docs/dummy        Dokumentasi endpoint login dan profil dummy
 ```
@@ -55,7 +55,7 @@ menu dapat dicentang per user dari menu **RBAC**.
   atau membuat user eksternal dengan form manual;
 - mendeteksi `app_code` yang sudah terdaftar saat mengetik dan tetap memvalidasinya
   di backend untuk mencegah duplikasi karena request bersamaan;
-- membuka dokumentasi API Global, Simpeg, Simontok, Monbis, dan Dummy memakai session admin yang sama. Tab Dummy memakai permission `docs.global`.
+- membuka dokumentasi API Global, Simpeg, NORA, Monbis, dan Dummy memakai session admin yang sama. Tab Dummy memakai permission `docs.global`.
 - mengunduh semua dokumen Markdown repository dalam satu file untuk implementasi dan referensi.
 
 Token divalidasi memakai hash SHA-256. Salinan terenkripsi di tabel

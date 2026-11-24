@@ -1024,11 +1024,11 @@
         }
       }
     },
-    "/api/v1/simontok/credit-accounts": {
+    "/api/v1/nora/credit-accounts": {
       "get": {
         "summary": "Cari rekening berdasarkan nomor rekening atau nama nasabah",
         "description": "Nomor rekening dikembalikan sebagai string. Pencarian nama dapat menghasilkan beberapa rekening dan tidak memilih nasabah secara otomatis.",
-        "tags": ["SIMONTOK"],
+        "tags": ["NORA"],
         "security": [
           {
             "appTokenAuth": [],
@@ -1091,6 +1091,10 @@
                       "marital_status": "married",
                       "collateral_count": 1,
                       "plafond": "100000000.00",
+                      "status_kredit": "KREDIT AKTIF",
+                      "tgl_realisasi": "2026-01-15",
+                      "tgl_jatuh_tempo": "2029-01-15",
+                      "kolek": "L",
                       "branch": {
                         "code": "001",
                         "name": "Kantor Cabang Contoh",
@@ -1119,10 +1123,10 @@
         }
       }
     },
-    "/api/v1/simontok/credit-accounts/{account_id}": {
+    "/api/v1/nora/credit-accounts/{account_id}": {
       "get": {
         "summary": "Ambil jumlah dan seluruh agunan rekening",
-        "tags": ["SIMONTOK"],
+        "tags": ["NORA"],
         "security": [
           {
             "appTokenAuth": [],
@@ -1169,11 +1173,11 @@
         }
       }
     },
-    "/api/v1/simontok/credit-accounts/{account_id}/collaterals": {
+    "/api/v1/nora/credit-accounts/{account_id}/collaterals": {
       "get": {
         "summary": "Ambil seluruh agunan rekening",
         "description": "Satu rekening dapat memiliki beberapa agunan. Semua agunan yang terhubung dikembalikan sebagai array.",
-        "tags": ["SIMONTOK"],
+        "tags": ["NORA"],
         "security": [
           {
             "appTokenAuth": [],
@@ -1229,11 +1233,11 @@
         }
       }
     },
-    "/api/v1/simontok/branches": {
+    "/api/v1/nora/branches": {
       "get": {
         "summary": "Ambil master cabang aktif",
-        "description": "Master cabang dibaca dari database DPK dan tidak mengekspos nama tabel database kepada SIMONTOK.",
-        "tags": ["SIMONTOK"],
+        "description": "Master cabang dibaca dari database DPK dan tidak mengekspos nama tabel database kepada NORA.",
+        "tags": ["NORA"],
         "security": [
           {
             "appTokenAuth": [],

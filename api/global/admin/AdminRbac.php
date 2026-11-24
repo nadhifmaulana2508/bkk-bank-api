@@ -12,7 +12,7 @@ final class AdminRbac
             'audit.view' => 'Melihat audit hit API',
             'recap.view' => 'Melihat rekap penggunaan API',
             'docs.global' => 'Membuka Swagger API Global, Simpeg, dan Dummy',
-            'docs.simontok' => 'Membuka Swagger API Simontok',
+            'docs.simontok' => 'Membuka Swagger API NORA',
             'docs.monbis' => 'Membuka Swagger API Monbis',
             'users.manage' => 'Mengelola user dan permission',
         ];

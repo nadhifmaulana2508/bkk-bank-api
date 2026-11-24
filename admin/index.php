@@ -79,9 +79,9 @@ $pageMeta = [
         'description' => 'Tempat dokumentasi endpoint Simpeg saat modulnya sudah resmi tersedia.',
     ],
     'docs-simontok' => [
-        'eyebrow' => 'API Simontok',
-        'title' => 'Panduan integrasi SIMONTOK',
-        'description' => 'Konfigurasi aplikasi SIMONTOK agar dapat memakai autentikasi dan endpoint global SSO.',
+        'eyebrow' => 'API NORA',
+        'title' => 'Panduan integrasi NORA',
+        'description' => 'Konfigurasi aplikasi NORA agar dapat memakai autentikasi dan endpoint SSO.',
     ],
     'docs-monbis' => [
         'eyebrow' => 'API Monbis',
@@ -172,7 +172,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                     <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>">API Global</a><?php endif; ?>
                     <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>">API Simpeg</a><?php endif; ?>
                     <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/dummy', ENT_QUOTES, 'UTF-8') ?>">API Dummy</a><?php endif; ?>
-                    <?php if ($can('docs.simontok')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>">API Simontok</a><?php endif; ?>
+                    <?php if ($can('docs.simontok')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/nora', ENT_QUOTES, 'UTF-8') ?>">API NORA</a><?php endif; ?>
                     <?php if ($can('docs.monbis')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>">API Monbis</a><?php endif; ?>
                     <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/export', ENT_QUOTES, 'UTF-8') ?>">Unduh semua dokumentasi (.md)</a><?php endif; ?>
                 </div>
@@ -334,7 +334,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                     <div class="panel-heading">
                         <div>
                             <h2>API Global</h2>
-                            <p class="panel-description">Kontrak bersama yang dipakai Monbis, Simontok, Notaris, dan aplikasi lain.</p>
+                            <p class="panel-description">Kontrak bersama yang dipakai Monbis, NORA, Notaris, dan aplikasi lain.</p>
                         </div>
                     </div>
                     <div class="docs-content">
@@ -354,15 +354,15 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                         <p class="docs-note">Dokumentasi endpoint TTD belum ditampilkan karena database TTD masih lokal.</p>
                     </div>
                 <?php elseif ($page === 'docs-simontok'): ?>
-                    <div class="panel-heading"><div><h2>API Simontok</h2><p class="panel-description">Halaman integrasi aplikasi SIMONTOK.</p></div></div>
+                    <div class="panel-heading"><div><h2>API NORA</h2><p class="panel-description">Halaman integrasi aplikasi NORA.</p></div></div>
                     <div class="docs-content">
-                        <div class="doc-callout"><strong>Daftarkan lebih dulu di Registry</strong><span>Gunakan kode aplikasi <code>simontok</code>, lalu simpan token hasil generate ke secret environment aplikasi.</span></div>
+                        <div class="doc-callout"><strong>Daftarkan lebih dulu di Registry</strong><span>Gunakan kode aplikasi <code>nora</code>, lalu simpan token hasil generate ke secret environment aplikasi.</span></div>
                         <h3>Konfigurasi request global</h3>
-                        <pre class="credential-snippet">App: simontok
-X-App-Token: &lt;SIMONTOK_SSO_TOKEN&gt;</pre>
+                        <pre class="credential-snippet">App: nora
+X-App-Token: &lt;NORA_SSO_TOKEN&gt;</pre>
                         <h3>Endpoint global yang tersedia</h3>
                         <p>Gunakan halaman <a class="inline-link" href="<?= htmlspecialchars($pageUrl('docs-global'), ENT_QUOTES, 'UTF-8') ?>">API Global</a> sebagai referensi endpoint autentikasi, profil, reset password, direktori pegawai, dan AO.</p>
-                        <p class="docs-note">Endpoint bisnis khusus SIMONTOK belum didefinisikan di repository SSO ini. Halaman ini menjadi tempat kontrak integrasinya.</p>
+                        <p class="docs-note">Dokumentasi endpoint bisnis NORA tersedia pada halaman API NORA.</p>
                     </div>
                 <?php else: ?>
                     <div class="panel-heading"><div><h2>API Monbis</h2><p class="panel-description">Halaman integrasi aplikasi MONBIS.</p></div></div>
@@ -554,7 +554,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
     </dialog>
 <?php endif; ?>
 
-<script src="app.js?v=20261122-1" defer></script>
+<script src="app.js?v=20261124-1" defer></script>
 <script src="theme.js" defer></script>
 </body>
 </html>

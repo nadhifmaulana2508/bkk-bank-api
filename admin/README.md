@@ -11,7 +11,7 @@ design tokens can be moved into real shadcn/ui components without changing the
 admin endpoints.
 
 The sticky navbar exposes Registry, Audit, Recap, RBAC, and documentation pages for
-the Global API, Simontok API, and Monbis API. Every page remains behind the
+the Global API, NORA API, and Monbis API. Every page remains behind the
 admin session.
 
 The RBAC page uses `/admin/rbac`. Internal employees can be selected through the

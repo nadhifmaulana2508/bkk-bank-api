@@ -89,6 +89,9 @@ final class AdminController
             sendResponse(503, 'Atur APP_TOKEN_ENCRYPTION_KEY atau SSO_JWT_SECRET yang kuat pada konfigurasi server sebelum membuat atau merotasi token.');
         } catch (AppTokenVaultUnavailableException $exception) {
             sendResponse(503, 'Database vault di db_bank_api tidak tersedia. Periksa koneksi dan migration 007.');
+        } catch (AppTokenVaultDecryptionException $exception) {
+            error_log('[API] App-token vault decryption failed: ' . $exception->getMessage());
+            sendResponse(503, 'Token tidak dapat dibuka. Pastikan APP_TOKEN_ENCRYPTION_KEY sama pada semua server dan tidak berubah.');
         } catch (PDOException $exception) {
             error_log('[API] Admin database error: ' . $exception->getMessage());
             sendResponse(503, 'Layanan admin sedang tidak tersedia.');

@@ -131,7 +131,9 @@
     const payload = await response.json().catch(() => ({ message: 'Response server tidak valid.' }));
     if (!response.ok) {
       if (response.status === 401) window.location.reload();
-      throw new Error(payload.message || 'Permintaan gagal.');
+      const error = new Error(payload.message || 'Permintaan gagal.');
+      error.status = response.status;
+      throw error;
     }
     return payload;
   };
@@ -484,10 +486,20 @@
     if (!application) return;
 
     try {
-      const response = await request('reveal', {
-        method: 'POST',
-        body: JSON.stringify({ id: Number(id) }),
-      });
+      let response;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          response = await request('reveal', {
+            method: 'POST',
+            body: JSON.stringify({ id: Number(id) }),
+          });
+          break;
+        } catch (error) {
+          const transient = !error.status || error.status >= 500;
+          if (!transient || attempt === 1) throw error;
+          await new Promise((resolve) => window.setTimeout(resolve, 250));
+        }
+      }
       const token = String(response.data?.token || '');
       if (!token) throw new Error('Server tidak mengembalikan token.');
       const docsPrefilled = stageDocsCredentials(application.app_code, token);
@@ -828,7 +840,11 @@
     if (!button) return;
     const application = state.applications.find((item) => Number(item.id) === Number(button.dataset.id));
     if (button.dataset.action === 'edit') openApplicationDialog(application);
-    if (button.dataset.action === 'copy-token') copyApplicationToken(button.dataset.id);
+    if (button.dataset.action === 'copy-token') {
+      if (button.disabled) return;
+      button.disabled = true;
+      copyApplicationToken(button.dataset.id).finally(() => { button.disabled = false; });
+    }
     if (button.dataset.action === 'rotate') rotateApplication(button.dataset.id);
   });
 
