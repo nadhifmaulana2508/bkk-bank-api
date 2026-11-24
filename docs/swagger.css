@@ -155,6 +155,7 @@ code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospac
 .run-button:disabled { cursor: wait; opacity: .6; }
 .response-panel { min-width: 0; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #fafafa; }
 .response-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.response-actions { display: flex; align-items: center; gap: 8px; }
 .response-heading strong { font-size: 11px; }
 .response-status { padding: 3px 7px; border-radius: 999px; background: var(--surface-subtle); color: var(--muted); font-size: 10px; font-weight: 800; }
 .response-status.is-success { background: var(--green-bg); color: var(--green); }

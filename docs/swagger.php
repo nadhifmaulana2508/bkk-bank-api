@@ -92,7 +92,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="docs-app-default" content="<?= htmlspecialchars($docsDefaultApp, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-base" content="<?= htmlspecialchars($docsBaseUrl, ENT_QUOTES, 'UTF-8') ?>">
     <?php if ($hasDocs): ?><link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/vendor/lenis/lenis.css?v=1.3.27', ENT_QUOTES, 'UTF-8') ?>"><?php endif; ?>
-    <link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger.css?v=20261123-2', ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger.css?v=20261124-1', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
 <aside class="docs-control-sidebar" id="docs-control-sidebar" data-control-sidebar aria-label="Navigasi Control Plane" aria-hidden="true" inert>
@@ -244,6 +244,6 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 
 <script src="<?= htmlspecialchars($adminBaseUrl . '/theme.js', ENT_QUOTES, 'UTF-8') ?>" defer></script>
 <script src="<?= htmlspecialchars($docsAssetBaseUrl . '/control-sidebar.js?v=20261122-4', ENT_QUOTES, 'UTF-8') ?>" defer></script>
-<?php if ($hasDocs): ?><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/vendor/lenis/lenis.min.js?v=1.3.27', ENT_QUOTES, 'UTF-8') ?>" defer></script><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger-init.js?v=20261123-2', ENT_QUOTES, 'UTF-8') ?>" defer></script><?php endif; ?>
+<?php if ($hasDocs): ?><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/vendor/lenis/lenis.min.js?v=1.3.27', ENT_QUOTES, 'UTF-8') ?>" defer></script><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger-init.js?v=20261124-1', ENT_QUOTES, 'UTF-8') ?>" defer></script><?php endif; ?>
 </body>
 </html>

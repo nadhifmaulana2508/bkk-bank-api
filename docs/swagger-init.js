@@ -141,14 +141,35 @@
   };
 
   const copyText = async (value, button) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      const original = button.textContent;
-      button.textContent = 'Tersalin';
-      window.setTimeout(() => { button.textContent = original; }, 1200);
-    } catch (_) {
-      button.textContent = 'Gagal menyalin';
+    const original = button.textContent;
+    let copied = false;
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(value);
+        copied = true;
+      } catch (_) { /* fallback for denied clipboard permission */ }
     }
+    if (!copied) {
+      const textarea = document.createElement('textarea');
+      textarea.value = value;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      textarea.style.top = '0';
+      document.body.appendChild(textarea);
+      textarea.focus({ preventScroll: true });
+      textarea.select();
+      textarea.setSelectionRange(0, textarea.value.length);
+      try {
+        copied = document.execCommand('copy');
+      } catch (_) {
+        copied = false;
+      } finally {
+        textarea.remove();
+      }
+    }
+    button.textContent = copied ? 'Tersalin' : 'Gagal menyalin';
+    window.setTimeout(() => { button.textContent = original; }, 1600);
   };
 
   const updateCount = (value) => {
@@ -281,7 +302,7 @@
               <button class="run-button" type="submit">Jalankan request</button>
             </form>
             <section class="response-panel" aria-live="polite">
-              <div class="response-heading"><strong>Response</strong><span class="response-status" data-response-status>Belum dijalankan</span></div>
+              <div class="response-heading"><strong>Response</strong><div class="response-actions"><button class="button-subtle" type="button" data-copy-response disabled>Salin response</button><span class="response-status" data-response-status>Belum dijalankan</span></div></div>
               <pre class="response-output" data-response-output>Tekan Jalankan request untuk melihat hasil.</pre>
             </section>
           </div>
@@ -360,10 +381,13 @@
       headers['Content-Type'] = 'application/json';
     }
     const button = $('button[type="submit"]', form);
-    const output = $('[data-response-output]', form.closest('.operation-card'));
-    const status = $('[data-response-status]', form.closest('.operation-card'));
+    const card = form.closest('.operation-card');
+    const output = $('[data-response-output]', card);
+    const status = $('[data-response-status]', card);
+    const copyResponseButton = $('[data-copy-response]', card);
     button.disabled = true;
     button.textContent = 'Menjalankan...';
+    copyResponseButton.disabled = true;
     status.textContent = 'Loading';
     status.className = 'response-status';
     try {
@@ -372,10 +396,12 @@
       output.textContent = formatJson(text);
       status.textContent = `${response.status} ${response.statusText}`;
       status.className = `response-status ${response.ok ? 'is-success' : 'is-error'}`;
+      copyResponseButton.disabled = false;
     } catch (error) {
       output.textContent = error.message || 'Request gagal dijalankan.';
       status.textContent = 'Network error';
       status.className = 'response-status is-error';
+      copyResponseButton.disabled = false;
     } finally {
       button.disabled = false;
       button.textContent = 'Jalankan request';
@@ -431,7 +457,15 @@
       return;
     }
     const copyButton = event.target.closest('[data-copy-path]');
-    if (copyButton) copyText(copyButton.dataset.copyPath, copyButton);
+    if (copyButton) {
+      copyText(copyButton.dataset.copyPath, copyButton);
+      return;
+    }
+    const responseCopyButton = event.target.closest('[data-copy-response]');
+    if (responseCopyButton && !responseCopyButton.disabled) {
+      const output = $('[data-response-output]', responseCopyButton.closest('.operation-card'));
+      if (output) copyText(output.textContent, responseCopyButton);
+    }
   });
 
   document.addEventListener('submit', (event) => {
