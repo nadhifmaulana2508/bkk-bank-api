@@ -84,7 +84,7 @@
       "post": {
         "summary": "Login dummy untuk pengujian local/development",
         "description": "Tersedia pada APP_ENV=local dari localhost atau APP_ENV=development dengan SSO_DUMMY_AUTH_ENABLED=true, SSO_DUMMY_PASSWORD, dan SSO_DUMMY_ALLOWED_IPS berisi IP penguji. Production selalu menolak endpoint ini. Gunakan akun pegawai dengan status login dan jabatan aktif; password akun tb_apk tidak diubah. Wajib memakai App dan X-App-Token aplikasi aktif yang terdaftar.",
-        "tags": ["Auth"],
+        "tags": ["Dummy"],
         "security": [
           {
             "appTokenAuth": [],
@@ -150,7 +150,7 @@
       "get": {
         "summary": "Ambil profil dari token dummy (Bearer)",
         "description": "Mengembalikan profil dan jabatan aktif untuk token login-dummy. Hanya aktif di local dari localhost atau di development dengan IP allowlist; production menolak endpoint ini.",
-        "tags": ["Auth"],
+        "tags": ["Dummy"],
         "security": [
           {
             "appTokenAuth": [],
@@ -190,7 +190,7 @@
       "post": {
         "summary": "Ambil profil dari token dummy (Body JSON)",
         "description": "Alternatif POST mengirim token pada body JSON, mengikuti format POST /api/auth/whoami. Hanya aktif di local dari localhost atau di development dengan IP allowlist; production menolak endpoint ini.",
-        "tags": ["Auth"],
+        "tags": ["Dummy"],
         "security": [
           {
             "appTokenAuth": [],
@@ -827,6 +827,200 @@
           "400": {
             "description": "Minimal salah satu parameter id_peg atau nama wajib diisi"
           }
+        }
+      }
+    },
+    "/api/simpeg/jabatan": {
+      "get": {
+        "summary": "Daftar master jabatan SIMPEG",
+        "description": "Mengembalikan semua master jabatan termasuk posisi yang belum terisi, digabung dengan penempatan berstatus Aktif. Satu baris diberikan untuk setiap pemegang aktif; posisi kosong tetap muncul dengan field penempatan bernilai null. Kode jabatan dan relasi jabatan dikirim sebagai string. Tabel master belum menyediakan kolom waktu perubahan; gunakan pagination dan sinkronkan seluruh halaman.",
+        "tags": ["SIMPEG"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": { "type": "integer", "minimum": 1, "default": 1 }
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 100 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar master jabatan",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "OK",
+                  "data": [
+                    {
+                      "kode_jabatan": "79",
+                      "nama_jabatan": "Kepala Kantor Wilayah",
+                      "nama_unit_kerja": "Area Kantor Wilayah",
+                      "level": "Kepala Kantor Wilayah",
+                      "lingkup": "KANWIL",
+                      "group_jabatan": "PE",
+                      "kuota": 4,
+                      "parent_kode_jabatan": "4",
+                      "id_jab": "1234",
+                      "id_peg": "102-119",
+                      "kode_unit": "000001",
+                      "nama_unit": "Nama Unit",
+                      "tmt_jabatan": "2026-01-01",
+                      "sampai_tgl": null,
+                      "status_jab": "Aktif",
+                      "assignment_updated_at": "2026-11-23T10:00:00+07:00"
+                    }
+                  ],
+                  "meta": { "page": 1, "per_page": 100, "total": 1, "total_pages": 1, "has_more": false, "updated_since": null }
+                }
+              }
+            }
+          },
+          "400": { "description": "Parameter pagination tidak valid atau updated_since tidak didukung untuk master jabatan" },
+          "401": { "description": "Header App dan X-App-Token wajib diisi" },
+          "403": { "description": "Aplikasi atau token tidak valid / tidak aktif" },
+          "503": { "description": "Data SIMPEG sementara tidak tersedia" }
+        }
+      }
+    },
+    "/api/simpeg/pegawai": {
+      "get": {
+        "summary": "Daftar master pegawai SIMPEG",
+        "description": "Mengembalikan ID pegawai, nama, status kepegawaian, kode status aktif sumber, dan updated_at. Filter updated_since memakai timestamp perubahan pegawai.",
+        "tags": ["SIMPEG"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+          { "in": "query", "name": "per_page", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 100 } },
+          { "in": "query", "name": "updated_since", "schema": { "type": "string", "format": "date-time" }, "description": "ISO 8601; sertakan juga batas waktu terakhir yang sudah diproses agar perubahan dengan waktu sama tidak terlewat." }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar pegawai",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "OK",
+                  "data": [
+                    { "id_peg": "102-119", "nama": "Nama Pegawai", "status_pegawai": "Tetap", "status_aktif": "1", "updated_at": "2026-11-23T10:00:00+07:00" }
+                  ],
+                  "meta": { "page": 1, "per_page": 100, "total": 1, "total_pages": 1, "has_more": false, "updated_since": null }
+                }
+              }
+            }
+          },
+          "400": { "description": "Parameter pagination atau updated_since tidak valid" },
+          "401": { "description": "Header App dan X-App-Token wajib diisi" },
+          "403": { "description": "Aplikasi atau token tidak valid / tidak aktif" },
+          "503": { "description": "Data SIMPEG sementara tidak tersedia" }
+        }
+      }
+    },
+    "/api/simpeg/penempatan": {
+      "get": {
+        "summary": "Daftar penempatan jabatan SIMPEG",
+        "description": "Mengembalikan riwayat penempatan beserta unit, tanggal efektif, status, dan metadata jabatan. Filter updated_since memakai timestamp perubahan penempatan.",
+        "tags": ["SIMPEG"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+          { "in": "query", "name": "per_page", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 100 } },
+          { "in": "query", "name": "updated_since", "schema": { "type": "string", "format": "date-time" }, "description": "ISO 8601; sertakan juga batas waktu terakhir yang sudah diproses agar perubahan dengan waktu sama tidak terlewat." }
+        ],
+        "responses": {
+          "200": {
+            "description": "Riwayat penempatan",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "OK",
+                  "data": [
+                    {
+                      "id_jab": "1234",
+                      "id_peg": "102-119",
+                      "kode_jabatan": "79",
+                      "parent_kode_jabatan": "4",
+                      "nama_jabatan": "Kepala Kantor Wilayah",
+                      "level": "Kepala Kantor Wilayah",
+                      "group_jabatan": "PE",
+                      "kode_unit": "000001",
+                      "unit_kerja": "Nama Unit",
+                      "tmt_jabatan": "2026-01-01",
+                      "sampai_tgl": null,
+                      "status_jab": "Aktif",
+                      "updated_at": "2026-11-23T10:00:00+07:00"
+                    }
+                  ],
+                  "meta": { "page": 1, "per_page": 100, "total": 1, "total_pages": 1, "has_more": false, "updated_since": null }
+                }
+              }
+            }
+          },
+          "400": { "description": "Parameter pagination atau updated_since tidak valid" },
+          "401": { "description": "Header App dan X-App-Token wajib diisi" },
+          "403": { "description": "Aplikasi atau token tidak valid / tidak aktif" },
+          "503": { "description": "Data SIMPEG sementara tidak tersedia" }
+        }
+      }
+    },
+    "/api/simpeg/unit-kerja": {
+      "get": {
+        "summary": "Daftar unit kerja SIMPEG",
+        "description": "Mengembalikan kode unit, nama, jenis unit, kode cabang, dan updated_at. Skema tb_kantor saat ini belum memiliki relasi parent unit.",
+        "tags": ["SIMPEG"],
+        "security": [
+          {
+            "appTokenAuth": [],
+            "appCode": []
+          }
+        ],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+          { "in": "query", "name": "per_page", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 100 } },
+          { "in": "query", "name": "updated_since", "schema": { "type": "string", "format": "date-time" }, "description": "ISO 8601; sertakan juga batas waktu terakhir yang sudah diproses agar perubahan dengan waktu sama tidak terlewat." }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar unit kerja",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": 200,
+                  "message": "OK",
+                  "data": [
+                    { "kode_unit": "000001", "nama_unit": "Nama Unit", "jenis_unit": "KANWIL", "kode_cabang": "000", "updated_at": "2026-11-23T00:00:00+07:00" }
+                  ],
+                  "meta": { "page": 1, "per_page": 100, "total": 1, "total_pages": 1, "has_more": false, "updated_since": null }
+                }
+              }
+            }
+          },
+          "400": { "description": "Parameter pagination atau updated_since tidak valid" },
+          "401": { "description": "Header App dan X-App-Token wajib diisi" },
+          "403": { "description": "Aplikasi atau token tidak valid / tidak aktif" },
+          "503": { "description": "Data SIMPEG sementara tidak tersedia" }
         }
       }
     },

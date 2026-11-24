@@ -28,6 +28,7 @@ Halaman control plane:
 /admin/docs/simpeg       Dokumentasi endpoint API Simpeg
 /admin/docs/simontok     Dokumentasi endpoint API Simontok
 /admin/docs/monbis       Placeholder dokumentasi API Monbis
+/admin/docs/dummy        Dokumentasi endpoint login dan profil dummy
 ```
 
 Menu API Docs membuka dokumentasi di bawah route `/admin/docs`. Halaman docs
@@ -54,7 +55,7 @@ menu dapat dicentang per user dari menu **RBAC**.
   atau membuat user eksternal dengan form manual;
 - mendeteksi `app_code` yang sudah terdaftar saat mengetik dan tetap memvalidasinya
   di backend untuk mencegah duplikasi karena request bersamaan;
-- membuka dokumentasi API Global, Simontok, dan Monbis memakai session admin yang sama.
+- membuka dokumentasi API Global, Simpeg, Simontok, Monbis, dan Dummy memakai session admin yang sama. Tab Dummy memakai permission `docs.global`.
 - mengunduh semua dokumen Markdown repository dalam satu file untuk implementasi dan referensi.
 
 Token divalidasi memakai hash SHA-256. Salinan terenkripsi di tabel

@@ -35,6 +35,43 @@ Isi salah satu parameter `id_peg` atau `nama`. Hasil selalu berupa array
 dengan field `employee_id`, `full_name`, `kode`, dan `job_position`, maksimal
 50 data. Nama field mengikuti response `whoami` agar client konsisten.
 
+## Direktori organisasi untuk KPI
+
+Endpoint direktori berikut bersifat read-only dan wajib memakai header `App`
+serta `X-App-Token` dari aplikasi terdaftar. Semua kode dan ID dikembalikan
+sebagai string. Pagination memakai `page` (default `1`) dan `per_page`
+(default `100`, maksimum `200`). Endpoint pegawai, penempatan, dan unit kerja
+menerima `updated_since` dalam ISO 8601; perubahan dengan timestamp sama dapat
+terulang, jadi client sebaiknya melakukan upsert berdasarkan ID/kode.
+
+```text
+GET /api/simpeg/jabatan
+GET /api/simpeg/pegawai
+GET /api/simpeg/penempatan
+GET /api/simpeg/unit-kerja
+```
+
+- `jabatan` menggabungkan `tb_master_jabatan` dengan baris `tb_jabatan` berstatus
+  `Aktif` melalui `kode_jabatan`. Satu baris dikembalikan per pemegang aktif;
+  posisi kosong tetap muncul dengan field penempatan bernilai `null`. Sumber
+  `tb_master_jabatan` belum memiliki timestamp perubahan, jadi data perlu
+  disinkronkan penuh dengan pagination dan parameter `updated_since` ditolak.
+- `pegawai` memakai `tb_pegawai.status_kepeg` sebagai `status_pegawai`,
+  menyertakan kode sumber `status_aktif`, dan timestamp `updated_at`.
+- `penempatan` mencakup riwayat penempatan, tanggal efektif, status, kode unit,
+  serta metadata jabatan dan timestamp perubahan.
+- `unit-kerja` memetakan level sumber `KP`, `KW`, `KC`, dan `KK` ke jenis unit
+  `PUSAT`, `KANWIL`, `KC`, dan `KK`. Tabel sumber `tb_kantor` belum memiliki
+  kolom parent unit.
+
+Response memakai envelope API biasa: array data di `data` dan informasi
+`page`, `per_page`, `total`, `total_pages`, `has_more`, serta filter di `meta`.
+Relasi jabatan mengikuti `tb_master_jabatan.parent_kode_jabatan`; pemegang aktif
+berasal dari `tb_jabatan` dan menyertakan `kode_unit`. Karena satu kode jabatan
+bisa punya beberapa pemegang aktif di unit berbeda dan `tb_kantor` belum punya
+parent unit, response mengirim semua pemegang aktif agar KPI menerapkan aturan
+penilai tanpa menebak pemegang lintas unit.
+
 ## Mengubah status login SSO
 
 ```text

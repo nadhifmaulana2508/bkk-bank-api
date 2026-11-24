@@ -83,11 +83,11 @@ rewrite ^/admin/api/users/(create|update)/?$ /admin/api.php?action=user-$1 last;
 rewrite ^/admin/api/employee-search/(.+)/?$ /admin/api.php?action=employee-search&q=$1 last;
 rewrite ^/admin/api/applications/?$ /admin/api.php?action=create last;
 rewrite ^/admin/api/applications/(update|rotate|reveal)/?$ /admin/api.php?action=$1 last;
-rewrite ^/admin/docs/(global|simpeg|simontok|monbis)/?$ /docs/index.php?group=$1 last;
-rewrite ^/admin/docs/openapi/(global|simpeg|simontok|monbis)/?$ /docs/openapi.php?group=$1 last;
+rewrite ^/admin/docs/(global|simpeg|simontok|monbis|dummy)/?$ /docs/index.php?group=$1 last;
+rewrite ^/admin/docs/openapi/(global|simpeg|simontok|monbis|dummy)/?$ /docs/openapi.php?group=$1 last;
 rewrite ^/admin/docs/export/?$ /docs/export.php last;
-rewrite ^/docs/(global|simpeg|simontok|monbis)/?$ /docs/index.php?group=$1 last;
-rewrite ^/docs/openapi/(global|simpeg|simontok|monbis)/?$ /docs/openapi.php?group=$1 last;
+rewrite ^/docs/(global|simpeg|simontok|monbis|dummy)/?$ /docs/index.php?group=$1 last;
+rewrite ^/docs/openapi/(global|simpeg|simontok|monbis|dummy)/?$ /docs/openapi.php?group=$1 last;
 ```
 
 Simpan `.env` di luar document root, misalnya

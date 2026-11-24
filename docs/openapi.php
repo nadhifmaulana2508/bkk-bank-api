@@ -23,13 +23,13 @@ $docsRoute = web_route_after($docsBaseUrl);
 $routeSegments = explode('/', $docsRoute);
 $routeGroup = ($routeSegments[0] ?? '') === 'openapi' ? strtolower(trim($routeSegments[1] ?? '')) : '';
 $groupQuery = $_GET['group'] ?? $_SESSION['docs_group'] ?? 'global';
-$group = in_array($routeGroup, ['global', 'simpeg', 'simontok', 'monbis'], true)
+$group = in_array($routeGroup, ['global', 'simpeg', 'simontok', 'monbis', 'dummy'], true)
     ? $routeGroup
     : (is_string($groupQuery) ? strtolower(trim($groupQuery)) : 'global');
-if (!in_array($group, ['global', 'simpeg', 'simontok', 'monbis'], true)) {
+if (!in_array($group, ['global', 'simpeg', 'simontok', 'monbis', 'dummy'], true)) {
     $group = 'global';
 }
-$docsPermissionGroup = $group === 'simpeg' ? 'global' : $group;
+$docsPermissionGroup = in_array($group, ['simpeg', 'dummy'], true) ? 'global' : $group;
 if (!AdminSession::hasPermission('docs.' . $docsPermissionGroup)) {
     http_response_code(403);
     exit;
@@ -46,18 +46,22 @@ $groupLabels = [
     'simpeg' => 'API Simpeg',
     'simontok' => 'API Simontok',
     'monbis' => 'API Monbis',
+    'dummy' => 'API Dummy',
 ];
-$activeAppCode = $group === 'global' ? 'monbis' : $group;
+$activeAppCode = in_array($group, ['global', 'dummy'], true) ? 'monbis' : $group;
 $spec['info']['title'] = ($groupLabels[$group] ?? 'API Global') . ' BKK';
 $spec['info']['description'] = $group === 'global'
     ? 'Dokumentasi endpoint bersama untuk autentikasi, profil, dan reset password.'
-    : ($group === 'simontok'
-        ? 'Dokumentasi endpoint SIMONTOK untuk pencarian rekening, detail kredit, agunan, dan master cabang.'
-        : 'Dokumentasi endpoint SIMPEG untuk data pegawai dan AO.');
+    : ($group === 'dummy'
+        ? 'Dokumentasi endpoint login dan profil dummy untuk pengujian local/development.'
+        : ($group === 'simontok'
+            ? 'Dokumentasi endpoint SIMONTOK untuk pencarian rekening, detail kredit, agunan, dan master cabang.'
+            : 'Dokumentasi endpoint SIMPEG untuk data pegawai dan AO.'));
 
 $groupTag = match ($group) {
     'simpeg' => 'SIMPEG',
     'simontok' => 'SIMONTOK',
+    'dummy' => 'DUMMY',
     default => null,
 };
 foreach (array_keys($spec['paths']) as $path) {
@@ -79,12 +83,13 @@ foreach (array_keys($spec['paths']) as $path) {
         }
     }
 
-    $isModulePath = $operationTags !== [] && (
+    $isDedicatedDocsPath = $operationTags !== [] && (
         in_array('SIMPEG', $operationTags, true)
         || in_array('SIMONTOK', $operationTags, true)
+        || in_array('DUMMY', $operationTags, true)
     );
     $keepPath = $group === 'global'
-        ? !$isModulePath
+        ? !$isDedicatedDocsPath
         : $groupTag !== null && in_array($groupTag, $operationTags, true);
 
     if (!$keepPath) {

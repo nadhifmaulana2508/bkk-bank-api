@@ -17,13 +17,13 @@ if (preg_match('#^/admin/(overview|registry|audit|recap|rbac|users)$#', $path, $
     return true;
 }
 
-if (preg_match('#^/admin/docs/(global|simpeg|simontok|monbis)$#', $path, $m)) {
+if (preg_match('#^/admin/docs/(global|simpeg|simontok|monbis|dummy)$#', $path, $m)) {
     $_GET['group'] = $m[1];
     require __DIR__ . '/docs/index.php';
     return true;
 }
 
-if (preg_match('#^/admin/docs/openapi/(global|simpeg|simontok|monbis)$#', $path, $m)) {
+if (preg_match('#^/admin/docs/openapi/(global|simpeg|simontok|monbis|dummy)$#', $path, $m)) {
     $_GET['group'] = $m[1];
     require __DIR__ . '/docs/openapi.php';
     return true;
@@ -65,13 +65,13 @@ if (preg_match('#^/admin/api/applications(?:/(update|rotate))?$#', $path, $m)) {
     return true;
 }
 
-if (preg_match('#^/docs/(global|simpeg|simontok|monbis)$#', $path, $m)) {
+if (preg_match('#^/docs/(global|simpeg|simontok|monbis|dummy)$#', $path, $m)) {
     $_GET['group'] = $m[1];
     require __DIR__ . '/docs/index.php';
     return true;
 }
 
-if (preg_match('#^/docs/openapi/(global|simpeg|simontok|monbis)$#', $path, $m)) {
+if (preg_match('#^/docs/openapi/(global|simpeg|simontok|monbis|dummy)$#', $path, $m)) {
     $_GET['group'] = $m[1];
     require __DIR__ . '/docs/openapi.php';
     return true;

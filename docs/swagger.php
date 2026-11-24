@@ -13,13 +13,13 @@ $adminBaseUrl = $adminBaseUrl ?? (rtrim(dirname($docsBaseUrl), '/') . '/admin');
 $docsRoute = web_route_after($docsBaseUrl);
 $routeGroup = strtolower(trim(explode('/', $docsRoute, 2)[0] ?? ''));
 $groupQuery = $_GET['group'] ?? $_SESSION['docs_group'] ?? 'global';
-$group = in_array($routeGroup, ['global', 'simpeg', 'simontok', 'monbis'], true)
+$group = in_array($routeGroup, ['global', 'simpeg', 'simontok', 'monbis', 'dummy'], true)
     ? $routeGroup
     : (is_string($groupQuery) ? strtolower(trim($groupQuery)) : 'global');
-if (!in_array($group, ['global', 'simpeg', 'simontok', 'monbis'], true)) {
+if (!in_array($group, ['global', 'simpeg', 'simontok', 'monbis', 'dummy'], true)) {
     $group = 'global';
 }
-$docsPermissionGroup = $group === 'simpeg' ? 'global' : $group;
+$docsPermissionGroup = in_array($group, ['simpeg', 'dummy'], true) ? 'global' : $group;
 
 if (!AdminSession::isAuthenticated()) {
     header('Location: ' . $adminBaseUrl . '/registry');
@@ -49,8 +49,13 @@ $groupMeta = [
         'label' => 'API Monbis',
         'description' => 'Belum ada endpoint khusus MONBIS yang didaftarkan pada Control Plane.',
     ],
+    'dummy' => [
+        'label' => 'API Dummy',
+        'description' => 'Endpoint login dan profil dummy untuk pengujian jabatan di local/development.',
+    ],
 ][$group];
-$hasDocs = in_array($group, ['global', 'simpeg', 'simontok'], true);
+$hasDocs = in_array($group, ['global', 'simpeg', 'simontok', 'dummy'], true);
+$docsDefaultApp = in_array($group, ['global', 'dummy'], true) ? 'monbis' : $group;
 $docsNavIcon = static fn(string $name): string => match ($name) {
     'overview' => '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>',
     'applications' => '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="1"/><rect x="4" y="14" width="16" height="6" rx="1"/></svg>',
@@ -62,6 +67,7 @@ $docsNavIcon = static fn(string $name): string => match ($name) {
     'simpeg' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>',
     'simontok' => '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>',
     'monbis' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-4 8 4v12M2 20h20M9 10v2M15 10v2M9 15v2M15 15v2"/></svg>',
+    'dummy' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5.5 9.2A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.8L14 9V3M8 15h8"/></svg>',
     default => '',
 };
 
@@ -80,7 +86,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <title><?= htmlspecialchars($groupMeta['label'], ENT_QUOTES, 'UTF-8') ?> &mdash; Dokumentasi API BKK</title>
     <meta name="docs-group" content="<?= htmlspecialchars($group, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-spec-version" content="<?= htmlspecialchars((string) @filemtime(__DIR__ . '/../swagger.json'), ENT_QUOTES, 'UTF-8') ?>">
-    <meta name="docs-app-default" content="<?= htmlspecialchars($group === 'global' ? 'monbis' : $group, ENT_QUOTES, 'UTF-8') ?>">
+    <meta name="docs-app-default" content="<?= htmlspecialchars($docsDefaultApp, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-base" content="<?= htmlspecialchars($docsBaseUrl, ENT_QUOTES, 'UTF-8') ?>">
     <?php if ($hasDocs): ?><link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/vendor/lenis/lenis.css?v=1.3.27', ENT_QUOTES, 'UTF-8') ?>"><?php endif; ?>
     <link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger.css?v=20261123-2', ENT_QUOTES, 'UTF-8') ?>">
@@ -112,6 +118,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
             <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-current' : '' ?>" aria-label="Simpeg" title="Simpeg" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simpeg' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('simpeg') ?></span><span class="docs-nav-label">Simpeg</span></a><?php endif; ?>
             <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-current' : '' ?>" aria-label="Simontok" title="Simontok" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simontok' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('simontok') ?></span><span class="docs-nav-label">Simontok</span></a><?php endif; ?>
             <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-current' : '' ?>" aria-label="Monbis" title="Monbis" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'monbis' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('monbis') ?></span><span class="docs-nav-label">Monbis</span></a><?php endif; ?>
+            <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'dummy' ? 'is-current' : '' ?>" aria-label="Dummy" title="Dummy" href="<?= htmlspecialchars($docsBaseUrl . '/dummy', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'dummy' ? 'aria-current="page"' : '' ?>><span class="docs-nav-icon" aria-hidden="true"><?= $docsNavIcon('dummy') ?></span><span class="docs-nav-label">Dummy</span></a><?php endif; ?>
         </div>
     </nav>
 </aside>
@@ -157,12 +164,13 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                 <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'simpeg' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simpeg' ? 'aria-current="page"' : '' ?>>Simpeg</a><?php endif; ?>
                 <?php if (AdminSession::hasPermission('docs.simontok')): ?><a class="<?= $group === 'simontok' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'simontok' ? 'aria-current="page"' : '' ?>>Simontok</a><?php endif; ?>
                 <?php if (AdminSession::hasPermission('docs.monbis')): ?><a class="<?= $group === 'monbis' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'monbis' ? 'aria-current="page"' : '' ?>>Monbis</a><?php endif; ?>
+                <?php if (AdminSession::hasPermission('docs.global')): ?><a class="<?= $group === 'dummy' ? 'is-active' : '' ?>" href="<?= htmlspecialchars($docsBaseUrl . '/dummy', ENT_QUOTES, 'UTF-8') ?>" <?= $group === 'dummy' ? 'aria-current="page"' : '' ?>>Dummy</a><?php endif; ?>
             </nav>
         </div>
-        <?php if ($group === 'global'): ?><div class="docs-target-card">
+        <?php if (in_array($group, ['global', 'dummy'], true)): ?><div class="docs-target-card">
             <span class="docs-card-label">Target aplikasi</span>
-            <strong><?= htmlspecialchars($group === 'global' ? 'Pilih saat testing' : ucfirst($group), ENT_QUOTES, 'UTF-8') ?></strong>
-            <small>Header <code>App</code> mengikuti aplikasi yang dipilih.</small>
+            <strong><?= htmlspecialchars($group === 'global' ? 'Pilih saat testing' : 'Aplikasi terdaftar', ENT_QUOTES, 'UTF-8') ?></strong>
+            <small><?= $group === 'global' ? 'Header <code>App</code> mengikuti aplikasi yang dipilih.' : 'Gunakan App dan X-App-Token aplikasi aktif; default App adalah monbis.' ?></small>
         </div><?php endif; ?>
     </section>
 
@@ -212,7 +220,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                     </div>
                 </div>
                 <div class="auth-grid">
-                    <div class="auth-field"><label for="auth-app">App</label><input id="auth-app" name="app" data-auth-app value="<?= htmlspecialchars($group === 'global' ? 'monbis' : $group, ENT_QUOTES, 'UTF-8') ?>" autocomplete="off"><small>Kode aplikasi terdaftar.</small></div>
+                    <div class="auth-field"><label for="auth-app">App</label><input id="auth-app" name="app" data-auth-app value="<?= htmlspecialchars($docsDefaultApp, ENT_QUOTES, 'UTF-8') ?>" autocomplete="off"><small>Kode aplikasi terdaftar.</small></div>
                     <div class="auth-field"><label for="auth-app-token">X-App-Token</label><div class="secret-control"><input id="auth-app-token" name="app_token" type="password" data-auth-token placeholder="Masukkan token aplikasi" autocomplete="off"><button class="secret-toggle" type="button" data-secret-toggle data-secret-label="X-App-Token" aria-controls="auth-app-token" aria-label="Tampilkan X-App-Token" title="Tampilkan X-App-Token" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div><small>Tidak disimpan kecuali tombol simpan dipilih.</small></div>
                     <div class="auth-field auth-wide"><label for="auth-jwt">Bearer JWT <em>opsional</em></label><div class="secret-control"><input id="auth-jwt" name="jwt" type="password" data-auth-jwt placeholder="Token hasil /api/auth/login" autocomplete="off"><button class="secret-toggle" type="button" data-secret-toggle data-secret-label="Bearer JWT" aria-controls="auth-jwt" aria-label="Tampilkan Bearer JWT" title="Tampilkan Bearer JWT" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div><small>Dipakai untuk endpoint yang membutuhkan login pegawai.</small></div>
                 </div>

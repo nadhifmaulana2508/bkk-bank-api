@@ -171,6 +171,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                 <div class="nav-menu-popover">
                     <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/global', ENT_QUOTES, 'UTF-8') ?>">API Global</a><?php endif; ?>
                     <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/simpeg', ENT_QUOTES, 'UTF-8') ?>">API Simpeg</a><?php endif; ?>
+                    <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/dummy', ENT_QUOTES, 'UTF-8') ?>">API Dummy</a><?php endif; ?>
                     <?php if ($can('docs.simontok')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/simontok', ENT_QUOTES, 'UTF-8') ?>">API Simontok</a><?php endif; ?>
                     <?php if ($can('docs.monbis')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/monbis', ENT_QUOTES, 'UTF-8') ?>">API Monbis</a><?php endif; ?>
                     <?php if ($can('docs.global')): ?><a href="<?= htmlspecialchars($docsBaseUrl . '/export', ENT_QUOTES, 'UTF-8') ?>">Unduh semua dokumentasi (.md)</a><?php endif; ?>
