@@ -141,20 +141,108 @@ final class AppTokenVault
             return null;
         }
 
-        $token = openssl_decrypt(
-            (string) $row['token_ciphertext'],
-            self::CIPHER,
-            self::encryptionKey(),
-            OPENSSL_RAW_DATA,
-            (string) $row['token_nonce'],
-            (string) $row['token_tag'],
-            self::associatedData($applicationId, $appCode)
-        );
-        if (!is_string($token) || $token === '' || !hash_equals($expectedHash, hash('sha256', $token))) {
-            throw new AppTokenVaultDecryptionException('Token aplikasi tidak dapat dibuka dengan kunci vault yang aktif.');
+        $primaryKey = self::encryptionKey();
+        foreach (self::decryptionKeys($primaryKey) as $key) {
+            $token = openssl_decrypt(
+                (string) $row['token_ciphertext'],
+                self::CIPHER,
+                $key,
+                OPENSSL_RAW_DATA,
+                (string) $row['token_nonce'],
+                (string) $row['token_tag'],
+                self::associatedData($applicationId, $appCode)
+            );
+            if (!is_string($token) || $token === '' || !hash_equals($expectedHash, hash('sha256', $token))) {
+                continue;
+            }
+
+            if (!hash_equals($primaryKey, $key)) {
+                try {
+                    self::rewrap($applicationId, $appCode, $expectedHash, $token);
+                } catch (AppTokenVaultDecryptionException $exception) {
+                    throw $exception;
+                } catch (Throwable $exception) {
+                    error_log('[API] App-token vault re-encryption deferred: ' . $exception->getMessage());
+                }
+            }
+
+            return $token;
         }
 
-        return $token;
+        throw new AppTokenVaultDecryptionException('Token aplikasi tidak dapat dibuka dengan kunci vault yang tersedia.');
+    }
+
+    /** @return array<int, string> */
+    private static function decryptionKeys(string $primaryKey): array
+    {
+        $keys = [$primaryKey];
+        $rootSecret = trim((string) app_env_value('SSO_JWT_SECRET', ''));
+        $lowerRootSecret = strtolower($rootSecret);
+        if (
+            strlen($rootSecret) >= self::KEY_BYTES
+            && $rootSecret !== 'SSO_BKK_SECRET_2026'
+            && !str_contains($lowerRootSecret, 'ganti-dengan')
+            && !str_contains($lowerRootSecret, 'isi-random')
+        ) {
+            $keys[] = hash_hkdf('sha256', $rootSecret, self::KEY_BYTES, self::KEY_CONTEXT, 'bkk-sso');
+        }
+
+        $environment = strtolower(trim((string) app_env_value('APP_ENV', 'local')));
+        if (in_array($environment, ['local', 'development'], true)) {
+            $keyPath = dirname(__DIR__, 3) . '/storage/app-token-encryption.key';
+            $encodedKey = is_file($keyPath) ? trim((string) @file_get_contents($keyPath)) : '';
+            $localKey = $encodedKey === '' ? false : base64_decode($encodedKey, true);
+            if (is_string($localKey) && strlen($localKey) === self::KEY_BYTES) {
+                $keys[] = $localKey;
+            }
+        }
+
+        $uniqueKeys = [];
+        foreach ($keys as $key) {
+            $uniqueKeys[hash('sha256', $key)] = $key;
+        }
+
+        return array_values($uniqueKeys);
+    }
+
+    private static function rewrap(int $applicationId, string $appCode, string $expectedHash, string $token): void
+    {
+        $encrypted = self::encrypt($applicationId, $appCode, $token);
+        $statement = self::pdo()->prepare(
+            'UPDATE api_application_token_vault
+             SET token_ciphertext = :token_ciphertext,
+                 token_nonce = :token_nonce,
+                 token_tag = :token_tag
+             WHERE registry_id = :registry_id
+               AND application_id = :application_id
+               AND app_code = :app_code
+               AND token_hash = :token_hash'
+        );
+        $statement->execute([
+            'token_ciphertext' => $encrypted['ciphertext'],
+            'token_nonce' => $encrypted['nonce'],
+            'token_tag' => $encrypted['tag'],
+            'registry_id' => self::registryId(),
+            'application_id' => $applicationId,
+            'app_code' => $appCode,
+            'token_hash' => $expectedHash,
+        ]);
+
+        if ($statement->rowCount() === 0) {
+            $check = self::pdo()->prepare(
+                'SELECT token_hash FROM api_application_token_vault
+                 WHERE registry_id = :registry_id AND application_id = :application_id
+                 LIMIT 1'
+            );
+            $check->execute([
+                'registry_id' => self::registryId(),
+                'application_id' => $applicationId,
+            ]);
+            $currentHash = $check->fetchColumn();
+            if (!is_string($currentHash) || !hash_equals($expectedHash, $currentHash)) {
+                throw new AppTokenVaultDecryptionException('Token aplikasi berubah saat sedang disalin. Silakan coba lagi.');
+            }
+        }
     }
 
     /** @return array{ciphertext: string, nonce: string, tag: string} */

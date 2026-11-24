@@ -77,8 +77,10 @@ kunci khusus. Jika kosong, vault menurunkan kunci terpisah memakai HKDF dari
 `development`, bila secret kuat belum tersedia, aplikasi membuat key lokal di
 `storage/app-token-encryption.key`; pertahankan file itu agar vault lokal tetap
 bisa dibuka. Jangan simpan key di repository atau database. Jika memakai HKDF
-fallback, perubahan `SSO_JWT_SECRET` memerlukan re-enkripsi vault sebelum key
-diganti.
+fallback lalu beralih ke `APP_TOKEN_ENCRYPTION_KEY`, vault akan mencoba kunci
+lama yang masih tersedia dan mengenkripsi ulang token saat token berhasil dibuka.
+Pertahankan secret lama sampai token tersalin setidaknya sekali. Jika semua
+kunci lama sudah hilang, ciphertext tidak dapat dipulihkan.
 
 ## Migration
 

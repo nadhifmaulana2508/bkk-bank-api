@@ -23,8 +23,8 @@ tidak diisi, aplikasi menurunkan kunci vault memakai HKDF dari `SSO_JWT_SECRET`;
 secret tersebut harus acak dan minimal 32 karakter. Kunci khusus dapat dibuat
 dengan `php -r "echo base64_encode(random_bytes(32)), PHP_EOL;"` dan disimpan hanya
 di environment/secret manager server. Backup kunci dengan aman. Jika kunci vault
-berubah, salinan terenkripsi tidak bisa dibuka sampai data vault dienkripsi ulang
-dengan kunci baru. Pada environment `local`/`development`, jika secret kuat belum
+berubah, pertahankan kunci lama agar proses reveal dapat mengenkripsi ulang
+vault dengan kunci aktif. Pada environment `local`/`development`, jika secret kuat belum
 ada, aplikasi membuat key lokal di `storage/app-token-encryption.key`; lindungi
 dan simpan backup file tersebut.
 
