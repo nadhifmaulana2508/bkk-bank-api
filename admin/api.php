@@ -47,15 +47,14 @@ if (($cleanSegments[0] ?? '') === 'api') {
 }
 
 if ($action === 'login' && $method === 'POST') {
-    if (!AdminSession::canAttemptLogin()) {
-        header('Retry-After: 900');
-        sendResponse(429, 'Terlalu banyak percobaan login dari alamat ini. Coba lagi 15 menit kemudian.');
-    }
-
     $payload = jsonRequestBody();
     if (!is_string($payload['username'] ?? null) || !is_string($payload['password'] ?? null)) {
         AdminSession::recordFailedLogin();
         sendResponse(401, 'Username atau password tidak valid.');
+    }
+    if (!AdminSession::canAttemptLogin($payload['username'])) {
+        header('Retry-After: 900');
+        sendResponse(429, 'Login sementara dibatasi demi keamanan. Coba lagi setelah beberapa saat.');
     }
     if (!AdminSession::login(
         $payload['username'],
@@ -135,3 +134,4 @@ switch ($action) {
     default:
         sendResponse(404, 'Aksi admin tidak ditemukan.');
 }
+

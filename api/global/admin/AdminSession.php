@@ -75,7 +75,7 @@ final class AdminSession
         self::start();
         $username = strtolower(trim($username));
 
-        if (!self::canAttemptLogin()) {
+        if (!self::canAttemptLogin($username)) {
             return false;
         }
 
@@ -110,7 +110,7 @@ final class AdminSession
 
         self::pdo()->prepare('UPDATE user_sso SET last_login_at = NOW() WHERE id = :id')
             ->execute(['id' => (int) $user['id']]);
-        self::clearLoginAttempts();
+        self::clearLoginAttempts($username);
 
         session_regenerate_id(true);
         $_SESSION['admin_authenticated'] = true;
@@ -126,12 +126,15 @@ final class AdminSession
         return true;
     }
 
-    public static function canAttemptLogin(): bool
+    public static function canAttemptLogin(string $username = ''): bool
     {
+        $username = self::loginAttemptUsername($username);
         $statement = self::pdo()->prepare(
-            'SELECT blocked_until FROM sso_login_attempts WHERE ip_address = :ip LIMIT 1'
+            'SELECT blocked_until FROM sso_login_attempts
+             WHERE ip_address = :ip AND username = :username
+             LIMIT 1'
         );
-        $statement->execute(['ip' => self::clientIp()]);
+        $statement->execute(['ip' => self::clientIp(), 'username' => $username]);
         $blockedUntil = $statement->fetchColumn();
 
         return $blockedUntil === false
@@ -143,14 +146,14 @@ final class AdminSession
     {
         $pdo = self::pdo();
         $ip = self::clientIp();
-        $username = substr(strtolower(trim($username)), 0, 80) ?: 'unknown';
+        $username = self::loginAttemptUsername($username);
         $statement = $pdo->prepare(
             'SELECT failed_attempts, window_started_at
              FROM sso_login_attempts
-             WHERE ip_address = :ip
+             WHERE ip_address = :ip AND username = :username
              LIMIT 1'
         );
-        $statement->execute(['ip' => $ip]);
+        $statement->execute(['ip' => $ip, 'username' => $username]);
         $row = $statement->fetch();
         $expired = !is_array($row) || strtotime((string) ($row['window_started_at'] ?? '')) <= time() - self::LOGIN_WINDOW;
 
@@ -160,7 +163,7 @@ final class AdminSession
                     (ip_address, username, failed_attempts, window_started_at, blocked_until)
                  VALUES (:ip, :username, 1, NOW(), NULL)
                  ON DUPLICATE KEY UPDATE
-                    username = VALUES(username), failed_attempts = 1,
+                    failed_attempts = 1,
                     window_started_at = NOW(), blocked_until = NULL'
             );
             $query->execute(['ip' => $ip, 'username' => $username]);
@@ -172,7 +175,7 @@ final class AdminSession
             'UPDATE sso_login_attempts
              SET username = :username, failed_attempts = :attempts,
                  blocked_until = :blocked_until, updated_at = NOW()
-             WHERE ip_address = :ip'
+             WHERE ip_address = :ip AND username = :username'
         );
         $query->execute([
             'username' => $username,
@@ -182,10 +185,14 @@ final class AdminSession
         ]);
     }
 
-    public static function clearLoginAttempts(): void
+    public static function clearLoginAttempts(string $username): void
     {
-        self::pdo()->prepare('DELETE FROM sso_login_attempts WHERE ip_address = :ip')
-            ->execute(['ip' => self::clientIp()]);
+        self::pdo()->prepare(
+            'DELETE FROM sso_login_attempts WHERE ip_address = :ip AND username = :username'
+        )->execute([
+            'ip' => self::clientIp(),
+            'username' => self::loginAttemptUsername($username),
+        ]);
     }
 
     /** @return array<string, mixed> */
@@ -293,4 +300,13 @@ final class AdminSession
         $ip = trim((string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
         return filter_var($ip, FILTER_VALIDATE_IP) ? substr($ip, 0, 45) : 'unknown';
     }
+
+    private static function loginAttemptUsername(string $username): string
+    {
+        $username = strtolower(trim($username));
+        return preg_match('/^[a-z0-9][a-z0-9._-]{2,79}$/', $username) === 1
+            ? $username
+            : 'invalid';
+    }
 }
+

@@ -94,10 +94,13 @@ database/migrations/004_create_user_sso_rbac.sql
 database/migrations/005_add_admin_actor_to_audit_logs.sql
 database/migrations/006_add_employee_id_to_user_sso.sql
 database/migrations/007_create_api_application_token_vault.sql
+database/migrations/008_scope_login_limits_by_user.sql
 ```
 
-Jalankan migration `001`–`006` pada database registry SSO. Jalankan migration
-`007` pada database Bank API yang ditunjuk `BANK_API_DB_NAME` (default:
+Jalankan migration `001`–`006` dan `008` pada database registry SSO. Migration
+`008` menghapus penghitung percobaan login sementara yang lama dan membatasi
+percobaan berdasarkan pasangan alamat IP dan username. Jalankan migration `007`
+pada database Bank API yang ditunjuk `BANK_API_DB_NAME` (default:
 `db_bank_api`). Vault memakai `APP_ENV` dan `DB_NAME` sebagai namespace agar
 token development dan production tidak tertukar jika database Bank API sama.
 
@@ -125,3 +128,4 @@ C:\xampp\php\php.exe tools/create_app_token.php --code=sso --name="SSO Control P
 3. Gunakan HTTPS sehingga cookie admin memiliki flag `Secure`.
 4. Rotasi token bila aplikasi pindah server, credential bocor, atau ownership berubah.
 5. Terapkan retention database untuk log sesuai kebijakan internal; log tidak boleh dibiarkan tumbuh tanpa batas.
+

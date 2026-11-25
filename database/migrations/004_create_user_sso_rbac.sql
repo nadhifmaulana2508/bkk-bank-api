@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS sso_login_attempts (
     window_started_at DATETIME NOT NULL,
     blocked_until DATETIME NULL,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (ip_address),
+    PRIMARY KEY (ip_address, username),
     KEY idx_sso_login_attempts_blocked (blocked_until)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
