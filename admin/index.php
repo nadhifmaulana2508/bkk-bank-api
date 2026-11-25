@@ -125,7 +125,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="description" content="Control plane internal untuk registry aplikasi dan audit penggunaan SSO BKK">
     <title>SSO Control Plane</title>
     <link rel="icon" type="image/svg+xml" href="<?= htmlspecialchars($adminBaseUrl . '/bkk-mark.svg', ENT_QUOTES, 'UTF-8') ?>">
-    <link rel="stylesheet" href="styles.css?v=20261123-1">
+    <link rel="stylesheet" href="styles.css?v=20261125-2">
 </head>
 <body class="page-mode-<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>" data-authenticated="<?= $authenticated ? 'true' : 'false' ?>" data-page="<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>" data-can-manage="<?= $can('registry.manage') ? 'true' : 'false' ?>">
 <a class="skip-link" href="#main-content">Lewati ke konten</a>
@@ -155,7 +155,12 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
         </section>
     </main>
 <?php else: ?>
-    <header class="topbar">
+    <button class="mobile-nav-toggle" id="mobile-nav-toggle" type="button" aria-label="Buka navigasi" aria-controls="mobile-sidebar" aria-expanded="false">
+        <svg class="mobile-nav-open-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <svg class="mobile-nav-close-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <button class="mobile-nav-backdrop" id="mobile-nav-backdrop" type="button" aria-label="Tutup navigasi" hidden></button>
+    <header class="topbar" id="mobile-sidebar">
         <a class="brand" href="./" aria-label="Bank API BKK — SSO Control Plane">
             <span class="brand-mark"><?= $navIcon('bank') ?></span>
             <span class="brand-copy"><strong>Bank API BKK</strong><small>SSO Control Plane</small></span>
@@ -474,7 +479,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
         </form>
     </dialog>
 
-    <dialog class="dialog" id="user-dialog" aria-labelledby="user-dialog-title">
+    <dialog class="dialog user-dialog" id="user-dialog" aria-labelledby="user-dialog-title">
         <form method="dialog" class="dialog-card" id="user-form">
             <div class="dialog-heading">
                 <div>
@@ -526,8 +531,8 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
                     <input id="user-email" type="email" maxlength="190" autocomplete="email">
                 </div>
                 <div class="field">
-                    <label for="user-password">Password <small>(minimal 12 karakter)</small></label>
-                    <input id="user-password" type="password" minlength="12" autocomplete="new-password">
+                    <label for="user-password">Password <small>(minimal 6 karakter)</small></label>
+                    <input id="user-password" type="password" minlength="6" autocomplete="new-password">
                 </div>
                 <label class="switch-field" for="user-active">
                     <input id="user-active" type="checkbox" checked>
@@ -554,7 +559,7 @@ X-App-Token: &lt;MONBIS_SSO_TOKEN&gt;</pre>
     </dialog>
 <?php endif; ?>
 
-<script src="app.js?v=20261124-1" defer></script>
+<script src="app.js?v=20261125-1" defer></script>
 <script src="theme.js" defer></script>
 </body>
 </html>

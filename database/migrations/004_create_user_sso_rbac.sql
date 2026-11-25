@@ -26,4 +26,3 @@ CREATE TABLE IF NOT EXISTS sso_login_attempts (
     PRIMARY KEY (ip_address, username),
     KEY idx_sso_login_attempts_blocked (blocked_until)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-

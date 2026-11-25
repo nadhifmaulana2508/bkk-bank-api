@@ -53,13 +53,17 @@ if ($action === 'login' && $method === 'POST') {
         sendResponse(401, 'Username atau password tidak valid.');
     }
     if (!AdminSession::canAttemptLogin($payload['username'])) {
-        header('Retry-After: 900');
-        sendResponse(429, 'Login sementara dibatasi demi keamanan. Coba lagi setelah beberapa saat.');
+        header('Retry-After: 300');
+        sendResponse(429, 'Terlalu banyak percobaan login dari alamat ini. Coba lagi 5 menit kemudian.');
     }
     if (!AdminSession::login(
         $payload['username'],
         $payload['password']
     )) {
+        if (!AdminSession::canAttemptLogin($payload['username'])) {
+            header('Retry-After: 300');
+            sendResponse(429, 'Terlalu banyak percobaan login dari alamat ini. Coba lagi 5 menit kemudian.');
+        }
         sendResponse(401, 'Username atau password tidak valid.');
     }
 
@@ -134,4 +138,3 @@ switch ($action) {
     default:
         sendResponse(404, 'Aksi admin tidak ditemukan.');
 }
-

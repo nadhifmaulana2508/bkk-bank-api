@@ -29,7 +29,8 @@
   if (lenis) {
     const syncScrollLock = () => {
       const locked = document.body.classList.contains('docs-sidebar-open')
-        || document.body.classList.contains('docs-control-nav-open');
+        || (document.body.classList.contains('docs-control-nav-open')
+          && window.matchMedia('(max-width: 900px)').matches);
       if (locked) lenis.stop();
       else lenis.start();
     };
@@ -477,6 +478,13 @@
 
   search?.addEventListener('input', () => filterOperations(search.value));
   window.addEventListener('resize', () => {
+    if (lenis) {
+      const locked = document.body.classList.contains('docs-sidebar-open')
+        || (document.body.classList.contains('docs-control-nav-open')
+          && window.matchMedia('(max-width: 900px)').matches);
+      if (locked) lenis.stop();
+      else lenis.start();
+    }
     if (window.innerWidth > 680) closeSidebar();
   });
   [authApp, authToken, authJwt].forEach((input) => input?.addEventListener('input', updateHeaderPreviews));

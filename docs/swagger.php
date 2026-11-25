@@ -92,7 +92,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
     <meta name="docs-app-default" content="<?= htmlspecialchars($docsDefaultApp, ENT_QUOTES, 'UTF-8') ?>">
     <meta name="docs-base" content="<?= htmlspecialchars($docsBaseUrl, ENT_QUOTES, 'UTF-8') ?>">
     <?php if ($hasDocs): ?><link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/vendor/lenis/lenis.css?v=1.3.27', ENT_QUOTES, 'UTF-8') ?>"><?php endif; ?>
-    <link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger.css?v=20261124-1', ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger.css?v=20261125-3', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
 <aside class="docs-control-sidebar" id="docs-control-sidebar" data-control-sidebar aria-label="Navigasi Control Plane" aria-hidden="true" inert>
@@ -134,10 +134,13 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
                 <span>Menu</span>
             </button>
-            <a class="docs-back-link" href="<?= htmlspecialchars($adminBaseUrl . '/overview', ENT_QUOTES, 'UTF-8') ?>" aria-label="Kembali ke Control Plane">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7M8 12h10"/></svg>
-                <span>Kembali ke Control Plane</span>
-            </a>
+            <?php if ($hasDocs): ?>
+            <button class="docs-sidebar-toggle" type="button" data-sidebar-toggle aria-expanded="false" aria-controls="docs-sidebar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <span>Daftar endpoint</span>
+                <span class="docs-sidebar-toggle-count" data-endpoint-count>0 endpoint</span>
+            </button>
+            <?php endif; ?>
         </div>
         <div class="docs-page-actions">
             <?php if (AdminSession::hasPermission('docs.global')): ?>
@@ -204,11 +207,6 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
         </aside>
 
         <main class="docs-main">
-            <button class="docs-sidebar-toggle" type="button" data-sidebar-toggle aria-expanded="false" aria-controls="docs-sidebar">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-                <span>Daftar endpoint</span>
-                <span class="docs-sidebar-toggle-count" data-endpoint-count>0 endpoint</span>
-            </button>
             <div class="docs-sidebar-backdrop" data-sidebar-backdrop hidden></div>
             <section class="auth-card" aria-labelledby="auth-title">
                 <div class="auth-card-heading">
@@ -244,6 +242,6 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
 
 <script src="<?= htmlspecialchars($adminBaseUrl . '/theme.js', ENT_QUOTES, 'UTF-8') ?>" defer></script>
 <script src="<?= htmlspecialchars($docsAssetBaseUrl . '/control-sidebar.js?v=20261122-4', ENT_QUOTES, 'UTF-8') ?>" defer></script>
-<?php if ($hasDocs): ?><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/vendor/lenis/lenis.min.js?v=1.3.27', ENT_QUOTES, 'UTF-8') ?>" defer></script><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger-init.js?v=20261124-1', ENT_QUOTES, 'UTF-8') ?>" defer></script><?php endif; ?>
+<?php if ($hasDocs): ?><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/vendor/lenis/lenis.min.js?v=1.3.27', ENT_QUOTES, 'UTF-8') ?>" defer></script><script src="<?= htmlspecialchars($docsAssetBaseUrl . '/swagger-init.js?v=20261125-1', ENT_QUOTES, 'UTF-8') ?>" defer></script><?php endif; ?>
 </body>
 </html>

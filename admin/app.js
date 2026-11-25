@@ -774,12 +774,43 @@
     });
   };
 
+  const bindMobileNavigation = () => {
+    const sidebar = $('#mobile-sidebar');
+    const toggle = $('#mobile-nav-toggle');
+    const backdrop = $('#mobile-nav-backdrop');
+    if (!sidebar || !toggle || !backdrop) return;
+
+    const media = window.matchMedia('(max-width: 640px)');
+    const setOpen = (open, restoreFocus = false) => {
+      const visible = media.matches && open;
+      body.classList.toggle('mobile-nav-open', visible);
+      sidebar.inert = media.matches && !visible;
+      sidebar.setAttribute('aria-hidden', String(media.matches && !visible));
+      backdrop.hidden = !visible;
+      toggle.setAttribute('aria-expanded', String(visible));
+      toggle.setAttribute('aria-label', visible ? 'Tutup navigasi' : 'Buka navigasi');
+      if (restoreFocus) toggle.focus();
+    };
+
+    toggle.addEventListener('click', () => setOpen(!body.classList.contains('mobile-nav-open')));
+    backdrop.addEventListener('click', () => setOpen(false, true));
+    sidebar.querySelector('.main-nav')?.addEventListener('click', (event) => {
+      if (event.target.closest('a')) setOpen(false);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && body.classList.contains('mobile-nav-open')) setOpen(false, true);
+    });
+    media.addEventListener('change', () => setOpen(false));
+    setOpen(false);
+  };
+
   if (!isAuthenticated) {
     bindPasswordToggle();
     login();
     return;
   }
 
+  bindMobileNavigation();
   bindDismissibleUi();
 
   if (page.startsWith('docs-')) return;

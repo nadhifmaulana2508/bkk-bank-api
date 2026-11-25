@@ -282,8 +282,8 @@ final class AdminUserService
             throw new InvalidArgumentException('Password tidak valid.');
         }
         $password = (string) $value;
-        if ($required && strlen($password) < 12) {
-            throw new InvalidArgumentException('Password minimal 12 karakter.');
+        if ($required && strlen($password) < 6) {
+            throw new InvalidArgumentException('Password minimal 6 karakter.');
         }
         if ($password !== '' && strlen($password) > 200) {
             throw new InvalidArgumentException('Password terlalu panjang.');

@@ -674,7 +674,7 @@ html[data-theme="light"] .docs-sidebar-toggle:hover { background: #eef2f6; }
 .docs-shell { width: min(1440px, calc(100% - 40px)); margin: 0 auto; transition: width 200ms ease, margin 200ms ease; }
 
 @media (min-width: 901px) {
-  body.docs-control-nav-open { overflow: auto; }
+  body.docs-control-nav-open { overflow: visible; }
   body.docs-control-nav-open .docs-control-backdrop { display: none; }
   body.docs-control-nav-open .docs-shell {
     width: min(1440px, calc(100% - 120px));
@@ -688,4 +688,35 @@ html[data-theme="light"] .docs-sidebar-toggle:hover { background: #eef2f6; }
 
 @media (prefers-reduced-motion: reduce) {
   .docs-shell { transition: none; }
+}
+
+@media (max-width: 680px) {
+  .docs-page-controls { align-items: stretch; flex-direction: column; gap: 10px; }
+  .docs-page-start { width: 100%; flex-wrap: wrap; }
+  .docs-page-actions { width: 100%; justify-content: space-between; }
+  .docs-sidebar-toggle { margin: 0; }
+}
+
+@media (max-width: 900px) {
+  .docs-hero { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 18px; }
+  .docs-target-card { width: 100%; max-width: 360px; }
+}
+
+@media (max-width: 680px) {
+  .docs-shell { width: calc(100% - 24px); margin: 0 auto; }
+  .docs-hero { width: 100%; margin: 24px 0; }
+  .docs-hero > div,
+  .docs-layout,
+  .docs-main,
+  .auth-card,
+  .operation-card { width: 100%; min-width: 0; }
+  .docs-layout { grid-template-columns: minmax(0, 1fr); margin: 0; }
+  .docs-target-card { max-width: none; }
+  .auth-card { padding: 16px; }
+  .auth-card-heading { align-items: stretch; flex-direction: column; gap: 14px; }
+  .auth-tools { justify-content: flex-start; }
+  .auth-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .auth-tools .button-subtle { width: 100%; min-width: 0; white-space: nowrap; }
+  .auth-grid { grid-template-columns: minmax(0, 1fr); }
+  .auth-wide, .field-full { grid-column: 1 / -1; }
 }

@@ -33,8 +33,8 @@ if (!preg_match('/^[a-z0-9][a-z0-9._-]{2,79}$/', $username)) {
     fwrite(STDERR, "Username tidak valid.\n");
     exit(1);
 }
-if ($fullName === '' || strlen($fullName) > 120 || strlen($password) < 12) {
-    fwrite(STDERR, "Nama wajib diisi dan password minimal 12 karakter.\n");
+if ($fullName === '' || strlen($fullName) > 120 || strlen($password) < 6) {
+    fwrite(STDERR, "Nama wajib diisi dan password minimal 6 karakter.\n");
     exit(1);
 }
 if (!preg_match('/^[a-z][a-z0-9_-]{1,39}$/', $role) || $permissions === []) {

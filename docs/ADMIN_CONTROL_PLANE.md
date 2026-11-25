@@ -128,4 +128,3 @@ C:\xampp\php\php.exe tools/create_app_token.php --code=sso --name="SSO Control P
 3. Gunakan HTTPS sehingga cookie admin memiliki flag `Secure`.
 4. Rotasi token bila aplikasi pindah server, credential bocor, atau ownership berubah.
 5. Terapkan retention database untuk log sesuai kebijakan internal; log tidak boleh dibiarkan tumbuh tanpa batas.
-

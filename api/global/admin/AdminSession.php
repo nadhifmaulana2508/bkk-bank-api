@@ -11,7 +11,8 @@ final class AdminSession
     private const SESSION_NAME = 'BKKAPIADMINSESSID';
     private const SESSION_TIMEOUT = 43200;
     private const LOGIN_WINDOW = 900;
-    private const LOGIN_LIMIT = 5;
+    private const LOGIN_BLOCK_DURATION = 300;
+    private const LOGIN_LIMIT = 10;
 
     public static function start(): void
     {
@@ -180,7 +181,7 @@ final class AdminSession
         $query->execute([
             'username' => $username,
             'attempts' => $attempts,
-            'blocked_until' => $attempts >= self::LOGIN_LIMIT ? date('Y-m-d H:i:s', time() + self::LOGIN_WINDOW) : null,
+            'blocked_until' => $attempts >= self::LOGIN_LIMIT ? date('Y-m-d H:i:s', time() + self::LOGIN_BLOCK_DURATION) : null,
             'ip' => $ip,
         ]);
     }
@@ -309,4 +310,3 @@ final class AdminSession
             : 'invalid';
     }
 }
-
