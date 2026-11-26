@@ -32,8 +32,9 @@ GET /api/simpeg/pegawai/search?nama=<NAMA_PEGAWAI>
 ```
 
 Isi salah satu parameter `id_peg` atau `nama`. Hasil selalu berupa array
-dengan field `employee_id`, `full_name`, `kode`, dan `job_position`, maksimal
-50 data. Nama field mengikuti response `whoami` agar client konsisten.
+dengan field `employee_id`, `full_name`, `kode`, `job_position`, dan
+`unit_kerja`, maksimal 50 data. `unit_kerja` berasal dari
+`tb_master_jabatan.nama_unit_kerja`.
 
 ## Direktori organisasi untuk KPI
 

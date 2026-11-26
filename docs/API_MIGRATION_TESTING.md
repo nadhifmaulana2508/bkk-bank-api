@@ -261,8 +261,7 @@ HTTP 400 dengan response JSON.
 Endpoint ini tidak membutuhkan token login pegawai, tetapi tetap membutuhkan
 app token ketika `APP_TOKEN_REQUIRED=true`. Gunakan `id_peg` untuk pencarian
 spesifik atau `nama` untuk pencarian sebagian nama. Setiap hasil berisi
-`employee_id`, `full_name`, `kode`, dan `job_position` seperti response
-`whoami`.
+`employee_id`, `full_name`, `kode`, `job_position`, dan `unit_kerja`.
 
 ~~~powershell
 $appHeaders = @{ App = "simpeg"; "X-App-Token" = "<APP_TOKEN>" }
@@ -284,7 +283,8 @@ Expected:
       "employee_id": "<ID_PEGAWAI>",
       "full_name": "Nama Pegawai",
       "kode": "001",
-      "job_position": "Staf"
+      "job_position": "Staf",
+      "unit_kerja": "Divisi Operasional"
     }
   ]
 }

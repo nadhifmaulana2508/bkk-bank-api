@@ -42,6 +42,7 @@ final class EmployeeService
             $columns = array_merge($columns, [
                 'k.kode_cabang AS kode',
                 'mj.nama_jabatan AS job_position',
+                'mj.nama_unit_kerja AS unit_kerja',
             ]);
         }
 
